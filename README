@@ -1,5 +1,3 @@
-MeshTK is a C++ toolkit for mesh manipulations based on CGAL library. 
+MeshTK is a C++ toolkit for mesh manipulations based on CGAL library. The functions provide by MeshTK should be (pre-)processing, visualization and a lot.
 
-The functions provide by MeshTK should be (pre-)processing, visualization and a lot.
-
-It is a software, rather than a library.
+It is still UNDER CODING, and expected to be a software(rather than a library), with command line interface and binary/ascii IO. 

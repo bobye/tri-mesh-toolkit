@@ -4,3 +4,5 @@ a lot.
 
 It is still UNDER CODING, and expected to be a software(rather than a 
 library), with command line interface and binary/ascii IO. 
+
+To build the software, please refer to INSTALL.

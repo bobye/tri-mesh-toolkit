@@ -20,7 +20,7 @@ typedef TCLAP::SwitchArg                             Opt_Bool;
 
 #include <CGAL/IO/Polyhedron_iostream.h>
 #include "mesh_topo.h"
-#include "normal.h"
+
 
 
 
@@ -57,6 +57,9 @@ int main(int argc, char** argv){
     mesh_Fin >> PI.P;// mesh read
     mesh_Fin.close();
     Polyhedron_Init()(PI);// init all data of PI, with P
+    halfedgeUpdate(PI);
+    facetUpdate(PI);
+    vertexUpdate(PI);
 
 
     //mesh processing

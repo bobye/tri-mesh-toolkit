@@ -18,7 +18,7 @@ default: MeshTK
 %.o: %.cc
 	$(CPP) -c $(CPPFLAGS) $(LIBOPT) -o $@ $<
 
-MeshTK: main.o
+MeshTK: main.o normal.o visual.o
 	$(CPP) $(CPPFLAGS) $(LIBOPT) -o MeshTK $^
 
 clean: main.o

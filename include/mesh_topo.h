@@ -95,20 +95,14 @@ struct Polyhedron_IS {//topo ref system
   ISHalfedge_list IH; // 
   ISVertex_list IV;
   ISFacet_list IF;
-  
-  
-};
 
-struct perelGuassianInit {
-  template <class Vertex>
-  void operator()(Vertex &v){
-  }
-};
+  
+  std::vector<Vector> halfedge_vec;
+  std::vector<Vector> facet_norm;
+  std::vector<Vector> vertex_norm;
 
-struct perelLaplaceKInit {
-  template <class Vertex>
-  void operator()(Vertex &v){
-  }
+  std::vector<double> facet_area;
+  
 };
 
 
@@ -116,13 +110,16 @@ struct perelLaplaceKInit {
 struct Polyhedron_Init{
     template <class Polyhedron_IS>    
     void operator()(Polyhedron_IS& PI){
-      //        std::for_each( P.vertices_begin(), P.vertices_end(), perelGuassianInit());
-      //  std::for_each( P.vertices_begin(), P.vertices_end(), perelLaplaceKInit());
       
       int n=(PI.P.size_of_halfedges()+PI.P.size_of_border_edges())/2;
       PI.IH = ISHalfedge_list(2*n);
       PI.IV =  ISVertex_list(PI.P.size_of_vertices());
       PI.IF =  ISFacet_list(PI.P.size_of_facets());
+      
+      PI.halfedge_vec = std::vector<Vector> (n);
+      PI.facet_norm   = std::vector<Vector> (PI.P.size_of_facets());
+      PI.vertex_norm  = std::Vector<Vector> (PI.P.size_of_vertices());
+      PI.facet_area   = std::Vector<double> (PI.P.size_of_facets());
 
       int index_count=0;
       for(Vertex_iterator vitr= PI.P.vertices_begin();vitr!= PI.P.vertices_end();
@@ -136,6 +133,7 @@ struct Polyhedron_Init{
       index_count=0;
       for(Facet_iterator fitr= PI.P.facets_begin(); fitr!= PI.P.facets_end(); PI.IF[index_count]=fitr, PI.FI[fitr]=index_count++,fitr++);      
     };
+
 };
 
 

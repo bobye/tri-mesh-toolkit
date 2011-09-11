@@ -1,0 +1,38 @@
+You need to install several libraries before to compile the software.
+
+---------------------------------------------------------------------
+Please follow the instructions provided by the offical sites to 
+install following library.
+
+* CGAL
+
+http://www.cgal.org/
+
+* TCLAP
+
+http://tclap.sourceforge.net/
+---------------------------------------------------------------------
+
+Modify *Makefile* in root directory, to make sure the configuration is 
+correct. 
+
+CC = gcc
+CPP = g++ ##CPP compiler
+CPPFLAGS = -Wall -I include 
+
+LIBOPT = -lCGAL  -I/usr/local/include/tclap/ ##Library path
+
+
+And type
+
+make
+
+to compile the whole software, this will generate a binary excutable 
+one in the root directly:
+
+MeshTK
+----------------------------------------------------------------------
+
+Author: Jianbo YE<yelpoo@gmail.com>
+Date  : Sep 11, 2011
+

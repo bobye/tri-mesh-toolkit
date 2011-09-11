@@ -6,6 +6,6 @@
   
  */
 
-void main(int argc, char* argc){
+int main(int argc, char** argv){
   return 0;
 }

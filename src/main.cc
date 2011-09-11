@@ -20,7 +20,7 @@ typedef TCLAP::SwitchArg                             Opt_Bool;
 
 #include <CGAL/IO/Polyhedron_iostream.h>
 #include "mesh_topo.h"
-
+#include "mesh_update.h"
 
 
 
@@ -57,6 +57,8 @@ int main(int argc, char** argv){
     mesh_Fin >> PI.P;// mesh read
     mesh_Fin.close();
     Polyhedron_Init()(PI);// init all data of PI, with P
+    
+    // Update mesh infomation
     halfedgeUpdate(PI);
     facetUpdate(PI);
     vertexUpdate(PI);
@@ -74,7 +76,7 @@ int main(int argc, char** argv){
     file_name_out.append("."); file_name_out.append(output_mesh_type);
     mesh_Fout.open(file_name_out.c_str());
     mesh_Fout << PI.P;// mesh output
-    std::cout << "Put output mesh: " << file_name_out.c_str() <<  std::endl;
+    std::cout << "Export mesh to: " << file_name_out.c_str() <<  std::endl;
     mesh_Fout.close();
   } catch (TCLAP::ArgException &e) //catch any expections 
     {

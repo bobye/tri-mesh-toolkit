@@ -3,7 +3,7 @@
 
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
-
+#include <vector>
 
 
 typedef CGAL::Simple_cartesian<double>                       Kernel;
@@ -116,10 +116,10 @@ struct Polyhedron_Init{
       PI.IV =  ISVertex_list(PI.P.size_of_vertices());
       PI.IF =  ISFacet_list(PI.P.size_of_facets());
       
-      PI.halfedge_vec = std::vector<Vector> (n);
+      PI.halfedge_vec = std::vector<Vector> (2*n);
       PI.facet_norm   = std::vector<Vector> (PI.P.size_of_facets());
-      PI.vertex_norm  = std::Vector<Vector> (PI.P.size_of_vertices());
-      PI.facet_area   = std::Vector<double> (PI.P.size_of_facets());
+      PI.vertex_norm  = std::vector<Vector> (PI.P.size_of_vertices());
+      PI.facet_area   = std::vector<double> (PI.P.size_of_facets());
 
       int index_count=0;
       for(Vertex_iterator vitr= PI.P.vertices_begin();vitr!= PI.P.vertices_end();

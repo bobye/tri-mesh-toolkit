@@ -1,5 +1,5 @@
-#ifndef _PERELTOPO_H
-#define _PERELTOPO_H
+#ifndef _MESH_TOPO_H
+#define _MESH_TOPO_H
 
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>

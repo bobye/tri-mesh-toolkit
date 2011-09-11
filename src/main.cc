@@ -20,8 +20,7 @@ typedef TCLAP::SwitchArg                             Opt_Bool;
 
 #include <CGAL/IO/Polyhedron_iostream.h>
 #include "mesh_topo.h"
-
-Polyhedron_IS PI;// index mapping from array to halfedge data structure
+#include "normal.h"
 
 
 
@@ -52,6 +51,9 @@ int main(int argc, char** argv){
     mesh_Fin.open(file_name_in.c_str());
     if (!mesh_Fin.is_open())
       std::cerr << "Cannot open file " << file_name_in.c_str() << std::endl;
+    
+    Polyhedron_IS PI;// index mapping from array to halfedge data structure
+ 
     mesh_Fin >> PI.P;// mesh read
     mesh_Fin.close();
     Polyhedron_Init()(PI);// init all data of PI, with P

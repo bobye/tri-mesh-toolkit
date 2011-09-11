@@ -21,5 +21,5 @@ default: MeshTK
 MeshTK: main.o mesh_update.o mesh_vis.o
 	$(CPP) $(CPPFLAGS) $(LIBOPT) -o MeshTK $^
 
-clean: main.o
-	$(RM) $^ MeshTK
+clean: 
+	$(RM) *.o MeshTK

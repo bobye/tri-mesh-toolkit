@@ -2,7 +2,7 @@ CC = gcc
 CPP = g++
 CPPFLAGS = -Wall -I include -lCGAL
 VPATH = src include
-BIN = bin
+
 
 
 default: MeshTK
@@ -11,7 +11,7 @@ default: MeshTK
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 MeshTK: main.o
-	$(CPP) $(CPPFLAGS) -o $(BIN)/MeshTK $^
+	$(CPP) $(CPPFLAGS) -o MeshTK $^
 
 clean: main.o
 	$(RM) $^

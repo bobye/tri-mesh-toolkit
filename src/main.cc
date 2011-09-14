@@ -18,10 +18,9 @@ typedef TCLAP::ValueArg<double>                      Opt_scalar;
 typedef TCLAP::ValueArg<int>                         Opt_Int;
 typedef TCLAP::SwitchArg                             Opt_Bool;
 
-#include <CGAL/IO/Polyhedron_iostream.h>
 #include "mesh_topo.h"
 #include "mesh_update.h"
-
+#include "mesh_io.h"
 
 
 int main(int argc, char** argv){
@@ -43,19 +42,10 @@ int main(int argc, char** argv){
     std::string input_mesh_type  = inputMeshType.getValue();
     std::string output_mesh_type = outputMeshType.getValue();
 
-    std::ifstream mesh_Fin;
-    
-    std::string file_name_in(input_mesh_name);
-    file_name_in.append("."); file_name_in.append(input_mesh_type);
-    
-    mesh_Fin.open(file_name_in.c_str());
-    if (!mesh_Fin.is_open())
-      std::cerr << "Cannot open file " << file_name_in.c_str() << std::endl;
     
     Polyhedron_IS PI;// index mapping from array to halfedge data structure
- 
-    mesh_Fin >> PI.P;// mesh read
-    mesh_Fin.close();
+
+    Mesh_i()(PI.P, input_mesh_name, input_mesh_type);//input mesh
     Polyhedron_Init()(PI);// init all data of PI, with P
     
     // Update mesh infomation
@@ -70,14 +60,7 @@ int main(int argc, char** argv){
 
     
 
-
-    std::ofstream mesh_Fout;
-    std::string file_name_out(output_mesh_name);
-    file_name_out.append("."); file_name_out.append(output_mesh_type);
-    mesh_Fout.open(file_name_out.c_str());
-    mesh_Fout << PI.P;// mesh output
-    std::cout << "Export mesh to: " << file_name_out.c_str() <<  std::endl;
-    mesh_Fout.close();
+    Mesh_o()(PI.P, output_mesh_name, output_mesh_type); //output mesh
   } catch (TCLAP::ArgException &e) //catch any expections 
     {
       std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl; 

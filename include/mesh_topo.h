@@ -116,6 +116,11 @@ struct Polyhedron_IS {//topo ref system //index system of items of polyhedron
   std::vector<Vector> vertex_norm;
 
   std::vector<double> facet_area;
+
+  double total_area;
+  double avg_edge_len;
+
+  int edge_num;
   
 };
 
@@ -126,6 +131,7 @@ struct Polyhedron_Init{
   void operator()(Polyhedron_IS& PI){
       
     int n=(PI.P.size_of_halfedges()+PI.P.size_of_border_edges())/2;
+    PI.edge_num = n;
     PI.IH = ISHalfedge_list(2*n);
     PI.IV =  ISVertex_list(PI.P.size_of_vertices());
     PI.IF =  ISFacet_list(PI.P.size_of_facets());
@@ -141,7 +147,6 @@ struct Polyhedron_Init{
     index_count=0;
     for(Edge_iterator eitr= PI.P.edges_begin();eitr!= PI.P.edges_end();
 	PI.IH[index_count]=eitr, PI.IH[index_count+n]=eitr->opposite(),
-	  //	  PI.EI[eitr] = PI.EI[eitr->opposite()] = index_count, 
 	  eitr->index = index_count, eitr->opposite()->index = index_count +n,
 	  index_count++, eitr++);
     index_count=0;

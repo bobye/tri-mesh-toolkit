@@ -49,8 +49,8 @@ int main(int argc, char** argv){
     Polyhedron_Init()(PI);// init all data of PI, with P
     
     // Update mesh infomation
-    halfedgeUpdate(PI);
-    facetUpdate(PI);
+    PI.avg_edge_len = halfedgeUpdate(PI);
+    PI.total_area = facetUpdate(PI);
     vertexUpdate(PI);
 
 

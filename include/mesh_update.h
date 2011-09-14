@@ -3,9 +3,9 @@
 
 
 
-extern void halfedgeUpdate(Polyhedron_IS&);
+extern double halfedgeUpdate(Polyhedron_IS&);
 
-extern void facetUpdate(Polyhedron_IS&);
+extern double facetUpdate(Polyhedron_IS&);
 extern void vertexUpdate(Polyhedron_IS&);
 
 

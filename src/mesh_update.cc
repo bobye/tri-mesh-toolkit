@@ -20,7 +20,7 @@ void facetUpdate(Polyhedron_IS & PI){
 
   for (int i=0;i<n;i++){
     h=PI.IF[i]->halfedge();
-    normal = CGAL::cross_product(PI.halfedge_vec[PI.HI[h]], PI.halfedge_vec[PI.HI[h->next()]]);
+    normal = CGAL::cross_product(PI.halfedge_vec[h->index], PI.halfedge_vec[h->next()->index]);
     PI.facet_area[i] = normal * normal ;
     PI.facet_norm[i] = normal / CGAL::sqrt(PI.facet_area[i]); 
     PI.facet_area[i] /=2.;

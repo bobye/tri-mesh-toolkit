@@ -53,8 +53,8 @@ int main(int argc, char** argv){
     mesh.update_vertex_localchart();
     mesh.update_facet_localchart();
     /***************************************************************************/
-    //
-    
+    //Compute facet curvature tensor
+    mesh.update_facet_curvature();
 
     
     mesh.write(output_mesh_name, output_mesh_type);

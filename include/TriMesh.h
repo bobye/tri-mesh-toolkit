@@ -27,12 +27,19 @@ class TriMesh {//topo ref system //index system of items of polyhedron
   //item attributes
   Vec_Fun halfedge_vec;
 
-  Vec_Fun vertex_norm;
+  Vec_Fun vertex_norm;//normal vector
   Vec_Fun facet_norm;
 
-  Vec_Fun vertex_LC[2];
+  Vec_Fun vertex_LC[2];//LC: local chart
   Vec_Fun facet_LC[2];
+  
+  Scalar_Fun vertex_CT[3];//CT: cuvature tensor
+  Scalar_Fun facet_CT[3];//
 
+  Scalar_Fun vertex_PC[2];//PC: principle cuvature
+  Scalar_Fun facet_PC[2];
+
+  Scalar_Fun facet_mcurv;//mean curvature
 
   Scalar_Fun facet_area;
 

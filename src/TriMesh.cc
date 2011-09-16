@@ -65,7 +65,7 @@ double TriMesh::update_halfedge(){
   Halfedge_handle h;
   for (int i=0;i<2*edge_num;i++) 
     if ((h=IH[i])!=NULL){    
-      halfedge_vec[i] = h->vertex()->point() - h->opposite()->vertex()->point();
+      halfedge_vec[i] = h->vertex()->point() - h->prev()->vertex()->point();
       avg_len += CGAL::sqrt(halfedge_vec[i] * halfedge_vec[i]);
     }
   return avg_edge_len = avg_len/(2*edge_num-P.size_of_border_edges());
@@ -140,4 +140,85 @@ void TriMesh::update_facet_localchart(){
 
 void TriMesh::update_facet_curvature(){
 
+  facet_CT[0].resize(facet_num);
+  facet_CT[1].resize(facet_num);
+  facet_CT[2].resize(facet_num);
+
+  facet_PC[0].resize(facet_num);
+  facet_PC[1].resize(facet_num);
+  facet_mcurv.resize(facet_num);
+  
+  for (int i=0;i<facet_num;i++){
+    //compute curvature for each face
+
+    //step 1. assembly matrix
+    Halfedge_handle h[3];
+    h[0]=IF[i]->halfedge();
+    h[1]=h[0]->next();
+    h[2]=h[1]->next();
+
+    Vector e[3],n[3];
+    for (int j=0;j<3;j++) e[j] = halfedge_vec[h[j]->index];
+    
+    for (int j=0;j<3;j++) n[j] = vertex_norm[h[j]->vertex()->index] - vertex_norm[h[j]->prev()->vertex()->index];
+
+    double e_LC[3][2], n_LC[3][2];
+    for (int j=0;j<3;j++) {
+      localcoord(e[j],facet_LC[0][i],facet_LC[1][i], e_LC[j]);
+      localcoord(n[j],facet_LC[0][i],facet_LC[1][i], n_LC[j]);
+    }
+
+
+    double matrix_l[2][2], matrix_r[2][2];
+    for (int j=0;j<2;j++)
+      for (int k=0;k<2;k++)
+	for (int l=0;l<3;l++){
+	  matrix_l[j][k]+=e_LC[l][j]*e_LC[l][k];
+	  matrix_r[j][k]+=n_LC[l][j]*e_LC[l][k];
+	}
+    /*
+    double determinant = matrix_l[0][0]*matrix_l[1][1] - matrix_l[0][1]*matrix_l[1][0];
+    double matrix_linv[2][2];
+    matrix_linv[0][0] = matrix_l[1][1]/determinant;
+    matrix_linv[1][1] = matrix_l[0][0]/determinant;
+    matrix_linv[0][1] = - matrix_l[1][0]/determinant;
+    matrix_linv[1][0] = - matrix_l[0][1]/determinant;
+    
+
+    for (int j=0;j<2;j++)
+      for (int k=0;k<2;k++)
+	{
+	  facet_CT[j][k][i]=0;
+	  for (int l=0;l<2;l++) facet_CT[j][k][i] += matrix_r[j][l]*matrix_linv[l][k];
+	}
+    */
+    
+    double final_linv[3][3]={}, final_r[3];
+    double a,b,c, deter;
+    a = matrix_l[0][0]; b = matrix_l[0][1]; c = matrix_l[1][1];
+    deter=(a+c)*(a*c-b*b);
+    
+    final_r[0] = matrix_r[0][0];
+    final_r[1] = matrix_r[0][1]+matrix_r[1][0];
+    final_r[2] = matrix_r[1][1];
+
+    
+    final_linv[0][0]=(a+c)*c-b*b;
+    final_linv[0][1]=final_linv[1][0]=-b*c;
+    final_linv[0][2]=final_linv[2][0]=b*b;
+    final_linv[1][1]=a*c;
+    final_linv[1][2]=final_linv[2][1]=-b*a;
+    final_linv[2][2]=(a+c)*a-b*b;
+
+    
+    facet_CT[0][i] = (final_linv[0][0]*final_r[0] + final_linv[0][1]*final_r[1] + final_linv[0][2]*final_r[2])/deter;
+    
+    facet_CT[1][i] = (final_linv[1][0]*final_r[0] + final_linv[1][1]*final_r[1] + final_linv[1][2]*final_r[2])/deter;
+    facet_CT[2][i] = (final_linv[2][0]*final_r[0] + final_linv[2][1]*final_r[1] + final_linv[2][2]*final_r[2])/deter;        
+    
+    facet_mcurv[i] = prin_curv(facet_CT[0][i], facet_CT[1][i], facet_CT[2][i], facet_PC[0][i], facet_PC[1][i]);
+    //step 2. solve matrix
+  }
 }
+
+

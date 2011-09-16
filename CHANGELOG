@@ -1,3 +1,4 @@
+* Sep 16, Add face curvature estimation
 * Sep 14, Add facet and vertex normal computation
 * Sep 11, Add Polyhedron IO. 
 * Sep 11, base code structure init.

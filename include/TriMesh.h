@@ -26,8 +26,13 @@ class TriMesh {//topo ref system //index system of items of polyhedron
 
   //item attributes
   Vec_Fun halfedge_vec;
-  Vec_Fun facet_norm;
+
   Vec_Fun vertex_norm;
+  Vec_Fun facet_norm;
+
+  Vec_Fun vertex_LC[2];
+  Vec_Fun facet_LC[2];
+
 
   Scalar_Fun facet_area;
 
@@ -51,8 +56,38 @@ public:
   void write(std::string, std::string);
   void init_index();
   void update_base();
-  void init_vertex_localchart(Vec_Fun *);
-  void init_facet_localchart(Vec_Fun *);
+
+  template <class T>
+  void facet2vertex_average(std::vector<T> &f, std::vector<T> &v){
+    double sigma = 2 * avg_edge_len;
+
+    for (int i=0;i<vertex_num;i++){
+      Vector tmp;
+      double scale, total_scale=0;
+      HV_circulator hv=IV[i]->vertex_begin();
+      T vec;
+      
+      do {
+	tmp = (-halfedge_vec[hv->index]+halfedge_vec[hv->next()->index]);
+	scale = CGAL::sqrt(tmp * tmp);
+	total_scale += scale = std::exp(- scale * scale / (sigma * sigma));
+	vec = vec + scale * f[hv->facet()->index];	
+      }while (++hv!=IV[i]->vertex_begin());
+      v[i] = vec/total_scale;
+    }
+  };
+
+  template <class T>
+  void vertex2facet_average(std::vector<T> &v, std::vector<T> &f){
+    for (int i=0;i<facet_num;i++){
+      // ...
+    }
+  };
+
+  void update_vertex_localchart();
+  void update_facet_localchart();
+  void update_facet_curvature();
+
 
 
 

@@ -49,11 +49,9 @@ int main(int argc, char** argv){
     //mesh processing
     /***************************************************************************/
     //contruct local chart for vertices and facets
-    Vec_Fun vertex_LC[2] = {Vec_Fun(mesh.vertex_num), Vec_Fun(mesh.vertex_num)};
-    Vec_Fun facet_LC[2]={Vec_Fun(mesh.facet_num), Vec_Fun(mesh.facet_num)};
     
-    mesh.init_vertex_localchart(vertex_LC);
-    mesh.init_facet_localchart(facet_LC);
+    mesh.update_vertex_localchart();
+    mesh.update_facet_localchart();
     /***************************************************************************/
     //
     

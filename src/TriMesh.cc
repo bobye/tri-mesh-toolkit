@@ -90,6 +90,7 @@ double TriMesh::update_facet(){
 
 
 void TriMesh::update_vertex(){
+  /*
   double sigma = 2 * avg_edge_len;
 
   for (int i=0;i<vertex_num;i++){
@@ -102,6 +103,12 @@ void TriMesh::update_vertex(){
       normal = normal + std::exp(- scale * scale / (sigma *sigma)) * facet_norm[hv->facet()->index];
     }while (++hv!=IV[i]->vertex_begin());
     vertex_norm[i] = normal / CGAL::sqrt(normal * normal);
+  }
+  */
+
+  facet2vertex_average<Vector>( facet_norm, vertex_norm);
+  for (int i=0;i<vertex_num;i++){
+    vertex_norm[i] = vertex_norm[i] / CGAL::sqrt(vertex_norm[i] * vertex_norm[i]);
   }
 }
 
@@ -116,12 +123,21 @@ void TriMesh::update_base(){//base update halfedge, facet, vertex.
 };
 
 
-void TriMesh::init_vertex_localchart(Vec_Fun* LC){
-  for (int i=0;i<vertex_num;i++) localchart(LC[0][i],LC[1][i], vertex_norm[i]);
+void TriMesh::update_vertex_localchart(){
+  vertex_LC[0] = Vec_Fun(vertex_num);
+  vertex_LC[1] = Vec_Fun(vertex_num);
+  
+  for (int i=0;i<vertex_num;i++) localchart(vertex_LC[0][i],vertex_LC[1][i], vertex_norm[i]);
 }
 
-void TriMesh::init_facet_localchart(Vec_Fun* LC){
-  for (int i=0;i<facet_num;i++) localchart(LC[0][i],LC[1][i], facet_norm[i]);
+void TriMesh::update_facet_localchart(){
+  facet_LC[0] = Vec_Fun(facet_num);
+  facet_LC[1] = Vec_Fun(facet_num);
+
+  for (int i=0;i<facet_num;i++) localchart(facet_LC[0][i],facet_LC[1][i], facet_norm[i]);
 }
 
 
+void TriMesh::update_facet_curvature(){
+
+}

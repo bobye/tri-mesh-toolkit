@@ -1,0 +1,8 @@
+#ifndef _MESH_ASSIST_H_
+#define _MESH_ASSIST_H_
+
+#include "mesh_topo.h"
+
+extern void localchart(Vector &, Vector &, Vector norm);
+
+#endif /* _MESH_ASSIST_H_ */

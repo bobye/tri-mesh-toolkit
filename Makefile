@@ -18,7 +18,7 @@ default: MeshTK
 %.o: %.cc
 	$(CPP) -c $(CPPFLAGS) $(LIBOPT) -o $@ $<
 
-MeshTK: main.o mesh_update.o 
+MeshTK: main.o  TriMesh.o mesh_assist.o
 	$(CPP) $(CPPFLAGS) $(LIBOPT) -o MeshTK $^
 
 clean: 

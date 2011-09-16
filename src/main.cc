@@ -7,9 +7,6 @@
  */
 
 #include <string>
-#include <iostream>
-#include <fstream>
-
 #include <algorithm>
 
 #include <tclap/CmdLine.h>
@@ -18,9 +15,8 @@ typedef TCLAP::ValueArg<double>                      Opt_scalar;
 typedef TCLAP::ValueArg<int>                         Opt_Int;
 typedef TCLAP::SwitchArg                             Opt_Bool;
 
-#include "mesh_topo.h"
-#include "mesh_update.h"
-#include "mesh_io.h"
+//#include "mesh_topo.h"
+#include "TriMesh.h"
 
 
 int main(int argc, char** argv){
@@ -43,24 +39,24 @@ int main(int argc, char** argv){
     std::string output_mesh_type = outputMeshType.getValue();
 
     
-    Polyhedron_IS PI;// index mapping from array to halfedge data structure
+    TriMesh mesh;// index mapping from array to halfedge data structure
 
-    Mesh_i()(PI.P, input_mesh_name, input_mesh_type);//input mesh
-    Polyhedron_Init()(PI);// init all data of PI, with P
-    
+    mesh.read(input_mesh_name, input_mesh_type);
+    mesh.init_index();
     // Update mesh infomation
-    PI.avg_edge_len = halfedgeUpdate(PI);
-    PI.total_area = facetUpdate(PI);
-    vertexUpdate(PI);
-
+    mesh.update_base();
 
     //mesh processing
+    Vec_Fun vertex_LC[2] = {Vec_Fun(mesh.vertex_num), Vec_Fun(mesh.vertex_num)};
+    Vec_Fun facet_LC[2]={Vec_Fun(mesh.facet_num), Vec_Fun(mesh.facet_num)};
+    
 
+    mesh.init_vertex_localchart(vertex_LC[0], vertex_LC[1]); 
+    mesh.init_facet_localchart(facet_LC[0], facet_LC[1]);
 
 
     
-
-    Mesh_o()(PI.P, output_mesh_name, output_mesh_type); //output mesh
+    mesh.write(output_mesh_name, output_mesh_type);
   } catch (TCLAP::ArgException &e) //catch any expections 
     {
       std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl; 

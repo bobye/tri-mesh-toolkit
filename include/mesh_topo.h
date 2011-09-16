@@ -3,7 +3,7 @@
 
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
-#include <vector>
+
 
 
 typedef CGAL::Simple_cartesian<double>                       Kernel;
@@ -78,14 +78,15 @@ typedef Polyhedron::Edge_iterator                            Edge_iterator;
 typedef Polyhedron::Halfedge_around_vertex_circulator        HV_circulator;
 typedef Polyhedron::Halfedge_around_facet_circulator         HF_circulator;
 
-template<class Handle>
-struct Handle_comparison
-{
-  bool operator() (const Handle& h1, const Handle& h2) const
-  {
-    return &(*h1) < &(*h2);
-  }
-}; 
+
+/* template<class Handle> */
+/* struct Handle_comparison */
+/* { */
+/*   bool operator() (const Handle& h1, const Handle& h2) const */
+/*   { */
+/*     return &(*h1) < &(*h2); */
+/*   } */
+/* };  */
 
 //map is not efficient
 //typedef std::map<Halfedge_handle, int, Handle_comparison<Halfedge_handle> > HalfedgeIS_list;
@@ -93,67 +94,8 @@ struct Handle_comparison
 //typedef std::map<Facet_handle, int, Handle_comparison<Facet_handle> >       FacetIS_list;
 
 //random access to items
-typedef std::vector<Halfedge_handle> ISHalfedge_list;
-typedef std::vector<Vertex_handle> ISVertex_list;
-typedef std::vector<Facet_handle> ISFacet_list;
-
-struct Polyhedron_IS {//topo ref system //index system of items of polyhedron
-  Polyhedron P;
-
-  //HalfedgeIS_list EI;
-  //HalfedgeIS_list HI;
-
-  //VertexIS_list VI;
-  //FacetIS_list FI;
-
-  ISHalfedge_list IH; // 
-  ISVertex_list IV;
-  ISFacet_list IF;
-
-  //item attributes
-  std::vector<Vector> halfedge_vec;
-  std::vector<Vector> facet_norm;
-  std::vector<Vector> vertex_norm;
-
-  std::vector<double> facet_area;
-
-  double total_area;
-  double avg_edge_len;
-
-  int edge_num;
-  
-};
 
 
-
-struct Polyhedron_Init{
-  template <class Polyhedron_IS>    
-  void operator()(Polyhedron_IS& PI){
-      
-    int n=(PI.P.size_of_halfedges()+PI.P.size_of_border_edges())/2;
-    PI.edge_num = n;
-    PI.IH = ISHalfedge_list(2*n);
-    PI.IV =  ISVertex_list(PI.P.size_of_vertices());
-    PI.IF =  ISFacet_list(PI.P.size_of_facets());
-      
-    PI.halfedge_vec = std::vector<Vector> (2*n);
-    PI.facet_norm   = std::vector<Vector> (PI.P.size_of_facets());
-    PI.vertex_norm  = std::vector<Vector> (PI.P.size_of_vertices());
-    PI.facet_area   = std::vector<double> (PI.P.size_of_facets());
-
-    int index_count=0;
-    for(Vertex_iterator vitr= PI.P.vertices_begin();vitr!= PI.P.vertices_end();
-	PI.IV[index_count]=vitr, vitr->index = index_count++, vitr++);
-    index_count=0;
-    for(Edge_iterator eitr= PI.P.edges_begin();eitr!= PI.P.edges_end();
-	PI.IH[index_count]=eitr, PI.IH[index_count+n]=eitr->opposite(),
-	  eitr->index = index_count, eitr->opposite()->index = index_count +n,
-	  index_count++, eitr++);
-    index_count=0;
-    for(Facet_iterator fitr= PI.P.facets_begin(); fitr!= PI.P.facets_end(); PI.IF[index_count]=fitr, fitr->index=index_count++,fitr++);      
-  };
-
-};
 
 
 

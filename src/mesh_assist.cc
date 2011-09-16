@@ -17,7 +17,7 @@ void localchart(Vector& u, Vector& v, Vector norm){
 
 
 
-
-
-
-
+void localcoord(Vector proj, Vector u, Vector v, double *coord){
+  coord[0]=proj * u;
+  coord[1]=proj * v;
+}

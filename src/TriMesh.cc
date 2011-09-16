@@ -116,10 +116,12 @@ void TriMesh::update_base(){//base update halfedge, facet, vertex.
 };
 
 
-void TriMesh::init_vertex_localchart(Vec_Fun& u, Vec_Fun& v){
-  for (int i=0;i<vertex_num;i++) localchart(u[i],v[i], vertex_norm[i]);
+void TriMesh::init_vertex_localchart(Vec_Fun* LC){
+  for (int i=0;i<vertex_num;i++) localchart(LC[0][i],LC[1][i], vertex_norm[i]);
 }
 
-void TriMesh::init_facet_localchart(Vec_Fun& u, Vec_Fun& v){
-  for (int i=0;i<facet_num;i++) localchart(u[i],v[i], facet_norm[i]);
+void TriMesh::init_facet_localchart(Vec_Fun* LC){
+  for (int i=0;i<facet_num;i++) localchart(LC[0][i],LC[1][i], facet_norm[i]);
 }
+
+

@@ -51,8 +51,8 @@ public:
   void write(std::string, std::string);
   void init_index();
   void update_base();
-  void init_vertex_localchart(Vec_Fun &, Vec_Fun &);
-  void init_facet_localchart(Vec_Fun &, Vec_Fun &);
+  void init_vertex_localchart(Vec_Fun *);
+  void init_facet_localchart(Vec_Fun *);
 
 
 

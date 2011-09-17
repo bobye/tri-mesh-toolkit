@@ -17,7 +17,7 @@ typedef TCLAP::SwitchArg                             Opt_Bool;
 
 //#include "mesh_topo.h"
 #include "TriMesh.h"
-
+#include "MeshViewer.h"
 
 int main(int argc, char** argv){
 
@@ -55,6 +55,7 @@ int main(int argc, char** argv){
     /***************************************************************************/
     //Compute facet curvature tensor
     mesh.update_facet_curvature();
+
 
     
     mesh.write(output_mesh_name, output_mesh_type);

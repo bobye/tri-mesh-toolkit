@@ -9,7 +9,7 @@ typedef std::vector<Facet_handle> ISFacet_list;
 
 typedef std::vector<Vector> Vec_Fun;
 typedef std::vector<double> Scalar_Fun;
-
+typedef std::vector<bool> Bool_Fun;// For marker.
 
 class TriMesh {//topo ref system //index system of items of polyhedron
   Polyhedron P;
@@ -94,9 +94,7 @@ public:
   void update_vertex_localchart();
   void update_facet_localchart();
   void update_facet_curvature();
-
-
-
+  
 
 };
 

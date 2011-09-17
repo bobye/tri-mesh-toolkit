@@ -4,7 +4,7 @@ CC = gcc
 CPP = g++
 CPPFLAGS = -Wall -I include 
 
-LIBOPT = -lCGAL  -I/usr/local/include/tclap/
+LIBOPT = -lCGAL -lglut  -I/usr/local/include/tclap/
 
 
 ## DO NOT modify the following lines.
@@ -18,7 +18,7 @@ default: MeshTK
 %.o: %.cc
 	$(CPP) -c $(CPPFLAGS) $(LIBOPT) -o $@ $<
 
-MeshTK: main.o  TriMesh.o mesh_assist.o
+MeshTK: main.o  TriMesh.o MeshViewer.o mesh_assist.o
 	$(CPP) $(CPPFLAGS) $(LIBOPT) -o MeshTK $^
 
 clean: 

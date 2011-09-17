@@ -30,3 +30,7 @@ double prin_curv(double e, double f, double g, double &k1, double &k2){
   k2=H-G;
   return H;
 }
+
+
+
+

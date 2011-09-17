@@ -82,7 +82,7 @@ void MeshViewer::init(int argc, char** argv){
   glutCreateWindow("MeshTK - Viewer");
   
   /* 3D configuration */
-
+  // clear the window color and depth buffer
   glClearColor(1.0, 1.0, 1.0, 0.0);
   glClearDepth(1.0);
 

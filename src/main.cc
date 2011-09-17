@@ -59,6 +59,15 @@ int main(int argc, char** argv){
 
     
     mesh.write(output_mesh_name, output_mesh_type);
+
+    MeshViewer viewer(800,800);
+    MeshPainter painter(&mesh);
+    viewer.init(argc, argv);
+    viewer.add_painter(&painter);
+    viewer.view();
+    
+
+
   } catch (TCLAP::ArgException &e) //catch any expections 
     {
       std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl; 

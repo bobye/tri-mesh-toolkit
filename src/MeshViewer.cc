@@ -1,14 +1,33 @@
 #include "MeshViewer.h"
 #include <GL/glut.h>
+#include "TriMesh.h"
+#include "mesh_topo.h"
 
-MeshPainter::MeshPainter(TriMesh *pmesh){
+MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
 
 }
 
-MeshPainter::MeshPainter(TriMesh *pmesh, Scalar_Fun *psfun){
+MeshPainter::MeshPainter(TriMesh *pmesh, Scalar_Fun *psfun) : obj(pmesh) {
 }
 
-void MeshPainter::draw(){
+void MeshPainter::draw(){  
+  
+  glColor3f(0.9, 0.9, 0.9);
+  
+  for(Facet_iterator fi = obj->P.facets_begin(); fi != obj->P.facets_end(); ++fi){
+    HF_circulator hc = fi->facet_begin();
+        
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    glBegin(GL_LINE_LOOP);    
+    
+    do{
+      glVertex3f(hc->vertex()->point().x(), hc->vertex()->point().y(), hc->vertex()->point().z());
+    }while(++hc != fi->facet_begin());
+    glEnd();
+        
+  }
+
 }
 
 MeshMarker::MeshMarker(TriMesh *pmesh, Bool_Fun* pbfun)
@@ -21,22 +40,35 @@ MeshMarker::MeshMarker(TriMesh *pmesh, Scalar_Fun *psfun, Bool_Fun *pbfun)
 }
 
 
-void MeshMarker::draw(){
+void MeshMarker::draw() {
+  MeshPainter::draw();
+  
 }
 
 
 
-
+MeshViewer* MeshViewer::currentMeshViewer;
 
 MeshViewer::MeshViewer(int w, int h) 
   :width(w), height(h) {
-  MeshViewer* currentMeshViewer = this; //static member need definition
+  currentMeshViewer = this; //static member need definition
 }
 
 void MeshViewer::display(){
   int n = currentMeshViewer->Painters.size();
-  for (int i=0; i<n; i++) currentMeshViewer->Painters[i]->draw();
+  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);//(NEW) setup our buffers
+
+  for (int i=0; i<n; i++) 
+    { 
+      glPushMatrix();//push i-th matrix
+      currentMeshViewer->Painters[i]->draw();
+      glPushMatrix();//pop i-th matrix
+    }
+  glutSwapBuffers();
+      
 }
+
+
 
 
 
@@ -44,17 +76,17 @@ void MeshViewer::display(){
 void MeshViewer::init(int argc, char** argv){
 
   glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
   glutInitWindowPosition(200.0, 0.0);
   glutInitWindowSize(width, height);
   glutCreateWindow("MeshTK - Viewer");
   
   /* 3D configuration */
-  /*
-  glClearColor(0.0, 0.0, 0.0, 0.0);
+
+  glClearColor(1.0, 1.0, 1.0, 0.0);
   glClearDepth(1.0);
-    
-  //glOrtho(-2,2,-2,2,-50,50);//(NEW) set up our viewing area
+
+  glOrtho(-1,1,-1,1,-10,10);//(NEW) set up our viewing area
   
   glShadeModel(GL_SMOOTH);// Enable Smooth Shading
     
@@ -66,25 +98,26 @@ void MeshViewer::init(int argc, char** argv){
   glHint(GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);
   //glLineWidth(1.0);
   //
-  //glEnable(GL_CULL_FACE);
+  glEnable(GL_CULL_FACE);
   //glBlendFunc(GL_SRC_ALPHA_SATURATE, GL_ONE);
     
   //glutIdleFunc(idle);
     
   //lightsource(); light source configuration
-  glEnable(GL_LIGHTING);
-  glCullFace(GL_BACK);
-  glEnable(GL_CULL_FACE);
+  //glEnable(GL_LIGHTING);
+  //glCullFace(GL_BACK);
+  //glEnable(GL_CULL_FACE);
 
   //glEnable(GL_LIGHT0);//lighting
   //glEnable(GL_LIGHT1);
   //glEnable(GL_LIGHT2);
   glEnable(GL_DEPTH_TEST);
-  */
+
   /////////////////////////
 
   glutDisplayFunc(display);
-  
+
+
 
 
 }
@@ -94,7 +127,7 @@ void MeshViewer::add_painter(MeshPainter *painter){
 }
 
 void MeshViewer::view(){
-  
+  glutMainLoop();
 }
 
 

@@ -12,7 +12,11 @@ typedef std::vector<double> Scalar_Fun;
 typedef std::vector<bool> Bool_Fun;// For marker.
 
 class TriMesh {//topo ref system //index system of items of polyhedron
+
   Polyhedron P;
+  Vec_Fun vertex_norm;//normal vector
+  Vec_Fun facet_norm;
+
 
   //HalfedgeIS_list EI;
   //HalfedgeIS_list HI;
@@ -27,8 +31,6 @@ class TriMesh {//topo ref system //index system of items of polyhedron
   //item attributes
   Vec_Fun halfedge_vec;
 
-  Vec_Fun vertex_norm;//normal vector
-  Vec_Fun facet_norm;
 
   Vec_Fun vertex_LC[2];//LC: local chart
   Vec_Fun facet_LC[2];
@@ -52,6 +54,9 @@ class TriMesh {//topo ref system //index system of items of polyhedron
 
 public:  
   TriMesh (){};
+
+
+
 
   double total_area;
   int edge_num;
@@ -96,6 +101,7 @@ public:
   void update_facet_curvature();
   
 
+  friend class MeshPainter;
 };
 
 #endif /* _TRIMESH_H_ */

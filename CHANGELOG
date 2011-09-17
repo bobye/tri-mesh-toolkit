@@ -1,4 +1,5 @@
-* Sep 16, Add face curvature estimation
-* Sep 14, Add facet and vertex normal computation
-* Sep 11, Add Polyhedron IO. 
+* Sep 17, add MeshViewer and MeshPainter class
+* Sep 16, add face curvature estimation, not tested.
+* Sep 14, add facet and vertex normal computation, rename to TriMesh class.
+* Sep 11, add Polyhedron file IO, with off format. 
 * Sep 11, base code structure init.

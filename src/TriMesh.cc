@@ -90,7 +90,7 @@ double TriMesh::update_facet(){
 
 
 void TriMesh::update_vertex(){
-  /*
+  /*  
   double sigma = 2 * avg_edge_len;
 
   for (int i=0;i<vertex_num;i++){
@@ -106,10 +106,23 @@ void TriMesh::update_vertex(){
   }
   */
 
-  facet2vertex_average<Vector>( facet_norm, vertex_norm);
+
+  for (int i=0;i<vertex_num;i++) {
+    Point p= IV[i]->point();
+    if (p.x() < coord_min_x) coord_min_x = p.x();
+    if (p.y() < coord_min_y) coord_min_y = p.y();
+    if (p.z() < coord_min_z) coord_min_z = p.z();
+    if (p.x() > coord_max_x) coord_max_x = p.x();
+    if (p.y() > coord_max_y) coord_max_y = p.y();
+    if (p.z() > coord_max_z) coord_max_z = p.z();
+    
+  }
+  
+  facet2vertex_average<Vector>( facet_norm, vertex_norm, Vector(0,0,0));
   for (int i=0;i<vertex_num;i++){
     vertex_norm[i] = vertex_norm[i] / CGAL::sqrt(vertex_norm[i] * vertex_norm[i]);
   }
+  
 }
 
 

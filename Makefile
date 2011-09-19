@@ -4,7 +4,7 @@ CC = gcc
 CPP = g++
 CPPFLAGS = -Wall -I include 
 
-LIBOPT = -lCGAL -lglut  -I/usr/local/include/tclap/
+LIBOPT = -lCGAL -lglut -lGL -lGLU -I/usr/local/include/tclap/
 
 
 ## DO NOT modify the following lines.

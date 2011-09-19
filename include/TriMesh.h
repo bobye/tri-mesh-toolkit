@@ -14,6 +14,11 @@ typedef std::vector<bool> Bool_Fun;// For marker.
 class TriMesh {//topo ref system //index system of items of polyhedron
 
   Polyhedron P;
+
+  double coord_min_x, coord_min_y, coord_min_z;
+  double coord_max_x, coord_max_y, coord_max_z;
+
+
   Vec_Fun vertex_norm;//normal vector
   Vec_Fun facet_norm;
 
@@ -70,19 +75,20 @@ public:
   void update_base();
 
   template <class T>
-  void facet2vertex_average(std::vector<T> &f, std::vector<T> &v){
+  void facet2vertex_average(std::vector<T> &f, std::vector<T> &v, T zero){
     double sigma = 2 * avg_edge_len;
 
     for (int i=0;i<vertex_num;i++){
       Vector tmp;
       double scale, total_scale=0;
       HV_circulator hv=IV[i]->vertex_begin();
-      T vec;
+      T vec = zero;
       
       do {
 	tmp = (-halfedge_vec[hv->index]+halfedge_vec[hv->next()->index]);
 	scale = CGAL::sqrt(tmp * tmp);
-	total_scale += scale = std::exp(- scale * scale / (sigma * sigma));
+	scale = std::exp(- scale * scale / (sigma * sigma));
+	total_scale += scale;
 	vec = vec + scale * f[hv->facet()->index];	
       }while (++hv!=IV[i]->vertex_begin());
       v[i] = vec/total_scale;

@@ -50,11 +50,11 @@ int main(int argc, char** argv){
     /***************************************************************************/
     //contruct local chart for vertices and facets
     
-    mesh.update_vertex_localchart();
-    mesh.update_facet_localchart();
+    //mesh.update_vertex_localchart();
+    //mesh.update_facet_localchart();
     /***************************************************************************/
     //Compute facet curvature tensor
-    mesh.update_facet_curvature();
+    //mesh.update_facet_curvature();
 
 
     
@@ -62,8 +62,8 @@ int main(int argc, char** argv){
 
     MeshViewer viewer(800,800);
     MeshPainter painter(&mesh);
-    viewer.init(argc, argv);
     viewer.add_painter(&painter);
+    viewer.init(argc, argv);
     viewer.view();
     
 

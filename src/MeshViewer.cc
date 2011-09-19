@@ -3,8 +3,31 @@
 #include "TriMesh.h"
 #include "mesh_topo.h"
 
+
+GLfloat light_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
+GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+
+
+
+GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
+
+
+GLfloat mat_ambient[] = { .3, .5, .6, 1.0 };
+GLfloat mat_diffuse[] = { .3, .5, .6, 1.0 };
+GLfloat mat_specular[] = { .3, .5, .6, 1.0 };
+GLfloat mat_shininess[] = {30};
+
+
 MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
 
+  coord_min_x = pmesh->coord_min_x;
+  coord_min_y = pmesh->coord_min_y;
+  coord_min_z = pmesh->coord_min_z;
+  coord_max_x = pmesh->coord_max_x;
+  coord_max_y = pmesh->coord_max_y;
+  coord_max_z = pmesh->coord_max_z;
+  
 }
 
 MeshPainter::MeshPainter(TriMesh *pmesh, Scalar_Fun *psfun) : obj(pmesh) {
@@ -13,20 +36,28 @@ MeshPainter::MeshPainter(TriMesh *pmesh, Scalar_Fun *psfun) : obj(pmesh) {
 void MeshPainter::draw(){  
   
   glColor3f(0.9, 0.9, 0.9);
+  glPolygonMode(GL_FRONT, GL_FILL);
+  glCullFace(GL_BACK);
+
+  
+  glBegin(GL_TRIANGLES);    
   
   for(Facet_iterator fi = obj->P.facets_begin(); fi != obj->P.facets_end(); ++fi){
     HF_circulator hc = fi->facet_begin();
-        
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    glBegin(GL_LINE_LOOP);    
     
     do{
-      glVertex3f(hc->vertex()->point().x(), hc->vertex()->point().y(), hc->vertex()->point().z());
-    }while(++hc != fi->facet_begin());
-    glEnd();
-        
+      Vertex_handle v = hc->vertex();
+      Point p=v->point();
+      Vector n=obj->vertex_norm[v->index];
+      glNormal3f(n.x(), n.y(), n.z());
+      glVertex3f(p.x(), p.y(), p.z());
+    }while(++hc != fi->facet_begin());        
   }
+  glEnd();
+
+
+  //    glutSolidSphere(0.5, 40, 16);
+
 
 }
 
@@ -86,8 +117,22 @@ void MeshViewer::init(int argc, char** argv){
   glClearColor(1.0, 1.0, 1.0, 0.0);
   glClearDepth(1.0);
 
-  glOrtho(-1,1,-1,1,-10,10);//(NEW) set up our viewing area
+  double center_x = (coord_min_x + coord_max_x) /2.;
+  double center_y = (coord_min_y + coord_max_y) /2.;
+  double center_z = (coord_min_z + coord_max_z) /2.;
+  double length_z = center_z - coord_min_z;
   
+  double radio_x = (coord_max_x - coord_min_x) / width;
+  double radio_y = (coord_max_y - coord_min_y) / height;
+  double radio = (radio_x > radio_y)? radio_x: radio_y;
+
+  glOrtho( center_x - radio * width/1.414, center_x + radio * width/1.414,
+	   center_y - radio * height/1.414, center_y + radio * height/1.414,
+	   center_z - 2* length_z , center_z + 2* length_z);//(NEW) set up our viewing area
+
+
+  //glOrtho(-1,1,-1,1,-10,10);
+
   glShadeModel(GL_SMOOTH);// Enable Smooth Shading
     
   glEnable(GL_LINE_SMOOTH);
@@ -104,9 +149,8 @@ void MeshViewer::init(int argc, char** argv){
   //glutIdleFunc(idle);
     
   //lightsource(); light source configuration
-  //glEnable(GL_LIGHTING);
-  //glCullFace(GL_BACK);
-  //glEnable(GL_CULL_FACE);
+  glEnable(GL_LIGHTING);
+  add_lights();
 
   //glEnable(GL_LIGHT0);//lighting
   //glEnable(GL_LIGHT1);
@@ -120,14 +164,48 @@ void MeshViewer::init(int argc, char** argv){
 
 
 
+
+
 }
 
+
+void MeshViewer::add_lights(){
+
+  light_position[0] = coord_max_x * 1.414;
+  light_position[1] = coord_max_y * 1.414;
+  light_position[2] = coord_max_z * 1.414;
+
+  glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+  glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+  glEnable(GL_LIGHT0);
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+  glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+  glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
+
+}
 void MeshViewer::add_painter(MeshPainter *painter){
   Painters.push_back(painter);
+
+  if (painter->coord_min_x < coord_min_x) coord_min_x = painter->coord_min_x;
+  if (painter->coord_min_y < coord_min_y) coord_min_y = painter->coord_min_y;
+  if (painter->coord_min_z < coord_min_z) coord_min_z = painter->coord_min_z;
+  if (painter->coord_max_x > coord_max_x) coord_max_x = painter->coord_max_x;
+  if (painter->coord_max_y > coord_max_y) coord_max_y = painter->coord_max_y;
+  if (painter->coord_max_z > coord_max_z) coord_max_z = painter->coord_max_z;
+
 }
 
 void MeshViewer::view(){
+
   glutMainLoop();
 }
+
+
 
 

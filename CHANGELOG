@@ -1,3 +1,4 @@
+* Sep 19, produce a very basic mesh viewer, under improvement
 * Sep 17, add MeshViewer and MeshPainter class
 * Sep 16, add face curvature estimation, not tested.
 * Sep 14, add facet and vertex normal computation, rename to TriMesh class.

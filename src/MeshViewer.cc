@@ -18,6 +18,8 @@ GLfloat mat_diffuse[] = { .3, .5, .6, 1.0 };
 GLfloat mat_specular[] = { .3, .5, .6, 1.0 };
 GLfloat mat_shininess[] = {30};
 
+const double perfect_factor = 1.414;
+
 
 MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
 
@@ -126,8 +128,8 @@ void MeshViewer::init(int argc, char** argv){
   double radio_y = (coord_max_y - coord_min_y) / height;
   double radio = (radio_x > radio_y)? radio_x: radio_y;
 
-  glOrtho( center_x - radio * width/1.414, center_x + radio * width/1.414,
-	   center_y - radio * height/1.414, center_y + radio * height/1.414,
+  glOrtho( center_x - radio * width/perfect_factor, center_x + radio * width/perfect_factor,
+	   center_y - radio * height/perfect_factor, center_y + radio * height/perfect_factor,
 	   center_z - 2* length_z , center_z + 2* length_z);//(NEW) set up our viewing area
 
 
@@ -171,9 +173,9 @@ void MeshViewer::init(int argc, char** argv){
 
 void MeshViewer::add_lights(){
 
-  light_position[0] = coord_max_x * 1.414;
-  light_position[1] = coord_max_y * 1.414;
-  light_position[2] = coord_max_z * 1.414;
+  light_position[0] = coord_max_x * perfect_factor;
+  light_position[1] = coord_max_y * perfect_factor;
+  light_position[2] = coord_max_z * perfect_factor;
 
   glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
   glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);

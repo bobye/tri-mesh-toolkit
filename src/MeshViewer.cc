@@ -1,5 +1,5 @@
 #include "MeshViewer.h"
-#include <GL/glut.h>
+
 #include "TriMesh.h"
 #include "mesh_topo.h"
 
@@ -63,26 +63,34 @@ MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
     }while(++hc != pmesh->IF[i]->facet_begin());        
   }
 
+  LIST_NAME =glGenLists(1);
+
+
 }
 
 MeshPainter::MeshPainter(TriMesh *pmesh, Scalar_Fun *psfun) : obj(pmesh) {
 }
 
 void MeshPainter::draw(){  
-  
+
   glColor3f(0.9, 0.9, 0.9);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  
   //glCullFace(GL_BACK);
-  //load geometric information from painte
-  glNormalPointer(GL_FLOAT, 0, normal_array);
-  glVertexPointer(3, GL_FLOAT, 0, vertex_array); 
-
   
+
   glDrawElements(GL_TRIANGLES, 3*fn, GL_UNSIGNED_INT, index_array);
 
+  
+}
 
-  //    glutSolidSphere(0.5, 40, 16);
+
+void MeshPainter::prepare(){
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_VERTEX_ARRAY);
+  //load geometric information from painte
+
+  glNormalPointer(GL_FLOAT, 0, normal_array);
+  glVertexPointer(3, GL_FLOAT, 0, vertex_array); 
 
 
 }
@@ -104,61 +112,19 @@ void MeshMarker::draw() {
 
 
 
+
 MeshViewer* MeshViewer::currentMeshViewer;
 
-MeshViewer::MeshViewer(int w, int h) 
-  :width(w), height(h) {
+MeshViewer::MeshViewer(int argc, char** argv) 
+  :width(800), height(800) {
   currentMeshViewer = this; //static member need definition
-}
-
-void MeshViewer::display(){
-  int n = currentMeshViewer->Painters.size();
-  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);//(NEW) setup our buffers
-
-  for (int i=0; i<n; i++) 
-    { 
-      glPushMatrix();//push i-th matrix
-      currentMeshViewer->Painters[i]->draw();
-      glPushMatrix();//pop i-th matrix
-    }
-  glutSwapBuffers();
-      
-}
-
-
-
-
-
-
-void MeshViewer::init(int argc, char** argv){
 
   glutInit(&argc, argv);
+
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
   glutInitWindowPosition(200.0, 0.0);
   glutInitWindowSize(width, height);
   glutCreateWindow("MeshTK - Viewer");
-  
-  /* 3D configuration */
-  // clear the window color and depth buffer
-  glClearColor(1.0, 1.0, 1.0, 0.0);
-  glClearDepth(1.0);
-
-  double center_x = (coord_min_x + coord_max_x) /2.;
-  double center_y = (coord_min_y + coord_max_y) /2.;
-  double center_z = (coord_min_z + coord_max_z) /2.;
-  double length_z = center_z - coord_min_z;
-  
-  double radio_x = (coord_max_x - coord_min_x) / width;
-  double radio_y = (coord_max_y - coord_min_y) / height;
-  double radio = (radio_x > radio_y)? radio_x: radio_y;
-
-  
-  glOrtho( center_x - radio * width/perfect_factor, center_x + radio * width/perfect_factor,
-	   center_y - radio * height/perfect_factor, center_y + radio * height/perfect_factor,
-	   center_z - 2* length_z , center_z + 2* length_z);//(NEW) set up our viewing area
-  
-
-  //glOrtho(-1,1,-1,1,-10,10);
 
   glShadeModel(GL_SMOOTH);// Enable Smooth Shading
     
@@ -177,21 +143,73 @@ void MeshViewer::init(int argc, char** argv){
     
 
   glEnable(GL_LIGHTING);
-  add_lights();
+
   //glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
   glEnable(GL_DEPTH_TEST);
 
-  glEnableClientState(GL_NORMAL_ARRAY);
-  glEnableClientState(GL_VERTEX_ARRAY);
+
+
+}
+
+void MeshViewer::display(){
+  int n = currentMeshViewer->Painters.size();
+  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);//(NEW) setup our buffers
+
+  for (int i=0; i<n; i++) 
+    { 
+
+      glPushMatrix();//push i-th matrix
+      glCallList(currentMeshViewer->Painters[i]->LIST_NAME);
+
+      
+      //currentMeshViewer->Painters[i]->prepare();    
+      //currentMeshViewer->Painters[i]->draw();
+      glPushMatrix();//pop i-th matrix
+
+    }
+  glutSwapBuffers();
+      
+}
+
+
+
+
+
+
+void MeshViewer::init(){
+
+  
+  /* 3D configuration */
+  // clear the window color and depth buffer
+  glClearColor(1.0, 1.0, 1.0, 0.0);
+  glClearDepth(1.0);
+
+  double center_x = (coord_min_x + coord_max_x) /2.;
+  double center_y = (coord_min_y + coord_max_y) /2.;
+  double center_z = (coord_min_z + coord_max_z) /2.;
+  double length_z = coord_max_z - coord_min_z;
+  
+  double radio_x = (coord_max_x - coord_min_x) / (double) width;
+  double radio_y = (coord_max_y - coord_min_y) / (double) height;
+  double radio = (radio_x > radio_y)? radio_x: radio_y;
+
+  //std::cout<< length_z << std::endl;
+  glMatrixMode(GL_PROJECTION);
+
+  glOrtho( center_x - radio * width/perfect_factor, center_x + radio * width/perfect_factor,
+	   center_y - radio * height/perfect_factor, center_y + radio * height/perfect_factor,
+	   //-10, 10);
+	   center_z -  2* length_z , center_z +  2* length_z);//(NEW) set up our viewing area
+
+
+  //glOrtho(-1,1,-1,1,-10,10);
+  glMatrixMode(GL_MODELVIEW);
+
 
   /////////////////////////
-
+  add_lights();
   glutDisplayFunc(display);
-
-
-
-
 
 
 }
@@ -226,6 +244,14 @@ void MeshViewer::add_painter(MeshPainter *painter){
   if (painter->coord_max_x > coord_max_x) coord_max_x = painter->coord_max_x;
   if (painter->coord_max_y > coord_max_y) coord_max_y = painter->coord_max_y;
   if (painter->coord_max_z > coord_max_z) coord_max_z = painter->coord_max_z;
+
+
+  painter->prepare();    
+
+  glNewList(painter->LIST_NAME, GL_COMPILE_AND_EXECUTE);
+  painter->draw();
+  glEndList();
+
 
 }
 

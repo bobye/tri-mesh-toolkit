@@ -21,7 +21,7 @@ void TriMesh::read(std::string file, std::string type){
 
 
   if (!P.is_pure_triangle()) {std::cerr<< "Error: input mesh has non-triangle facet!" <<std::endl; exit(1);}
-  if (!P.is_closed()) {std::cout<< "Warning: input mesh is not closed" <<std::endl;} 
+  if (!P.is_closed()) {std::cout<< "Warning: input mesh seems not to be watertight" <<std::endl;} 
 };
 
 void TriMesh::write(std::string file, std::string type){

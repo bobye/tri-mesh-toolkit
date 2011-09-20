@@ -11,7 +11,7 @@ GLfloat light_specular[] = { .5, .5, .5, 1.0 };
 
 
 GLfloat light_position0[] = { 1.0, 1.0, 1.0, 0.0 };
-GLfloat light_position1[] = { -1.0, -1.0, -1.0, 0.0};
+GLfloat light_position1[] = { -1.0, -1.0, -1.0, .0};
 
 GLfloat mat_ambient[] = { .5, .5, .5, 1.0 };
 GLfloat mat_diffuse[] = { .5, .5, .5, 1.0 };
@@ -71,7 +71,7 @@ MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
 
 void MeshPainter::draw(){  
   glEnable(GL_COLOR_MATERIAL);
-  glColorMaterial(GL_FRONT, GL_AMBIENT);
+  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
 
   glColor3f(0.3, 0.5, 0.6);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -184,10 +184,10 @@ MeshViewer::MeshViewer(int argc, char** argv)
 
   glShadeModel(GL_SMOOTH);// Enable Smooth Shading
     
-  glEnable(GL_LINE_SMOOTH);
+  //glEnable(GL_LINE_SMOOTH);
   glEnable(GL_POLYGON_SMOOTH);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //glEnable(GL_BLEND);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
   glHint(GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);
   //glLineWidth(1.0);
@@ -203,6 +203,7 @@ MeshViewer::MeshViewer(int argc, char** argv)
   //glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
   glEnable(GL_DEPTH_TEST);
+
 
 
 
@@ -244,19 +245,21 @@ void MeshViewer::init(){
   GLfloat center_x = (coord_min_x + coord_max_x) /2.;
   GLfloat center_y = (coord_min_y + coord_max_y) /2.;
   GLfloat center_z = (coord_min_z + coord_max_z) /2.;
-  GLfloat length_z = coord_max_z - coord_min_z;
+  GLfloat length_z = (coord_max_z - coord_min_z) /2.;
   
-  GLfloat radio_x = (coord_max_x - coord_min_x) / (GLfloat) width;
-  GLfloat radio_y = (coord_max_y - coord_min_y) / (GLfloat) height;
+  GLfloat radio_x = (coord_max_x - coord_min_x) /  width;
+  GLfloat radio_y = (coord_max_y - coord_min_y) /  height;
   GLfloat radio = (radio_x > radio_y)? radio_x: radio_y;
 
   //std::cout<< length_z << std::endl;
-  glMatrixMode(GL_PROJECTION);
 
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
   glOrtho( center_x - radio * width/perfect_factor, center_x + radio * width/perfect_factor,
 	   center_y - radio * height/perfect_factor, center_y + radio * height/perfect_factor,
-	   //-10, 10);
-	   center_z -  2* length_z , center_z +  2* length_z);//(NEW) set up our viewing area
+	   //100000, -100000);
+	   - center_z -  length_z , - center_z +  length_z);//(NEW) set up our viewing area
 
 
   //glOrtho(-1,1,-1,1,-10,10);
@@ -272,15 +275,15 @@ void MeshViewer::init(){
 
 
 void MeshViewer::add_lights(){
-
+  /*
   light_position0[0] = coord_max_x * perfect_factor;
   light_position0[1] = coord_max_y * perfect_factor;
   light_position0[2] = coord_max_z * perfect_factor;
 
-  light_position1[0] = - coord_max_x * perfect_factor;
-  light_position1[1] = - coord_max_y * perfect_factor;
-  light_position1[2] = - coord_max_z * perfect_factor;
-
+  light_position1[0] =  coord_min_x * perfect_factor;
+  light_position1[1] =  coord_min_y * perfect_factor;
+  light_position1[2] =  coord_min_z * perfect_factor;
+  */
 
   glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
   glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
@@ -295,22 +298,22 @@ void MeshViewer::add_lights(){
   glEnable(GL_LIGHT0);
   glEnable(GL_LIGHT1);
 
-  glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-  glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-  glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-  glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
 
 }
 void MeshViewer::add_painter(MeshPainter *painter){
   Painters.push_back(painter);
-
-  if (painter->coord_min_x < coord_min_x) coord_min_x = painter->coord_min_x;
-  if (painter->coord_min_y < coord_min_y) coord_min_y = painter->coord_min_y;
-  if (painter->coord_min_z < coord_min_z) coord_min_z = painter->coord_min_z;
-  if (painter->coord_max_x > coord_max_x) coord_max_x = painter->coord_max_x;
-  if (painter->coord_max_y > coord_max_y) coord_max_y = painter->coord_max_y;
-  if (painter->coord_max_z > coord_max_z) coord_max_z = painter->coord_max_z;
+  GLuint count = Painters.size();
+  if (painter->coord_min_x < coord_min_x|| count ==1) coord_min_x = painter->coord_min_x;
+  if (painter->coord_min_y < coord_min_y|| count ==1) coord_min_y = painter->coord_min_y;
+  if (painter->coord_min_z < coord_min_z|| count ==1) coord_min_z = painter->coord_min_z;
+  if (painter->coord_max_x > coord_max_x|| count ==1) coord_max_x = painter->coord_max_x;
+  if (painter->coord_max_y > coord_max_y|| count ==1) coord_max_y = painter->coord_max_y;
+  if (painter->coord_max_z > coord_max_z|| count ==1) coord_max_z = painter->coord_max_z;
 
 
   painter->prepare();    

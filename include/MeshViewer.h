@@ -8,46 +8,50 @@
 
 class MeshPainter {
   TriMesh *obj;
-  Scalar_Fun *color;
-
-  int vn; //vertex number
-  int fn; //facet number
+  GLuint vn; //vertex number
+  GLuint fn; //facet number
   
 
 
-  float *vertex_array;
-  float *normal_array;
-  int *index_array;
+  GLfloat *vertex_array;
+  GLfloat *normal_array;
+  GLuint *index_array;
 
 public:
   GLuint LIST_NAME; //name of display list
 
-  double coord_min_x, coord_min_y, coord_min_z;
-  double coord_max_x, coord_max_y, coord_max_z;
+  GLfloat coord_min_x, coord_min_y, coord_min_z;
+  GLfloat coord_max_x, coord_max_y, coord_max_z;
 
-  MeshPainter(TriMesh *, Scalar_Fun *); // with color ramping 
+
   MeshPainter(TriMesh *); 
-  void prepare();
+  virtual void prepare();
   void draw();
   
   ~MeshPainter();
 };
 
+class MeshRamper : public MeshPainter {
+
+  GLfloat *color;
+public:
+  MeshRamper(TriMesh *, Scalar_Fun *);
+  void prepare();
+};
+
 class MeshMarker : public MeshPainter {
   
-  Bool_Fun *mark;
-  int *mark_array;
+  GLuint *mark_array;
 
 public:
-  MeshMarker(TriMesh *, Scalar_Fun *, Bool_Fun *);
   MeshMarker(TriMesh *, Bool_Fun *);
-  void draw();
+  void prepare();
 };
 
 class MeshViewer {
   int width, height;
-  double coord_min_x, coord_min_y, coord_min_z;
-  double coord_max_x, coord_max_y, coord_max_z;
+  GLfloat coord_min_x, coord_min_y, coord_min_z;
+  GLfloat coord_max_x, coord_max_y, coord_max_z;
 
   std::vector<MeshPainter*> Painters;
   

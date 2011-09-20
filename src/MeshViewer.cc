@@ -4,21 +4,21 @@
 #include "mesh_topo.h"
 
 
-GLfloat light_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
+GLfloat light_ambient[] = { 0.3, 0.3, 0.3, 1.0 };
 GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
 GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 
 
 
-GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
-
+GLfloat light_position0[] = { 1.0, 1.0, -1.0, 0.0 };
+GLfloat light_position1[] = { -1.0, -1.0, -1.0, 0.0};
 
 GLfloat mat_ambient[] = { .3, .5, .6, 1.0 };
 GLfloat mat_diffuse[] = { .3, .5, .6, 1.0 };
-GLfloat mat_specular[] = { .3, .5, .6, 1.0 };
+GLfloat mat_specular[] = { .0, .0, .0, 1.0 };
 GLfloat mat_shininess[] = {30};
 
-const double perfect_factor = 1.414;
+const GLfloat perfect_factor = 1.414;
 
 MeshPainter::~MeshPainter() {
   delete [] vertex_array;
@@ -38,11 +38,11 @@ MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
   vn = pmesh->vertex_num;
   fn = pmesh->facet_num;
 
-  vertex_array = new float[3*vn];
-  normal_array = new float[3*vn];
-  index_array = new int[3*fn];
+  vertex_array = new GLfloat[3*vn];
+  normal_array = new GLfloat[3*vn];
+  index_array = new GLuint[3*fn];
   
-  for (int i=0; i<vn; i++) {
+  for (GLuint i=0; i<vn; i++) {
     Point p=pmesh->IV[i]->point();
     Vector n=pmesh->vertex_norm[i];
     vertex_array[3*i] = p.x();
@@ -54,9 +54,9 @@ MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
 
   }
 
-  for (int i=0; i<fn; i++) {
+  for (GLuint i=0; i<fn; i++) {
     HF_circulator hc = pmesh->IF[i]->facet_begin();
-    int j=0;
+    GLuint j=0;
     do{
       index_array[3*i+j] = hc->vertex()->index;
       ++j;
@@ -68,8 +68,6 @@ MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
 
 }
 
-MeshPainter::MeshPainter(TriMesh *pmesh, Scalar_Fun *psfun) : obj(pmesh) {
-}
 
 void MeshPainter::draw(){  
 
@@ -95,20 +93,21 @@ void MeshPainter::prepare(){
 
 }
 
+MeshRamper::MeshRamper(TriMesh *pmesh, Scalar_Fun* psfun)
+  :MeshPainter(pmesh){
+}
+
+void MeshRamper::prepare(){
+}
+
 MeshMarker::MeshMarker(TriMesh *pmesh, Bool_Fun* pbfun)
   :MeshPainter(pmesh) {
   
 }
 
-MeshMarker::MeshMarker(TriMesh *pmesh, Scalar_Fun *psfun, Bool_Fun *pbfun)
-  :MeshPainter(pmesh, psfun) {
+void MeshMarker::prepare(){
 }
 
-
-void MeshMarker::draw() {
-  MeshPainter::draw();
-  
-}
 
 
 
@@ -153,10 +152,10 @@ MeshViewer::MeshViewer(int argc, char** argv)
 }
 
 void MeshViewer::display(){
-  int n = currentMeshViewer->Painters.size();
+  GLuint n = currentMeshViewer->Painters.size();
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);//(NEW) setup our buffers
 
-  for (int i=0; i<n; i++) 
+  for (GLuint i=0; i<n; i++) 
     { 
 
       glPushMatrix();//push i-th matrix
@@ -185,14 +184,14 @@ void MeshViewer::init(){
   glClearColor(1.0, 1.0, 1.0, 0.0);
   glClearDepth(1.0);
 
-  double center_x = (coord_min_x + coord_max_x) /2.;
-  double center_y = (coord_min_y + coord_max_y) /2.;
-  double center_z = (coord_min_z + coord_max_z) /2.;
-  double length_z = coord_max_z - coord_min_z;
+  GLfloat center_x = (coord_min_x + coord_max_x) /2.;
+  GLfloat center_y = (coord_min_y + coord_max_y) /2.;
+  GLfloat center_z = (coord_min_z + coord_max_z) /2.;
+  GLfloat length_z = coord_max_z - coord_min_z;
   
-  double radio_x = (coord_max_x - coord_min_x) / (double) width;
-  double radio_y = (coord_max_y - coord_min_y) / (double) height;
-  double radio = (radio_x > radio_y)? radio_x: radio_y;
+  GLfloat radio_x = (coord_max_x - coord_min_x) / (GLfloat) width;
+  GLfloat radio_y = (coord_max_y - coord_min_y) / (GLfloat) height;
+  GLfloat radio = (radio_x > radio_y)? radio_x: radio_y;
 
   //std::cout<< length_z << std::endl;
   glMatrixMode(GL_PROJECTION);
@@ -217,16 +216,27 @@ void MeshViewer::init(){
 
 void MeshViewer::add_lights(){
 
-  light_position[0] = coord_max_x * perfect_factor;
-  light_position[1] = coord_max_y * perfect_factor;
-  light_position[2] = coord_max_z * perfect_factor;
+  light_position0[0] = coord_max_x * perfect_factor;
+  light_position0[1] = coord_max_y * perfect_factor;
+  light_position0[2] = coord_max_z * perfect_factor;
+
+  light_position1[0] = - coord_max_x * perfect_factor;
+  light_position1[1] = - coord_max_y * perfect_factor;
+  light_position1[2] = - coord_max_z * perfect_factor;
+
 
   glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
   glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
   glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-  glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+  glLightfv(GL_LIGHT0, GL_POSITION, light_position0);
+
+  glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+  glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
+  glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
+  glLightfv(GL_LIGHT1, GL_POSITION, light_position1);
 
   glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT1);
 
   glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
   glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);

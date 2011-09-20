@@ -8,7 +8,13 @@
 class MeshPainter {
   TriMesh *obj;
   Scalar_Fun *color;
-  //  double mat_ambient[4], mat_diffuse[4], mat_specular[4];
+
+  int vn; //vertex number
+  int fn; //facet number
+
+  float *vertex_array;
+  float *normal_array;
+  int *index_array;
 
 public:
   double coord_min_x, coord_min_y, coord_min_z;
@@ -18,11 +24,13 @@ public:
   MeshPainter(TriMesh *); 
   void draw();
 
+  ~MeshPainter();
 };
 
 class MeshMarker : public MeshPainter {
   
   Bool_Fun *mark;
+  int *mark_array;
 
 public:
   MeshMarker(TriMesh *, Scalar_Fun *, Bool_Fun *);

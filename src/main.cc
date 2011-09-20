@@ -42,9 +42,12 @@ int main(int argc, char** argv){
     TriMesh mesh;// index mapping from array to halfedge data structure
 
     mesh.read(input_mesh_name, input_mesh_type);
+
     mesh.init_index();
+    
     // Update mesh infomation
     mesh.update_base();
+    
 
     //mesh processing
     /***************************************************************************/
@@ -57,16 +60,14 @@ int main(int argc, char** argv){
     //mesh.update_facet_curvature();
 
 
-    
-    mesh.write(output_mesh_name, output_mesh_type);
+
+    //mesh.write(output_mesh_name, output_mesh_type);
 
     MeshViewer viewer(800,800);
     MeshPainter painter(&mesh);
     viewer.add_painter(&painter);
     viewer.init(argc, argv);
     viewer.view();
-    
-
 
   } catch (TCLAP::ArgException &e) //catch any expections 
     {

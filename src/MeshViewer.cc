@@ -20,6 +20,11 @@ GLfloat mat_shininess[] = {30};
 
 const double perfect_factor = 1.414;
 
+MeshPainter::~MeshPainter() {
+  delete [] vertex_array;
+  delete [] normal_array;
+  delete [] index_array;
+}
 
 MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
 
@@ -29,7 +34,35 @@ MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
   coord_max_x = pmesh->coord_max_x;
   coord_max_y = pmesh->coord_max_y;
   coord_max_z = pmesh->coord_max_z;
+
+  vn = pmesh->vertex_num;
+  fn = pmesh->facet_num;
+
+  vertex_array = new float[3*vn];
+  normal_array = new float[3*vn];
+  index_array = new int[3*fn];
   
+  for (int i=0; i<vn; i++) {
+    Point p=pmesh->IV[i]->point();
+    Vector n=pmesh->vertex_norm[i];
+    vertex_array[3*i] = p.x();
+    vertex_array[3*i+1] = p.y();
+    vertex_array[3*i+2] = p.z();
+    normal_array[3*i] = n.x();
+    normal_array[3*i+1] = n.y();
+    normal_array[3*i+2] = n.z();
+
+  }
+
+  for (int i=0; i<fn; i++) {
+    HF_circulator hc = pmesh->IF[i]->facet_begin();
+    int j=0;
+    do{
+      index_array[3*i+j] = hc->vertex()->index;
+      ++j;
+    }while(++hc != pmesh->IF[i]->facet_begin());        
+  }
+
 }
 
 MeshPainter::MeshPainter(TriMesh *pmesh, Scalar_Fun *psfun) : obj(pmesh) {
@@ -38,24 +71,15 @@ MeshPainter::MeshPainter(TriMesh *pmesh, Scalar_Fun *psfun) : obj(pmesh) {
 void MeshPainter::draw(){  
   
   glColor3f(0.9, 0.9, 0.9);
-  glPolygonMode(GL_FRONT, GL_FILL);
-  glCullFace(GL_BACK);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  
+  //glCullFace(GL_BACK);
+  //load geometric information from painte
+  glNormalPointer(GL_FLOAT, 0, normal_array);
+  glVertexPointer(3, GL_FLOAT, 0, vertex_array); 
 
   
-  glBegin(GL_TRIANGLES);    
-  
-  for(Facet_iterator fi = obj->P.facets_begin(); fi != obj->P.facets_end(); ++fi){
-    HF_circulator hc = fi->facet_begin();
-    
-    do{
-      Vertex_handle v = hc->vertex();
-      Point p=v->point();
-      Vector n=obj->vertex_norm[v->index];
-      glNormal3f(n.x(), n.y(), n.z());
-      glVertex3f(p.x(), p.y(), p.z());
-    }while(++hc != fi->facet_begin());        
-  }
-  glEnd();
+  glDrawElements(GL_TRIANGLES, 3*fn, GL_UNSIGNED_INT, index_array);
 
 
   //    glutSolidSphere(0.5, 40, 16);
@@ -128,10 +152,11 @@ void MeshViewer::init(int argc, char** argv){
   double radio_y = (coord_max_y - coord_min_y) / height;
   double radio = (radio_x > radio_y)? radio_x: radio_y;
 
+  
   glOrtho( center_x - radio * width/perfect_factor, center_x + radio * width/perfect_factor,
 	   center_y - radio * height/perfect_factor, center_y + radio * height/perfect_factor,
 	   center_z - 2* length_z , center_z + 2* length_z);//(NEW) set up our viewing area
-
+  
 
   //glOrtho(-1,1,-1,1,-10,10);
 
@@ -145,19 +170,20 @@ void MeshViewer::init(int argc, char** argv){
   glHint(GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);
   //glLineWidth(1.0);
   //
-  glEnable(GL_CULL_FACE);
+  //glEnable(GL_CULL_FACE);
   //glBlendFunc(GL_SRC_ALPHA_SATURATE, GL_ONE);
     
   //glutIdleFunc(idle);
     
-  //lightsource(); light source configuration
+
   glEnable(GL_LIGHTING);
   add_lights();
+  //glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
-  //glEnable(GL_LIGHT0);//lighting
-  //glEnable(GL_LIGHT1);
-  //glEnable(GL_LIGHT2);
   glEnable(GL_DEPTH_TEST);
+
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_VERTEX_ARRAY);
 
   /////////////////////////
 
@@ -207,6 +233,15 @@ void MeshViewer::view(){
 
   glutMainLoop();
 }
+
+
+
+
+
+
+
+
+
 
 
 

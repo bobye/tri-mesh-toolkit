@@ -58,13 +58,9 @@ class TriMesh {//topo ref system //index system of items of polyhedron
   void update_vertex();
 
 public:  
-  TriMesh (){};
-
-
-
 
   double total_area;
-  int edge_num;
+  int halfedge_num;
   int vertex_num;
   int facet_num;
 
@@ -83,14 +79,19 @@ public:
       double scale, total_scale=0;
       HV_circulator hv=IV[i]->vertex_begin();
       T vec = zero;
-      
+
       do {
 	tmp = (-halfedge_vec[hv->index]+halfedge_vec[hv->next()->index]);
 	scale = CGAL::sqrt(tmp * tmp);
 	scale = std::exp(- scale * scale / (sigma * sigma));
+	
+	if (hv->facet()==NULL) continue;
+	else vec = vec + scale * f[hv->facet()->index];
+	
 	total_scale += scale;
-	vec = vec + scale * f[hv->facet()->index];	
+
       }while (++hv!=IV[i]->vertex_begin());
+
       v[i] = vec/total_scale;
     }
   };
@@ -108,6 +109,8 @@ public:
   
 
   friend class MeshPainter;
+  
+
 };
 
 #endif /* _TRIMESH_H_ */

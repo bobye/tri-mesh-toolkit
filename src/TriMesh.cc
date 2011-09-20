@@ -7,6 +7,7 @@
 
 #include "mesh_assist.h"
 
+
 void TriMesh::read(std::string file, std::string type){
   if (type.compare("off")==0){
     std::ifstream mesh_Fin;
@@ -17,6 +18,10 @@ void TriMesh::read(std::string file, std::string type){
     mesh_Fin >> P;// mesh read
     mesh_Fin.close();
   }
+
+
+  if (!P.is_pure_triangle()) {std::cerr<< "Error: input mesh has non-triangle facet!" <<std::endl; exit(1);}
+  if (!P.is_closed()) {std::cout<< "Warning: input mesh is not closed" <<std::endl;} 
 };
 
 void TriMesh::write(std::string file, std::string type){
@@ -31,31 +36,31 @@ void TriMesh::write(std::string file, std::string type){
 };
 
 void TriMesh::init_index(){
-  int n=(P.size_of_halfedges()+P.size_of_border_edges())/2;
+  //int n=(P.size_of_halfedges()+P.size_of_border_edges())/2;
 
-  edge_num = n;
-  vertex_num=P.size_of_vertices();
-  facet_num=P.size_of_facets();
+  halfedge_num = P.size_of_halfedges();
+  vertex_num = P.size_of_vertices();
+  facet_num = P.size_of_facets();
 
-  IH = ISHalfedge_list(2*n);
+  IH = ISHalfedge_list(halfedge_num);
   IV =  ISVertex_list(vertex_num);
   IF =  ISFacet_list(facet_num);
 
-  halfedge_vec.resize(2*n);
-  facet_norm.resize(P.size_of_facets());
-  vertex_norm.resize(P.size_of_vertices());
-  facet_area.resize(P.size_of_facets());
+  halfedge_vec.resize(halfedge_num);
+  vertex_norm.resize(vertex_num);
+  facet_norm.resize(facet_num);
+  facet_area.resize(facet_num);
+
 
   int index_count=0;
   for(Vertex_iterator vitr= P.vertices_begin();vitr!= P.vertices_end();
       IV[index_count]=vitr, vitr->index = index_count++, vitr++);
   index_count=0;
-  for(Edge_iterator eitr= P.edges_begin();eitr!= P.edges_end();
-      IH[index_count]=eitr, IH[index_count+n]=eitr->opposite(),
-	eitr->index = index_count, eitr->opposite()->index = index_count +n,
-	index_count++, eitr++);
+  for(Halfedge_iterator eitr= P.halfedges_begin();eitr!= P.halfedges_end();
+      IH[index_count]=eitr, eitr->index = index_count++, eitr++);
   index_count=0;
-  for(Facet_iterator fitr= P.facets_begin(); fitr!= P.facets_end(); IF[index_count]=fitr, fitr->index=index_count++,fitr++);
+  for(Facet_iterator fitr= P.facets_begin(); fitr!= P.facets_end(); 
+      IF[index_count]=fitr, fitr->index = index_count++, fitr++);
 };
 
 
@@ -63,12 +68,13 @@ double TriMesh::update_halfedge(){
 
   double avg_len=0;
   Halfedge_handle h;
-  for (int i=0;i<2*edge_num;i++) 
-    if ((h=IH[i])!=NULL){    
+  for (int i=0;i<halfedge_num;i++) 
+    {
+      h = IH[i];
       halfedge_vec[i] = h->vertex()->point() - h->prev()->vertex()->point();
       avg_len += CGAL::sqrt(halfedge_vec[i] * halfedge_vec[i]);
     }
-  return avg_edge_len = avg_len/(2*edge_num-P.size_of_border_edges());
+  return avg_edge_len = avg_len/halfedge_num;
 }
 
 
@@ -80,9 +86,9 @@ double TriMesh::update_facet(){
   for (int i=0;i<facet_num;i++){
     h=IF[i]->halfedge();
     normal = CGAL::cross_product(halfedge_vec[h->index], halfedge_vec[h->next()->index]);
-    total_area += (facet_area[i] = normal * normal)/2. ;
+    total_area += (facet_area[i] = normal * normal) /2. ;
     facet_norm[i] = normal / CGAL::sqrt(facet_area[i]); 
-    facet_area[i] /=2.;
+    facet_area[i] /= 2.;
   }
   
   return  total_area;
@@ -90,7 +96,7 @@ double TriMesh::update_facet(){
 
 
 void TriMesh::update_vertex(){
-  /*  
+  /*
   double sigma = 2 * avg_edge_len;
 
   for (int i=0;i<vertex_num;i++){
@@ -117,12 +123,13 @@ void TriMesh::update_vertex(){
     if (p.z() > coord_max_z) coord_max_z = p.z();
     
   }
-  
+
   facet2vertex_average<Vector>( facet_norm, vertex_norm, Vector(0,0,0));
   for (int i=0;i<vertex_num;i++){
     vertex_norm[i] = vertex_norm[i] / CGAL::sqrt(vertex_norm[i] * vertex_norm[i]);
   }
-  
+
+    
 }
 
 
@@ -131,8 +138,9 @@ void TriMesh::update_base(){//base update halfedge, facet, vertex.
   update_halfedge();
 
   update_facet();
-
+  
   update_vertex();
+
 };
 
 

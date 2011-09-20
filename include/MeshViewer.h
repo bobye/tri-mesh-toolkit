@@ -7,6 +7,8 @@
 
 
 class MeshPainter {
+
+protected:
   TriMesh *obj;
   GLuint vn; //vertex number
   GLuint fn; //facet number
@@ -33,10 +35,12 @@ public:
 
 class MeshRamper : public MeshPainter {
 
-  GLfloat *color;
+  GLfloat *color_array;
 public:
   MeshRamper(TriMesh *, Scalar_Fun *);
   void prepare();
+
+  ~MeshRamper();
 };
 
 class MeshMarker : public MeshPainter {
@@ -46,6 +50,7 @@ class MeshMarker : public MeshPainter {
 public:
   MeshMarker(TriMesh *, Bool_Fun *);
   void prepare();
+  ~MeshMarker();
 };
 
 class MeshViewer {
@@ -66,8 +71,6 @@ public:
 
   void add_painter(MeshPainter *);
   void view();//main loop
-
-
 
 };
 

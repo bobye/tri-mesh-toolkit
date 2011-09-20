@@ -4,19 +4,19 @@
 #include "mesh_topo.h"
 
 
-GLfloat light_ambient[] = { 0.3, 0.3, 0.3, 1.0 };
-GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
-GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat light_ambient[] = { .4, .4, .4, 1.0 };
+GLfloat light_diffuse[] = { .8, .8, .8, 1.0 };
+GLfloat light_specular[] = { .5, .5, .5, 1.0 };
 
 
 
-GLfloat light_position0[] = { 1.0, 1.0, -1.0, 0.0 };
+GLfloat light_position0[] = { 1.0, 1.0, 1.0, 0.0 };
 GLfloat light_position1[] = { -1.0, -1.0, -1.0, 0.0};
 
-GLfloat mat_ambient[] = { .3, .5, .6, 1.0 };
-GLfloat mat_diffuse[] = { .3, .5, .6, 1.0 };
-GLfloat mat_specular[] = { .0, .0, .0, 1.0 };
-GLfloat mat_shininess[] = {30};
+GLfloat mat_ambient[] = { .5, .5, .5, 1.0 };
+GLfloat mat_diffuse[] = { .5, .5, .5, 1.0 };
+GLfloat mat_specular[] = { .1, .1, .1, 1.0 };
+GLfloat mat_shininess[] = {50};
 
 const GLfloat perfect_factor = 1.414;
 
@@ -70,14 +70,17 @@ MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
 
 
 void MeshPainter::draw(){  
+  glEnable(GL_COLOR_MATERIAL);
+  glColorMaterial(GL_FRONT, GL_AMBIENT);
 
-  glColor3f(0.9, 0.9, 0.9);
+  glColor3f(0.3, 0.5, 0.6);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   //glCullFace(GL_BACK);
   
 
   glDrawElements(GL_TRIANGLES, 3*fn, GL_UNSIGNED_INT, index_array);
-
+  glDisable(GL_COLOR_MATERIAL);
+  
   
 }
 
@@ -93,22 +96,76 @@ void MeshPainter::prepare(){
 
 }
 
+
+
+void color_ramping(GLfloat *color, Scalar_Fun* psfun){
+  Scalar_Fun &s = *psfun;
+  GLuint size = s.size();
+  double vmax= *std::max_element(s.begin(), s.end());
+  double vmin= *std::min_element(s.begin(), s.end());
+  double dv = vmax - vmin;
+  
+  for (GLuint i=0;i<size;i++){
+    color[3*i]=color[3*i+1]=color[3*i+2]=1.0;
+    double v=s[i];
+    //     fprintf(p,"%lf\n",v);   
+    if (v < vmin) v = vmin;
+    if (v > vmax) v = vmax;
+     
+    if (v < (vmin + 0.25 * dv)) {
+      color[3*i] = 0;
+      color[3*i+1] = 4 * (v - vmin) / dv;
+    } else if (v < (vmin + 0.5 * dv)) {
+      color[3*i] = 0;
+      color[3*i+2] = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
+    } else if (v < (vmin + 0.75 * dv)) {
+      color[3*i] = 4 * (v - vmin - 0.5 * dv) / dv;
+      color[3*i+2] = 0;
+    } else {
+      color[3*i+1] = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
+      color[3*i+2] = 0;
+    }
+     
+  }
+
+  
+}
+
 MeshRamper::MeshRamper(TriMesh *pmesh, Scalar_Fun* psfun)
   :MeshPainter(pmesh){
+  color_array = new GLfloat[3*vn];
+  color_ramping(color_array, psfun);  
 }
 
 void MeshRamper::prepare(){
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_COLOR_ARRAY);
+  //load geometric information from painte
+
+  glNormalPointer(GL_FLOAT, 0, normal_array);
+  glVertexPointer(3, GL_FLOAT, 0, vertex_array); 
+  glColorPointer(3, GL_FLOAT, 0, color_array);
+
+}
+
+
+MeshRamper::~MeshRamper() {
+  delete [] color_array;
 }
 
 MeshMarker::MeshMarker(TriMesh *pmesh, Bool_Fun* pbfun)
   :MeshPainter(pmesh) {
-  
+
 }
 
 void MeshMarker::prepare(){
 }
 
 
+MeshMarker::~MeshMarker() {
+  delete [] mark_array;
+}
 
 
 

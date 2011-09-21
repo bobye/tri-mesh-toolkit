@@ -2,12 +2,13 @@
                              ============
 
 Author: Bobby, Jianbo YE <yelpoo@gmail.com>
-Date: 2011-09-21 15:27:45 HKT
+Date: 2011-09-21 21:09:31 HKT
 
 
 Table of Contents
 =================
 1 Introduction 
+2 License 
 
 
 1 Introduction 
@@ -21,3 +22,6 @@ Mesh Toolkit(MeshTK) is a C++ toolkit developed for general proposed research in
 
 
 
+2 License 
+~~~~~~~~~~
+It is licensed under the LGPL License. External libraries used in MeshTK may use other licenses. Please check each library for its specific licenses.

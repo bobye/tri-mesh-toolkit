@@ -13,3 +13,5 @@ Mesh Toolkit(MeshTK) is a C++ toolkit developed for general proposed research in
 
 
 
+* License
+It is licensed under the LGPL License. External libraries used in MeshTK may use other licenses. Please check each library for its specific licenses.

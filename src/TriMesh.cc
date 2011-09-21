@@ -5,7 +5,7 @@
 #include <CGAL/IO/Polyhedron_iostream.h>
 
 
-#include "mesh_assist.h"
+#include "mesh_assist.hh"
 
 
 void TriMesh::read(std::string file, std::string type){

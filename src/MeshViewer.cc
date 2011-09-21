@@ -3,6 +3,7 @@
 #include "TriMesh.hh"
 #include "mesh_topo.hh"
 
+using namespace meshtk;
 
 GLfloat light_ambient[] = { .4, .4, .4, 1.0 };
 GLfloat light_diffuse[] = { .8, .8, .8, 1.0 };

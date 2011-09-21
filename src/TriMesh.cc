@@ -7,6 +7,7 @@
 
 #include "mesh_assist.hh"
 
+using namespace meshtk;
 
 void TriMesh::read(std::string file, std::string type){
   if (type.compare("off")==0){

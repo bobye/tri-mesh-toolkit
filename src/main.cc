@@ -16,8 +16,10 @@ typedef TCLAP::ValueArg<int>                         Opt_Int;
 typedef TCLAP::SwitchArg                             Opt_Bool;
 
 //#include "mesh_topo.hh"
-#include "TriMesh.hh"
-#include "MeshViewer.hh"
+#include "meshtk/TriMesh.hh"
+#include "meshtk/MeshViewer.hh"
+
+
 
 int main(int argc, char** argv){
 
@@ -39,7 +41,7 @@ int main(int argc, char** argv){
     std::string output_mesh_type = outputMeshType.getValue();
 
     
-    TriMesh mesh;// index mapping from array to halfedge data structure
+    meshtk::TriMesh mesh;// index mapping from array to halfedge data structure
 
     mesh.read(input_mesh_name, input_mesh_type);
 
@@ -63,8 +65,8 @@ int main(int argc, char** argv){
 
     //mesh.write(output_mesh_name, output_mesh_type);
 
-    MeshViewer viewer(argc, argv);
-    MeshPainter painter(&mesh);
+    meshtk::MeshViewer viewer(argc, argv);
+    meshtk::MeshPainter painter(&mesh);
     viewer.add_painter(&painter);
 
     viewer.init();// call this func last before loop

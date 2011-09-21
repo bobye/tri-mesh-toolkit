@@ -1,8 +1,11 @@
-You need to install several libraries before to compile the software.
+You need to install several libraries before to compile the toolkit.
 
 ---------------------------------------------------------------------
 Please follow the instructions provided by the offical sites to 
 install following library.
+* OpenGL
+http://www.opengl.org/
+http://freeglut.sourceforge.net/
 
 * CGAL
 
@@ -13,26 +16,24 @@ http://www.cgal.org/
 http://tclap.sourceforge.net/
 ---------------------------------------------------------------------
 
-Modify *Makefile* in root directory, to make sure the configuration is 
-correct. 
+Edit *Makefile* in root directory, to make sure the configuration is 
+correct, and type
 
-CC = gcc
-CPP = g++ ##CPP compiler
-CPPFLAGS = -Wall -I include 
+make all
 
-LIBOPT = -lCGAL  -I/usr/local/include/tclap/ ##Library path
-
-
-And type
-
-make
-
-to compile the whole software, this will generate a binary excutable 
-one in the root directly:
+to build library and compile the software, this will generate a binary 
+excutable one in the current directly:
 
 MeshTK
+
+and dynamic library and header files in directory
+
+include
+lib
+
+
 ----------------------------------------------------------------------
 
-Author: Jianbo YE<yelpoo@gmail.com>
-Date  : Sep 11, 2011
+Author: Bobby, Jianbo YE<yelpoo@gmail.com>
+Date  : Sep 21, 2011
 

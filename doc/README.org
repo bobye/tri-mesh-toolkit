@@ -1,17 +1,7 @@
-                                README
-                                ======
+#title: Mesh Toolkit
+#author: Bobby, Jianbo YE
 
-Author: YE JIANBO
-Date: 2011-09-21 15:13:52 HKT
-
-
-Table of Contents
-=================
-1 Introduction 
-
-
-1 Introduction 
-~~~~~~~~~~~~~~~
+* Introduction
 Mesh Toolkit(MeshTK) is a C++ toolkit developed for general proposed research in fields of 3D meshes. The package contains
  - libmeshtk.so (pre-build binary file and source code), built with CGAL and OpenGL. It is a dynamic library to process and visualize triangle meshes(either watertight or not). It is expected to have some features like normal and curvature estimation, remesh and smoothing, etc.
  - MeshTK (pre-build software under Linux & GNU G++ and source code), a demo and useful program to use the library. 

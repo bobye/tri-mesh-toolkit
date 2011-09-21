@@ -1,8 +1,8 @@
-#ifndef _MESHVIEWER_H_
-#define _MESHVIEWER_H_
+#ifndef _MESHVIEWER_HH_
+#define _MESHVIEWER_HH_
 
 #include <vector>
-#include "TriMesh.h"
+#include "TriMesh.hh"
 #include <GL/glut.h>
 
 
@@ -74,4 +74,4 @@ public:
 
 };
 
-#endif /* _MESHVIEWER_H_ */
+#endif /* _MESHVIEWER_HH_ */

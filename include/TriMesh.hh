@@ -1,7 +1,7 @@
-#ifndef _TRIMESH_H_
-#define _TRIMESH_H_
+#ifndef _TRIMESH_HH_
+#define _TRIMESH_HH_
 #include <vector>
-#include "mesh_topo.h"
+#include "mesh_topo.hh"
 
 typedef std::vector<Halfedge_handle> ISHalfedge_list;
 typedef std::vector<Vertex_handle> ISVertex_list;
@@ -113,4 +113,4 @@ public:
 
 };
 
-#endif /* _TRIMESH_H_ */
+#endif /* _TRIMESH_HH_ */

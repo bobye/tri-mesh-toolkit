@@ -1,5 +1,6 @@
 #title: Mesh Toolkit
 #author: Bobby, Jianbo YE
+#email: yelpoo@gmail.com
 
 * Introduction
 Mesh Toolkit(MeshTK) is a C++ toolkit developed for general proposed research in fields of 3D meshes. The package contains
@@ -8,6 +9,6 @@ Mesh Toolkit(MeshTK) is a C++ toolkit developed for general proposed research in
 
 *IMPORTANT*: It is still UNDER CODING, thus no release is available NOW.
 
-*Contact*: yelpoo[AT]gmail[DOT]com
+
 
 

@@ -1,7 +1,7 @@
-#include "MeshViewer.h"
+#include "MeshViewer.hh"
 
-#include "TriMesh.h"
-#include "mesh_topo.h"
+#include "TriMesh.hh"
+#include "mesh_topo.hh"
 
 
 GLfloat light_ambient[] = { .4, .4, .4, 1.0 };

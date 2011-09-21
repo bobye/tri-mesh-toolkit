@@ -63,12 +63,13 @@ int main(int argc, char** argv){
     
     meshtk::MeshViewer viewer(argc, argv);
     //meshtk::MeshPainter painter(&mesh);
-    meshtk::MeshRamper painter(&mesh, &mesh.vertex_hcurv);
+    meshtk::MeshRamper painter(&mesh, &mesh.vertex_PC0);
+
     viewer.add_painter(&painter);
 
     viewer.init();// call this func last before loop
     viewer.view();
-    
+
   } catch (TCLAP::ArgException &e) //catch any expections 
     {
       std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl; 

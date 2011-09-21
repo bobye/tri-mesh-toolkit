@@ -106,18 +106,21 @@ void MeshPainter::prepare(){
 void color_ramping(GLfloat *color, Scalar_Fun* psfun){
   Scalar_Fun s = *psfun;
   GLuint size = s.size();
+
+
   std::vector<size_t> index(size);
   for (unsigned i=0; i<size; ++i) index[i]=i;
   std::sort(index.begin(), index.end(), index_cmp<std::vector<double>&>(s));
   double sum=0;
   for (unsigned i=0; i<size; ++i) 
     {
-      s[index[i]] = sum;
-      sum+= 1;
+      s[index[i]] = sum++;
     }
 
-  double vmax= *std::max_element(s.begin(), s.end());
-  double vmin= *std::min_element(s.begin(), s.end());
+
+  //double vmax= *std::max_element(s.begin(), s.end());
+  //double vmin= *std::min_element(s.begin(), s.end());
+  double vmax= sum-1; double vmin =0;
   double dv = vmax - vmin;
 
   //  std::cout<<vmax <<"\t"<< vmin <<"\t" << size <<std::endl;
@@ -125,9 +128,6 @@ void color_ramping(GLfloat *color, Scalar_Fun* psfun){
   for (GLuint i=0;i<size;i++){
     color[3*i]=color[3*i+1]=color[3*i+2]=1.0;
     double v=s[i];
-    //     fprintf(p,"%lf\n",v);   
-    // if (v < vmin) v = vmin;
-    // if (v > vmax) v = vmax;
      
     if (v < (vmin + 0.25 * dv)) {
       color[3*i] = 0;

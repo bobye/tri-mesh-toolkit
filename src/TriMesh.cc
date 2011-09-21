@@ -169,14 +169,21 @@ void TriMesh::update_facet_localchart(){
 }
 
 
+Curvature prin_curv(double e, double f, double g){
+  double H= (e+g)/2;
+  double G=std::sqrt(4*f*f+(e-g)*(e-g))/2;
+
+  return meshtk::Curvature(H+G, H-G, H, H*H-G*G);
+}
+
 void TriMesh::update_facet_curvature(){
 
   facet_CT[0].resize(facet_num);
   facet_CT[1].resize(facet_num);
   facet_CT[2].resize(facet_num);
 
-  facet_PC[0].resize(facet_num);
-  facet_PC[1].resize(facet_num);
+  facet_PC0.resize(facet_num);
+  facet_PC1.resize(facet_num);
   facet_hcurv.resize(facet_num);
   facet_kcurv.resize(facet_num);
   
@@ -235,9 +242,12 @@ void TriMesh::update_facet_curvature(){
     facet_CT[2][i] = (final_linv[2][0]*final_r[0] + final_linv[2][1]*final_r[1] + final_linv[2][2]*final_r[2])/deter;        
 
 
-    
-    facet_hcurv[i] = prin_curv(facet_CT[0][i], facet_CT[1][i], facet_CT[2][i], facet_PC[0][i], facet_PC[1][i]);
-    facet_kcurv[i] = facet_PC[0][i] * facet_PC[1][i];
+    Curvature curv = prin_curv(facet_CT[0][i], facet_CT[1][i], facet_CT[2][i]);
+
+    facet_PC0[i] = curv.PC0;
+    facet_PC1[i] = curv.PC1;
+    facet_hcurv[i] = curv.hcurv;
+    facet_kcurv[i] = curv.kcurv;
 
 
     //step 2. solve matrix
@@ -246,13 +256,66 @@ void TriMesh::update_facet_curvature(){
 }
 
 
+
 void TriMesh::update_vertex_curvature(){
+  vertex_CT[0].resize(vertex_num);
+  vertex_CT[1].resize(vertex_num);
+  vertex_CT[2].resize(vertex_num);
+
+  vertex_PC0.resize(vertex_num);
+  vertex_PC1.resize(vertex_num);
+
   vertex_hcurv.resize(vertex_num);
   vertex_kcurv.resize(vertex_num);
+  double sigma = 2 * avg_edge_len;
+  Vector tmp;
 
+  for (int i=0; i < vertex_num; ++i) {
+    HV_circulator hv = IV[i]->vertex_begin();
+    double total_scale=0, scale;
+    vertex_CT[0][i] = vertex_CT[1][i] = vertex_CT[2][i] =0;
+    do {
+      if (hv->facet()==NULL) continue;
+      double x[2][2]; 
+      int j=hv->facet()->index;
+      
+
+
+      tmp = (-halfedge_vec[hv->index]+halfedge_vec[hv->next()->index]);
+      scale = CGAL::sqrt(tmp * tmp);
+      scale = std::exp(- scale * scale / (sigma * sigma));
+      total_scale +=scale;
+
+
+      for (int m=0;m<2;++m) for (int k=0;k<2;++k) x[m][k] = vertex_LC[m][i] * facet_LC[k][j];
+
+      
+      vertex_CT[0][i] += scale * 
+	(facet_CT[0][j]*x[0][0]*x[0][0] + 2*facet_CT[1][j]*x[0][0]*x[0][1] + facet_CT[2][j]*x[0][1]*x[0][1]);
+      vertex_CT[1][i] += scale *
+	(facet_CT[0][j]*x[0][0]*x[1][0] + facet_CT[1][j]*(x[0][0]*x[1][1] + x[0][1]*x[1][0])+ facet_CT[2][j]*x[0][1]*x[1][1]);
+      vertex_CT[2][i] += scale *
+	(facet_CT[0][j]*x[1][0]*x[1][0] + 2*facet_CT[1][j]*x[1][0]*x[1][1] + facet_CT[2][j]*x[1][1]*x[1][1]);
+  
+    }while (++hv != IV[i]->vertex_begin());
+
+    vertex_CT[0][i]/=total_scale;
+    vertex_CT[1][i]/=total_scale;
+    vertex_CT[2][i]/=total_scale;
+
+ 
+    Curvature curv = prin_curv(vertex_CT[0][i], vertex_CT[1][i], vertex_CT[2][i]);
+
+    vertex_PC0[i] = curv.PC0;
+    vertex_PC1[i] = curv.PC1;
+    vertex_hcurv[i] = curv.hcurv;
+    vertex_kcurv[i] = curv.kcurv;
+  }
+
+  /*
   facet2vertex_point_average( facet_hcurv, vertex_hcurv, 0.);
   facet2vertex_point_average( facet_kcurv, vertex_kcurv, 0.);
-  
+  */
 }
 
 void TriMesh::update_curvature(){

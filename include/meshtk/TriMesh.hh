@@ -13,6 +13,20 @@ namespace meshtk {
   typedef std::vector<double> Scalar_Fun;
   typedef std::vector<bool> Bool_Fun;// For marker.
 
+
+  struct Curvature {
+    Curvature (const double pc0, const double pc1, const double hc, const double kc) :PC0(pc0), PC1(pc1), hcurv(hc), kcurv(kc){}
+    const double PC0, PC1, hcurv, kcurv;
+    /*
+    void operator= (const Curvature p){
+      PC0 = p.PC0;
+      PC1 = p.PC1;
+      hcurv = p.hcurv;
+      kcurv = p.hcurv;
+    }
+    */
+  };
+
   class TriMesh {//topo ref system //index system of items of polyhedron
 
     Polyhedron P;
@@ -71,8 +85,10 @@ namespace meshtk {
     int facet_num;
 
 
-    Scalar_Fun vertex_PC[2];//PC: principle cuvature
-    Scalar_Fun facet_PC[2];
+    Scalar_Fun vertex_PC0;//PC: principle cuvature
+    Scalar_Fun vertex_PC1;
+    Scalar_Fun facet_PC0;
+    Scalar_Fun facet_PC1;
 
     Scalar_Fun vertex_hcurv;//mean curvature
     Scalar_Fun vertex_kcurv;//Gaussian curvature

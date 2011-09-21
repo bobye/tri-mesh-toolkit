@@ -42,14 +42,11 @@ namespace meshtk {
     Vec_Fun vertex_LC[2];//LC: local chart
     Vec_Fun facet_LC[2];
   
-    Scalar_Fun vertex_CT[3];//CT: cuvature tensor
-    Scalar_Fun facet_CT[3];//
+    Scalar_Fun vertex_CT[3];//CT: cuvature tensor [ 0 1 ]
+    Scalar_Fun facet_CT[3];//                     [ 1 2 ]
 
-    Scalar_Fun vertex_PC[2];//PC: principle cuvature
-    Scalar_Fun facet_PC[2];
 
-    Scalar_Fun facet_mcurv;//mean curvature
-
+    Scalar_Fun vertex_area;
     Scalar_Fun facet_area;
 
     double avg_edge_len;
@@ -59,6 +56,13 @@ namespace meshtk {
     double update_facet();
     void update_vertex();
 
+    void update_facet_localchart();
+    void update_vertex_localchart();
+
+
+    void update_facet_curvature();
+    void update_vertex_curvature();
+
   public:  
 
     double total_area;
@@ -67,13 +71,29 @@ namespace meshtk {
     int facet_num;
 
 
+    Scalar_Fun vertex_PC[2];//PC: principle cuvature
+    Scalar_Fun facet_PC[2];
+
+    Scalar_Fun vertex_hcurv;//mean curvature
+    Scalar_Fun vertex_kcurv;//Gaussian curvature
+
+    Scalar_Fun facet_hcurv;//mean curvature
+    Scalar_Fun facet_kcurv;//Gaussian curvature
+
+
     void read(std::string, std::string);
     void write(std::string, std::string);
     void init_index();
     void update_base();
+    void update_curvature();
+
 
     template <class T>
-    void facet2vertex_average(std::vector<T> &f, std::vector<T> &v, T zero){
+    void facet2vertex_area_average(std::vector<T> &f, std::vector<T> &v, T zero){
+    };
+
+    template <class T>
+    void facet2vertex_point_average(std::vector<T> &f, std::vector<T> &v, T zero){
       double sigma = 2 * avg_edge_len;
 
       for (int i=0;i<vertex_num;i++){
@@ -105,10 +125,10 @@ namespace meshtk {
       }
     };
 
-    void update_vertex_localchart();
-    void update_facet_localchart();
-    void update_facet_curvature();
-  
+
+
+
+
 
     friend class MeshPainter;
   

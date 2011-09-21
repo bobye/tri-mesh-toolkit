@@ -25,7 +25,7 @@ void localcoord(Vector proj, Vector u, Vector v, double coord[2]){
 
 double prin_curv(double e, double f, double g, double &k1, double &k2){
   double H= (e+g)/2;
-  double G=std::sqrt(4*f*f-(e-g)*(e-g))/2;
+  double G=std::sqrt(4*f*f+(e-g)*(e-g))/2;
   k1=H+G;
   k2=H-G;
   return H;

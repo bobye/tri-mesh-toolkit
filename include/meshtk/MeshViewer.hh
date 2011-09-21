@@ -32,6 +32,7 @@ namespace meshtk {
     void draw();
   
     ~MeshPainter();
+    
   };
 
   class MeshRamper : public MeshPainter {

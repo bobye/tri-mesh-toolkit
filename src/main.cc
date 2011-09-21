@@ -53,25 +53,22 @@ int main(int argc, char** argv){
 
     //mesh processing
     /***************************************************************************/
-    //contruct local chart for vertices and facets
-    
-    //mesh.update_vertex_localchart();
-    //mesh.update_facet_localchart();
-    /***************************************************************************/
-    //Compute facet curvature tensor
-    //mesh.update_facet_curvature();
 
+    //Compute facet curvature tensor
+    mesh.update_curvature();
+    /***************************************************************************/    
 
 
     //mesh.write(output_mesh_name, output_mesh_type);
-
+    
     meshtk::MeshViewer viewer(argc, argv);
-    meshtk::MeshPainter painter(&mesh);
+    //meshtk::MeshPainter painter(&mesh);
+    meshtk::MeshRamper painter(&mesh, &mesh.vertex_hcurv);
     viewer.add_painter(&painter);
 
     viewer.init();// call this func last before loop
     viewer.view();
-
+    
   } catch (TCLAP::ArgException &e) //catch any expections 
     {
       std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl; 

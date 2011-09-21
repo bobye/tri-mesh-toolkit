@@ -49,6 +49,7 @@ void TriMesh::init_index(){
   halfedge_vec.resize(halfedge_num);
   vertex_norm.resize(vertex_num);
   facet_norm.resize(facet_num);
+  vertex_area.resize(vertex_num);
   facet_area.resize(facet_num);
 
 
@@ -124,7 +125,16 @@ void TriMesh::update_vertex(){
     
   }
 
-  facet2vertex_average<Vector>( facet_norm, vertex_norm, Vector(0,0,0));
+  for (int i=0; i<vertex_num; i++){
+    HV_circulator hv=IV[i]->vertex_begin();
+    double area = 0;
+    do {
+      area += facet_area[hv->facet()->index];
+    }while (++hv!=IV[i]->vertex_begin());
+    vertex_area[i] = area;
+  }
+
+  facet2vertex_point_average( facet_norm, vertex_norm, Vector(0,0,0));
   for (int i=0;i<vertex_num;i++){
     vertex_norm[i] = vertex_norm[i] / CGAL::sqrt(vertex_norm[i] * vertex_norm[i]);
   }
@@ -167,9 +177,12 @@ void TriMesh::update_facet_curvature(){
 
   facet_PC[0].resize(facet_num);
   facet_PC[1].resize(facet_num);
-  facet_mcurv.resize(facet_num);
+  facet_hcurv.resize(facet_num);
+  facet_kcurv.resize(facet_num);
   
+  //for (int i=0;i<1;i++){
   for (int i=0;i<facet_num;i++){
+
     //compute curvature for each face
 
     //step 1. assembly matrix
@@ -190,29 +203,13 @@ void TriMesh::update_facet_curvature(){
     }
 
 
-    double matrix_l[2][2], matrix_r[2][2];
+    double matrix_l[2][2]={}, matrix_r[2][2]={};
     for (int j=0;j<2;j++)
       for (int k=0;k<2;k++)
 	for (int l=0;l<3;l++){
 	  matrix_l[j][k]+=e_LC[l][j]*e_LC[l][k];
 	  matrix_r[j][k]+=n_LC[l][j]*e_LC[l][k];
 	}
-    /*
-    double determinant = matrix_l[0][0]*matrix_l[1][1] - matrix_l[0][1]*matrix_l[1][0];
-    double matrix_linv[2][2];
-    matrix_linv[0][0] = matrix_l[1][1]/determinant;
-    matrix_linv[1][1] = matrix_l[0][0]/determinant;
-    matrix_linv[0][1] = - matrix_l[1][0]/determinant;
-    matrix_linv[1][0] = - matrix_l[0][1]/determinant;
-    
-
-    for (int j=0;j<2;j++)
-      for (int k=0;k<2;k++)
-	{
-	  facet_CT[j][k][i]=0;
-	  for (int l=0;l<2;l++) facet_CT[j][k][i] += matrix_r[j][l]*matrix_linv[l][k];
-	}
-    */
     
     double final_linv[3][3]={}, final_r[3];
     double a,b,c, deter;
@@ -236,10 +233,35 @@ void TriMesh::update_facet_curvature(){
     
     facet_CT[1][i] = (final_linv[1][0]*final_r[0] + final_linv[1][1]*final_r[1] + final_linv[1][2]*final_r[2])/deter;
     facet_CT[2][i] = (final_linv[2][0]*final_r[0] + final_linv[2][1]*final_r[1] + final_linv[2][2]*final_r[2])/deter;        
+
+
     
-    facet_mcurv[i] = prin_curv(facet_CT[0][i], facet_CT[1][i], facet_CT[2][i], facet_PC[0][i], facet_PC[1][i]);
+    facet_hcurv[i] = prin_curv(facet_CT[0][i], facet_CT[1][i], facet_CT[2][i], facet_PC[0][i], facet_PC[1][i]);
+    facet_kcurv[i] = facet_PC[0][i] * facet_PC[1][i];
+
+
     //step 2. solve matrix
+
   }
 }
 
+
+void TriMesh::update_vertex_curvature(){
+  vertex_hcurv.resize(vertex_num);
+  vertex_kcurv.resize(vertex_num);
+
+  facet2vertex_point_average( facet_hcurv, vertex_hcurv, 0.);
+  facet2vertex_point_average( facet_kcurv, vertex_kcurv, 0.);
+  
+}
+
+void TriMesh::update_curvature(){
+
+  update_facet_localchart();
+  update_facet_curvature();
+
+  update_vertex_localchart();
+  update_vertex_curvature();
+
+}
 

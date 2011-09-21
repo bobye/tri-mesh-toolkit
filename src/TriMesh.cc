@@ -1,11 +1,10 @@
-//#include "mesh_topo.h"
-#include "TriMesh.hh"
+
 #include <iostream>
 #include <fstream>
 #include <CGAL/IO/Polyhedron_iostream.h>
 
-
-#include "mesh_assist.hh"
+#include "meshtk/TriMesh.hh"
+#include "meshtk/mesh_assist.hh"
 
 using namespace meshtk;
 

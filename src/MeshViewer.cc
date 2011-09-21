@@ -1,7 +1,7 @@
-#include "MeshViewer.hh"
+#include "meshtk/MeshViewer.hh"
 
-#include "TriMesh.hh"
-#include "mesh_topo.hh"
+#include "meshtk/TriMesh.hh"
+#include "meshtk/mesh_topo.hh"
 
 using namespace meshtk;
 

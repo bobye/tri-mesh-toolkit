@@ -4,22 +4,33 @@ CC = gcc
 CPP = g++
 CPPFLAGS = -Wall -I include 
 
-LIBOPT = -lCGAL -lglut -lGL -lGLU -I/usr/local/include/tclap/
+LIBOPT = -lCGAL -lglut -lGL -lGLU 
+
+## DO NOT change anything below here
+LIBDIR=lib
+LIBPATH = -L$(LIBDIR)
+
+OBJDIR =obj
+
+OBJECTS = TriMesh.o MeshViewer.o mesh_assist.o ##temp objects
+
+VPATH = src
 
 
-## DO NOT modify the following lines.
 
-VPATH = src include
+default: all
 
+$(OBJDIR)/%.o: %.cc
+	$(CPP) -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $@ $<
 
+lib: $(addprefix $(OBJDIR)/, $(OBJECTS))
+	$(CPP) -shared -Wl,-soname,$(LIBDIR)/libmeshtk.so -o $(LIBDIR)/libmeshtk.so $^
 
-default: MeshTK
+MeshTK: main.cc
+	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) -I/usr/local/include/tclap/ -lmeshtk -o MeshTK $< 
 
-%.o: %.cc
-	$(CPP) -c $(CPPFLAGS) $(LIBOPT) -o $@ $<
-
-MeshTK: main.o  TriMesh.o MeshViewer.o mesh_assist.o
-	$(CPP) $(CPPFLAGS) $(LIBOPT) -o MeshTK $^
+all: lib MeshTK
 
 clean: 
-	$(RM) *.o MeshTK
+	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so MeshTK
+

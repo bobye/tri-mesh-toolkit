@@ -59,7 +59,8 @@ namespace meshtk {
     Scalar_Fun vertex_CT[3];//CT: cuvature tensor [ 0 1 ]
     Scalar_Fun facet_CT[3];//                     [ 1 2 ]
 
-
+    Scalar_Fun vertex_avg_len;
+    
     Scalar_Fun vertex_area;
     Scalar_Fun facet_area;
 
@@ -110,7 +111,7 @@ namespace meshtk {
 
     template <class T>
     void facet2vertex_point_average(std::vector<T> &f, std::vector<T> &v, T zero){
-      double sigma = 2 * avg_edge_len;
+      double sigma = avg_edge_len;
 
       for (int i=0;i<vertex_num;i++){
 	Vector tmp;
@@ -118,17 +119,20 @@ namespace meshtk {
 	HV_circulator hv=IV[i]->vertex_begin();
 	T vec = zero;
 
-	do {
-	  tmp = (-halfedge_vec[hv->index]+halfedge_vec[hv->next()->index]);
-	  scale = CGAL::sqrt(tmp * tmp);
-	  scale = std::exp(- scale * scale / (sigma * sigma));
+	sigma = vertex_avg_len[i] *2. /3.;
 	
+	do{
 	  if (hv->facet()==NULL) continue;
-	  else vec = vec + scale * f[hv->facet()->index];
-	
-	  total_scale += scale;
 
-	}while (++hv!=IV[i]->vertex_begin());
+	  tmp = (-halfedge_vec[hv->index]+halfedge_vec[hv->next()->index]);
+	  scale = CGAL::sqrt(tmp * tmp) /3.;		    
+	  scale = std::exp(- scale * scale / (2 * sigma * sigma));	    
+
+	  total_scale += scale;
+	  vec = vec + scale * f[hv->facet()->index];
+
+	} while (++ hv!=IV[i]->vertex_begin());
+
 
 	v[i] = vec/total_scale;
       }

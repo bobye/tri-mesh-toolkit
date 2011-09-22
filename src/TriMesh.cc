@@ -52,6 +52,7 @@ void TriMesh::init_index(){
   vertex_area.resize(vertex_num);
   facet_area.resize(facet_num);
 
+  vertex_avg_len.resize(vertex_num);
 
   int index_count=0;
   for(Vertex_iterator vitr= P.vertices_begin();vitr!= P.vertices_end();
@@ -127,11 +128,22 @@ void TriMesh::update_vertex(){
 
   for (int i=0; i<vertex_num; i++){
     HV_circulator hv=IV[i]->vertex_begin();
-    double area = 0;
+    double area = 0, total_len =0;
+    Vector tmp;
+    int k=0;
+
     do {
+      if (hv->facet()==NULL) continue;
       area += facet_area[hv->facet()->index];
+
+      tmp = halfedge_vec[hv->index];
+      total_len += CGAL::sqrt(tmp * tmp);		    
+      ++k;      
+
     }while (++hv!=IV[i]->vertex_begin());
-    vertex_area[i] = area;
+    vertex_area[i] = area/3.;
+    vertex_avg_len[i] = total_len / k;
+
   }
 
   facet2vertex_point_average( facet_norm, vertex_norm, Vector(0,0,0));
@@ -267,25 +279,24 @@ void TriMesh::update_vertex_curvature(){
 
   vertex_hcurv.resize(vertex_num);
   vertex_kcurv.resize(vertex_num);
-  double sigma = 2 * avg_edge_len;
+  double sigma = avg_edge_len;
   Vector tmp;
 
   for (int i=0; i < vertex_num; ++i) {
     HV_circulator hv = IV[i]->vertex_begin();
     double total_scale=0, scale;
     vertex_CT[0][i] = vertex_CT[1][i] = vertex_CT[2][i] =0;
-    do {
-      if (hv->facet()==NULL) continue;
+
+    sigma = vertex_avg_len[i];
+
+    do{
+      if (hv->facet() == NULL) continue;
+
+      scale = std::exp(- scale * scale / (2 * sigma * sigma));
+      total_scale += scale;
+
       double x[2][2]; 
       int j=hv->facet()->index;
-      
-
-
-      tmp = (-halfedge_vec[hv->index]+halfedge_vec[hv->next()->index]);
-      scale = CGAL::sqrt(tmp * tmp);
-      scale = std::exp(- scale * scale / (sigma * sigma));
-      total_scale +=scale;
-
 
       for (int m=0;m<2;++m) for (int k=0;k<2;++k) x[m][k] = vertex_LC[m][i] * facet_LC[k][j];
 
@@ -296,7 +307,7 @@ void TriMesh::update_vertex_curvature(){
 	(facet_CT[0][j]*x[0][0]*x[1][0] + facet_CT[1][j]*(x[0][0]*x[1][1] + x[0][1]*x[1][0])+ facet_CT[2][j]*x[0][1]*x[1][1]);
       vertex_CT[2][i] += scale *
 	(facet_CT[0][j]*x[1][0]*x[1][0] + 2*facet_CT[1][j]*x[1][0]*x[1][1] + facet_CT[2][j]*x[1][1]*x[1][1]);
-  
+
     }while (++hv != IV[i]->vertex_begin());
 
     vertex_CT[0][i]/=total_scale;

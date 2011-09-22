@@ -63,7 +63,7 @@ int main(int argc, char** argv){
     
     meshtk::MeshViewer viewer(argc, argv);
     //meshtk::MeshPainter painter(&mesh);
-    meshtk::MeshRamper painter(&mesh, &mesh.vertex_PC0);
+    meshtk::MeshRamper painter(&mesh, &mesh.vertex_hcurv);
 
     viewer.add_painter(&painter);
 

@@ -32,6 +32,7 @@ typedef TCLAP::SwitchArg                             Opt_Bool;
 
 //#include "mesh_topo.hh"
 #include "meshtk/TriMesh.hh"
+#include "meshtk/DynamicTriMesh.hh"
 #include "meshtk/MeshViewer.hh"
 
 
@@ -45,7 +46,8 @@ int main(int argc, char** argv){
     Opt_String outputMeshName("o", "output_mesh", "File name of output mesh without file extension", false, "out", "string", cmd);
     Opt_String inputMeshType("", "input_mesh_type", "Input mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
     Opt_String outputMeshType("", "output_mesh_type", "output mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
-
+    
+    Opt_Int smoothIteration("s", "smooth", "Number of Guassian Smoothing Iterations", false, 0, "unsigned int", cmd);
 
 
     cmd.parse( argc, argv );
@@ -54,9 +56,9 @@ int main(int argc, char** argv){
     std::string output_mesh_name = outputMeshName.getValue();
     std::string input_mesh_type  = inputMeshType.getValue();
     std::string output_mesh_type = outputMeshType.getValue();
-
     
-    meshtk::TriMesh mesh;// index mapping from array to halfedge data structure
+    
+    meshtk::DynamicTriMesh mesh;// index mapping from array to halfedge data structure
 
     mesh.read(input_mesh_name, input_mesh_type);
 
@@ -64,7 +66,11 @@ int main(int argc, char** argv){
     
     // Update mesh infomation
     mesh.update_base();
-    
+
+    for (int i=0; i<smoothIteration.getValue(); ++i) {
+      mesh.gaussian_smooth(1.0);
+      mesh.update_base();
+    }
 
     //mesh processing
     /***************************************************************************/
@@ -74,7 +80,7 @@ int main(int argc, char** argv){
     /***************************************************************************/    
 
 
-    //mesh.write(output_mesh_name, output_mesh_type);
+    mesh.write(output_mesh_name, output_mesh_type);
     
     meshtk::MeshViewer viewer(argc, argv);
     //meshtk::MeshPainter painter(&mesh);

@@ -21,3 +21,26 @@
 */
 
 #include "meshtk/DynamicTriMesh.hh"
+
+
+
+namespace meshtk {
+  
+  void DynamicTriMesh::init_index(){
+    TriMesh::init_index();
+    
+    vertex_coord = PointFunction(vertex_num);
+    facet_coord = PointFunction(facet_num);
+  }
+
+  
+  void DynamicTriMesh::restore_coord(){
+    for (int i=0;i<vertex_num; i++){
+      IV[i]->point() = vertex_coord[i];
+    }
+  }
+
+  void DynamicTriMesh::gaussian_smooth(double coeff){
+  }
+
+}

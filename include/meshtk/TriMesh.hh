@@ -126,9 +126,9 @@ namespace meshtk {
     /////////////////////////////////////////////////////////////////////
     // private routines to update item attributes starts here
 
-    virtual double update_halfedge();// to update: halfedge_vec, avg_edge_len    
-    virtual double update_facet();// to update: facet_norm, facet_area
-    virtual void update_vertex();// to update: vertex_norm, vertex_area, vertex_avg_len
+    double update_halfedge();// to update: halfedge_vec, avg_edge_len    
+    double update_facet();// to update: facet_norm, facet_area
+    void update_vertex();// to update: vertex_norm, vertex_area, vertex_avg_len
 
     void update_facet_localchart();// to update local chart setting of facet - facet_LC[]
     void update_vertex_localchart();// to update local chart setting of vertex - vertex_LC[]
@@ -175,11 +175,11 @@ namespace meshtk {
     // build connection with lower CGAL layer, should be called
     // immediatelly after loading the mesh, update: IH, IV, IF
     // and [vertex, facet, halfedge]_handle->index 
-    void init_index();
+    virtual void init_index();
 
     // update base attributes of mesh, namely three private routines:
     //  update_halfedge(), update_facet(), update_vertex(); 
-    virtual void update_base();
+    void update_base();
 
     // update curvature attributes of mesh, update: 
     // update_[facet, vertex]_localchart() and update_[facet, vertex]_curvature()

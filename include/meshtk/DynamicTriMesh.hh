@@ -31,27 +31,31 @@ namespace meshtk {
   // DynamicTriMesh is inherited from TriMesh. It has ability to be applied some 
   // dynamic operations, such like smoothing, denoising, and remeshing.
   class DynamicTriMesh : public TriMesh {
-    
+
+    // just the coordinate buffer for vertex and facet
     PointFunction vertex_coord;
     PointFunction facet_coord;
     
     /////////////////////////////////////////////////////////////////////
     // private routines to update item attributes starts here
 
-    virtual double update_halfedge();// to update: halfedge_vec, avg_edge_len    
-    virtual double update_facet();// to update: facet_norm, facet_area
-    virtual void update_vertex();// to update: vertex_norm, vertex_area, vertex_avg_len
-
   public:
 
     /////////////////////////////////////////////////////////////////////////////
     // public functions used in top interface.
+
+    // build connection with lower CGAL layer, should be called
+    // immediatelly after loading the mesh, update: IH, IV, IF
+    // and [vertex, facet, halfedge]_handle->index 
+    void init_index();    
+
+    // push vertex_coord to CGAL Polyhedron data mesh
+    void restore_coord();
     
-    // update base attributes of mesh, namely three private routines:
-    //  update_halfedge(), update_facet(), update_vertex(); 
-    virtual void update_base();
-    
-  }
+    void gaussian_smooth(double coeff);
+
+
+  };
 }
 
 

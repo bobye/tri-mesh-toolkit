@@ -264,7 +264,7 @@ namespace meshtk {
       final_r[1] = matrix_r[0][1]+matrix_r[1][0];
       final_r[2] = matrix_r[1][1];
 
-    
+      //step 2. solve matrix    
       final_linv[0][0]=(a+c)*c-b*b;
       final_linv[0][1]=final_linv[1][0]=-b*c;
       final_linv[0][2]=final_linv[2][0]=b*b;
@@ -286,10 +286,13 @@ namespace meshtk {
       facet_hcurv[i] = curv.mean_curv;
       facet_kcurv[i] = curv.gaussian_curv;
 
-
-      //step 2. solve matrix
-
     }
+
+    attribute[MESHTK_FACET_PC0] = &facet_PC0;
+    attribute[MESHTK_FACET_PC1] = &facet_PC1;
+    attribute[MESHTK_FACET_HCURV] = &facet_hcurv;
+    attribute[MESHTK_FACET_KCURV] = &facet_kcurv;    
+
   }
 
 
@@ -353,6 +356,10 @@ namespace meshtk {
       vertex_kcurv[i] = curv.gaussian_curv;
     }
 
+    attribute[MESHTK_VERTEX_PC0] = &vertex_PC0;
+    attribute[MESHTK_VERTEX_PC1] = &vertex_PC1;
+    attribute[MESHTK_VERTEX_HCURV] = &vertex_hcurv;
+    attribute[MESHTK_VERTEX_KCURV] = &vertex_kcurv;
     /*
       facet2vertex_point_average( facet_hcurv, vertex_hcurv, 0.);
       facet2vertex_point_average( facet_kcurv, vertex_kcurv, 0.);
@@ -370,13 +377,58 @@ namespace meshtk {
   }
 
   
+  unsigned TriMesh::attribute_allocate(unsigned item, unsigned type){
+    int n;
+
+    if (item == MESHTK_VERTEX) n = vertex_num;
+    else if (item == MESHTK_FACET) n = facet_num;
+    else if (item == MESHTK_HALFEDGE) n = halfedge_num;
+    else { std::cerr << "Attribute function: item indice is not correct, use MESHTK_VERTEX, MESHTK_FACET, MESHTK_HALFEDGE" << std::endl; exit(1);}
+
+    if (type == MESHTK_SCALAR) {
+      ScalarFunction *v = new ScalarFunction(n);
+      attribute[set_attribute_id] = v;
+    }
+    else if (type == MESHTK_VECTOR) {
+      VectorFunction *v = new VectorFunction(n);
+      attribute[set_attribute_id] = v;
+    }
+    else if (type == MESHTK_BOOLEAN) {
+      BooleanFunction *v = new BooleanFunction(n);
+      attribute[set_attribute_id] = v;
+    }
+    else { std::cerr << "Attribute function: type indice is not correct, use MESHTK_SCALAR, MESHTK_VECTOR, MESHTK_BOOLEAN" << std::endl; exit(1);}
+
+    return set_attribute_id++;
+  }
+
+  void TriMesh::attribute_delete(unsigned indice, unsigned type){
+    if (type == MESHTK_SCALAR) {
+      ((ScalarFunction *) attribute[indice])->clear();
+      delete (ScalarFunction *) attribute[indice];
+    }
+    else if (type == MESHTK_VECTOR) {
+      ((VectorFunction *) attribute[indice])->clear();
+      delete (VectorFunction *) attribute[indice];
+    }
+    else if (type == MESHTK_BOOLEAN) {
+      ((BooleanFunction *) attribute[indice])->clear();
+      delete (BooleanFunction *) attribute[indice];
+    }
+    else { std::cerr << "Warning: Attribute function type indice is not correct, use MESHTK_SCALAR, MESHTK_VECTOR, MESHTK_BOOLEAN" << std::endl; return; }    
+    
+
+    attribute.erase(indice);
+
+  }
   
-  void * TriMesh::attribute_extract(unsigned ){
-    return NULL;
+  void * TriMesh::attribute_extract(unsigned indice){
+    return attribute[indice];
   }
 
 
-
+  TriMesh::~TriMesh(){    
+  }
 
 
 }

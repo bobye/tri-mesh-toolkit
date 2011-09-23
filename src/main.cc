@@ -78,7 +78,8 @@ int main(int argc, char** argv){
     
     meshtk::MeshViewer viewer(argc, argv);
     //meshtk::MeshPainter painter(&mesh);
-    meshtk::MeshRamper painter(&mesh, &mesh.vertex_hcurv);
+    meshtk::ScalarFunction *mean_curv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
+    meshtk::MeshRamper painter(&mesh, mean_curv);
 
     viewer.add_painter(&painter);
 

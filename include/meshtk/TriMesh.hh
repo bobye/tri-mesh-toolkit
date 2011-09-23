@@ -26,8 +26,19 @@
 
 
 #define MESHTK_USER_ATTRIBUTE_START (128)
-  // Following are registration number of inherent mesh attributes
-  // Scalar section: 0-31
+///////////////////////////////////////////////////////////////
+//Following are used in function TriMesh::attribute_allocate()
+// 1st argument
+#define MESHTK_VERTEX                   0
+#define MESHTK_FACET                    1
+#define MESHTK_HALFEDGE                 2
+// 2nd argument
+#define MESHTK_SCALAR                   3
+#define MESHTK_VECTOR                   4
+#define MESHTK_BOOLEAN                  5
+/////////////////////////////////////////////////////////////////
+// Following are registration number of inherent mesh attributes
+// Scalar section: 0-31
 #define MESHTK_VERTEX_PC0               0
 #define MESHTK_VERTEX_PC1               1
 #define MESHTK_VERTEX_HCURV             2
@@ -37,7 +48,7 @@
 #define MESHTK_FACET_PC1                5
 #define MESHTK_FACET_HCURV              6
 #define MESHTK_FACET_KCURV              7
-  // Vector section: 32-63
+// Vector section: 32-63
 
 
 namespace meshtk {
@@ -162,6 +173,7 @@ namespace meshtk {
   public:  
 
     TriMesh();
+    ~TriMesh();
     ////////////////////////////////////////////////////////////////////////////
     double total_area; // total area of mesh surface
 
@@ -195,9 +207,11 @@ namespace meshtk {
     // update_[facet, vertex]_localchart() and update_[facet, vertex]_curvature()
     void update_curvature();
 
+    // allocate memory for attribute function
+    unsigned attribute_allocate(unsigned, unsigned);
     // return reference of attribute function by register number
     void *attribute_extract(unsigned );
-
+    void attribute_delete(unsigned, unsigned);
     
     // Below are weighted average template functions, which will 
     // convert facet attribute to vertex attribute or vice versa

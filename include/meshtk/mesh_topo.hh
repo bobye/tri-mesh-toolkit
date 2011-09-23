@@ -1,3 +1,25 @@
+/*
+  FILE: meshtk/mesh_topo.hh This file is part of MeshTK.
+  It is a C++ header file which provides a wrapper for CGAL Polyhedron 
+  data structure. 
+  
+  Copyright (C) 2011 Jianbo YE
+
+  MeshTK is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  MeshTK is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  
+*/
+
 #ifndef _MESH_TOPO_HH_
 #define _MESH_TOPO_HH_
 
@@ -78,22 +100,6 @@ typedef Polyhedron::Edge_iterator                            Edge_iterator;
 typedef Polyhedron::Halfedge_around_vertex_circulator        HV_circulator;
 typedef Polyhedron::Halfedge_around_facet_circulator         HF_circulator;
 
-
-/* template<class Handle> */
-/* struct Handle_comparison */
-/* { */
-/*   bool operator() (const Handle& h1, const Handle& h2) const */
-/*   { */
-/*     return &(*h1) < &(*h2); */
-/*   } */
-/* };  */
-
-//map is not efficient
-//typedef std::map<Halfedge_handle, int, Handle_comparison<Halfedge_handle> > HalfedgeIS_list;
-//typedef std::map<Vertex_handle, int, Handle_comparison<Vertex_handle> >     VertexIS_list;
-//typedef std::map<Facet_handle, int, Handle_comparison<Facet_handle> >       FacetIS_list;
-
-//random access to items
 
 
 

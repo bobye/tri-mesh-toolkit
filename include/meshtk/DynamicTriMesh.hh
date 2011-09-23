@@ -51,7 +51,12 @@ namespace meshtk {
 
     // push vertex_coord to CGAL Polyhedron data mesh
     void restore_coord();
-    
+
+    // Apply Gaussian smooth operator over entire mesh
+    // The new point is an averaging of one ring configuration with unnormalized
+    //    weight = exp ( - distance ^2 / sigma ^2 )
+    // where distance is the attached edge length, and 
+    //    sigma = coeff * avg_edge_len
     void gaussian_smooth(double coeff);
 
 

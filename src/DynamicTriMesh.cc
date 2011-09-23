@@ -41,6 +41,29 @@ namespace meshtk {
   }
 
   void DynamicTriMesh::gaussian_smooth(double coeff){
+    double sigma = coeff * avg_edge_len;
+    for (int i = 0; i < vertex_num; i++){
+      Vector tmp, vec(0,0,0);
+      double scale, total_scale=1.;
+      HV_circulator hv=IV[i]->vertex_begin();
+      
+      do {
+	if (hv->facet()==NULL) continue;
+	
+	tmp = halfedge_vec[hv->index];
+	scale = CGAL::sqrt(tmp * tmp);
+	scale = std::exp (- (scale * scale) / (sigma * sigma));
+	total_scale +=scale;
+
+	vec = vec - scale * tmp;
+ 
+      }while (++hv != IV[i]->vertex_begin());
+      
+      vertex_coord[i] = IV[i]->point() + vec / total_scale;
+      
+    }
+
+    restore_coord();
   }
 
 }

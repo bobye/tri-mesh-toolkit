@@ -195,7 +195,7 @@ namespace meshtk {
     // convert facet attribute to vertex attribute or vice versa
     template <class T>
     void facet2vertex_area_average(std::vector<T> &f, std::vector<T> &v, T zero){
-    };
+    };// not implemented yet
 
     template <class T>
     void facet2vertex_point_average(std::vector<T> &f, std::vector<T> &v, T zero){
@@ -229,12 +229,16 @@ namespace meshtk {
     template <class T>
     void vertex2facet_average(std::vector<T> &v, std::vector<T> &f){
       for (int i=0;i<facet_num;i++){
-	// ...
+	// ... still not implemented 
       }
     };
 
 
 
+    template <class T>
+    void vertex2vertex_average(std::vector<T> &s, std::vector<T> &t){
+      // not implemented yet
+    };
 
 
 

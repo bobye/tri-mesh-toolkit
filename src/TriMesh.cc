@@ -28,6 +28,17 @@
 
 namespace meshtk {
 
+  Curvature Curvature::tensor_compute(double e, double f, double g){
+    double H= (e+g)/2;
+    double G=std::sqrt(4*f*f+(e-g)*(e-g))/2;
+
+    return meshtk::Curvature(H+G, H-G, H, H*H-G*G);
+  }
+
+  TriMesh::TriMesh (){
+    set_attribute_id = MESHTK_USER_ATTRIBUTE_START;
+  };
+
   void TriMesh::read(std::string file, std::string type){
     if (type.compare("off")==0){
       std::ifstream mesh_Fin;
@@ -62,17 +73,17 @@ namespace meshtk {
     vertex_num = P.size_of_vertices();
     facet_num = P.size_of_facets();
 
-    IH = ISHalfedge_list(halfedge_num);
-    IV =  ISVertex_list(vertex_num);
-    IF =  ISFacet_list(facet_num);
+    IH = ISHalfedgeList(halfedge_num);
+    IV =  ISVertexList(vertex_num);
+    IF =  ISFacetList(facet_num);
 
-    halfedge_vec = Vec_Fun(halfedge_num);
-    vertex_norm = Vec_Fun(vertex_num);
-    facet_norm = Vec_Fun(facet_num);
-    vertex_area = Scalar_Fun(vertex_num);
-    facet_area = Scalar_Fun(facet_num);
+    halfedge_vec = VectorFunction(halfedge_num);
+    vertex_norm = VectorFunction(vertex_num);
+    facet_norm = VectorFunction(facet_num);
+    vertex_area = ScalarFunction(vertex_num);
+    facet_area = ScalarFunction(facet_num);
 
-    vertex_avg_len = Scalar_Fun(vertex_num);
+    vertex_avg_len = ScalarFunction(vertex_num);
 
     int index_count=0;
     for(Vertex_iterator vitr= P.vertices_begin();vitr!= P.vertices_end();
@@ -137,12 +148,12 @@ namespace meshtk {
 
     for (int i=0;i<vertex_num;i++) {
       Point p= IV[i]->point();
-      if (p.x() < coord_min_x || i==0) coord_min_x = p.x();
-      if (p.y() < coord_min_y || i==0) coord_min_y = p.y();
-      if (p.z() < coord_min_z || i==0) coord_min_z = p.z();
-      if (p.x() > coord_max_x || i==0) coord_max_x = p.x();
-      if (p.y() > coord_max_y || i==0) coord_max_y = p.y();
-      if (p.z() > coord_max_z || i==0) coord_max_z = p.z();
+      if (p.x() < coordinate_min_x || i==0) coordinate_min_x = p.x();
+      if (p.y() < coordinate_min_y || i==0) coordinate_min_y = p.y();
+      if (p.z() < coordinate_min_z || i==0) coordinate_min_z = p.z();
+      if (p.x() > coordinate_max_x || i==0) coordinate_max_x = p.x();
+      if (p.y() > coordinate_max_y || i==0) coordinate_max_y = p.y();
+      if (p.z() > coordinate_max_z || i==0) coordinate_max_z = p.z();
     
     }
 
@@ -187,37 +198,31 @@ namespace meshtk {
 
 
   void TriMesh::update_vertex_localchart(){
-    vertex_LC[0] = Vec_Fun(vertex_num);
-    vertex_LC[1] = Vec_Fun(vertex_num);
+    vertex_LC[0] = VectorFunction(vertex_num);
+    vertex_LC[1] = VectorFunction(vertex_num);
   
     for (int i=0;i<vertex_num;i++) localchart(vertex_LC[0][i],vertex_LC[1][i], vertex_norm[i]);
   }
 
   void TriMesh::update_facet_localchart(){
-    facet_LC[0] = Vec_Fun(facet_num);
-    facet_LC[1] = Vec_Fun(facet_num);
+    facet_LC[0] = VectorFunction(facet_num);
+    facet_LC[1] = VectorFunction(facet_num);
 
     for (int i=0;i<facet_num;i++) localchart(facet_LC[0][i],facet_LC[1][i], facet_norm[i]);
   }
 
 
-  Curvature prin_curv(double e, double f, double g){
-    double H= (e+g)/2;
-    double G=std::sqrt(4*f*f+(e-g)*(e-g))/2;
-
-    return meshtk::Curvature(H+G, H-G, H, H*H-G*G);
-  }
 
   void TriMesh::update_facet_curvature(){
 
-    facet_CT[0] = Scalar_Fun(facet_num);
-    facet_CT[1] = Scalar_Fun(facet_num);
-    facet_CT[2] = Scalar_Fun(facet_num);
+    facet_CT[0] = ScalarFunction(facet_num);
+    facet_CT[1] = ScalarFunction(facet_num);
+    facet_CT[2] = ScalarFunction(facet_num);
 
-    facet_PC0 = Scalar_Fun(facet_num);
-    facet_PC1 = Scalar_Fun(facet_num);
-    facet_hcurv = Scalar_Fun(facet_num);
-    facet_kcurv = Scalar_Fun(facet_num);
+    facet_PC0 = ScalarFunction(facet_num);
+    facet_PC1 = ScalarFunction(facet_num);
+    facet_hcurv = ScalarFunction(facet_num);
+    facet_kcurv = ScalarFunction(facet_num);
   
     //for (int i=0;i<1;i++){
     for (int i=0;i<facet_num;i++){
@@ -274,12 +279,12 @@ namespace meshtk {
       facet_CT[2][i] = (final_linv[2][0]*final_r[0] + final_linv[2][1]*final_r[1] + final_linv[2][2]*final_r[2])/deter;        
 
 
-      Curvature curv = prin_curv(facet_CT[0][i], facet_CT[1][i], facet_CT[2][i]);
+      Curvature curv = Curvature::tensor_compute(facet_CT[0][i], facet_CT[1][i], facet_CT[2][i]);
 
-      facet_PC0[i] = curv.PC0;
-      facet_PC1[i] = curv.PC1;
-      facet_hcurv[i] = curv.hcurv;
-      facet_kcurv[i] = curv.kcurv;
+      facet_PC0[i] = curv.principle_curv0;
+      facet_PC1[i] = curv.principle_curv1;
+      facet_hcurv[i] = curv.mean_curv;
+      facet_kcurv[i] = curv.gaussian_curv;
 
 
       //step 2. solve matrix
@@ -290,15 +295,15 @@ namespace meshtk {
 
 
   void TriMesh::update_vertex_curvature(){
-    vertex_CT[0] = Scalar_Fun(vertex_num);
-    vertex_CT[1] = Scalar_Fun(vertex_num);
-    vertex_CT[2] = Scalar_Fun(vertex_num);
+    vertex_CT[0] = ScalarFunction(vertex_num);
+    vertex_CT[1] = ScalarFunction(vertex_num);
+    vertex_CT[2] = ScalarFunction(vertex_num);
 
-    vertex_PC0 = Scalar_Fun(vertex_num);
-    vertex_PC1 = Scalar_Fun(vertex_num);
+    vertex_PC0 = ScalarFunction(vertex_num);
+    vertex_PC1 = ScalarFunction(vertex_num);
 
-    vertex_hcurv = Scalar_Fun(vertex_num);
-    vertex_kcurv = Scalar_Fun(vertex_num);
+    vertex_hcurv = ScalarFunction(vertex_num);
+    vertex_kcurv = ScalarFunction(vertex_num);
     double sigma = avg_edge_len;
     Vector tmp;
 
@@ -340,12 +345,12 @@ namespace meshtk {
       vertex_CT[2][i]/=total_scale;
 
  
-      Curvature curv = prin_curv(vertex_CT[0][i], vertex_CT[1][i], vertex_CT[2][i]);
+      Curvature curv = Curvature::tensor_compute(vertex_CT[0][i], vertex_CT[1][i], vertex_CT[2][i]);
 
-      vertex_PC0[i] = curv.PC0;
-      vertex_PC1[i] = curv.PC1;
-      vertex_hcurv[i] = curv.hcurv;
-      vertex_kcurv[i] = curv.kcurv;
+      vertex_PC0[i] = curv.principle_curv0;
+      vertex_PC1[i] = curv.principle_curv1;
+      vertex_hcurv[i] = curv.mean_curv;
+      vertex_kcurv[i] = curv.gaussian_curv;
     }
 
     /*
@@ -363,5 +368,15 @@ namespace meshtk {
     update_vertex_curvature();
 
   }
+
+  
+  
+  void * TriMesh::attribute_extract(unsigned ){
+    return NULL;
+  }
+
+
+
+
 
 }

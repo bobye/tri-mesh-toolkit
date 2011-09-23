@@ -52,12 +52,12 @@ namespace meshtk {
 
   MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
 
-    coord_min_x = pmesh->coord_min_x;
-    coord_min_y = pmesh->coord_min_y;
-    coord_min_z = pmesh->coord_min_z;
-    coord_max_x = pmesh->coord_max_x;
-    coord_max_y = pmesh->coord_max_y;
-    coord_max_z = pmesh->coord_max_z;
+    coordinate_min_x = pmesh->coordinate_min_x;
+    coordinate_min_y = pmesh->coordinate_min_y;
+    coordinate_min_z = pmesh->coordinate_min_z;
+    coordinate_max_x = pmesh->coordinate_max_x;
+    coordinate_max_y = pmesh->coordinate_max_y;
+    coordinate_max_z = pmesh->coordinate_max_z;
 
     vn = pmesh->vertex_num;
     fn = pmesh->facet_num;
@@ -125,8 +125,8 @@ namespace meshtk {
 
 
 
-  void color_ramping(GLfloat *color, Scalar_Fun* psfun){
-    Scalar_Fun s = *psfun;
+  void color_ramping(GLfloat *color, ScalarFunction* psfun){
+    ScalarFunction s = *psfun;
     GLuint size = s.size();
 
 
@@ -169,7 +169,7 @@ namespace meshtk {
   
   }
 
-  MeshRamper::MeshRamper(TriMesh *pmesh, Scalar_Fun* psfun)
+  MeshRamper::MeshRamper(TriMesh *pmesh, ScalarFunction* psfun)
     :MeshPainter(pmesh){
     color_array = new GLfloat[3*vn];
     color_ramping(color_array, psfun);  
@@ -192,7 +192,7 @@ namespace meshtk {
     delete [] color_array;
   }
 
-  MeshMarker::MeshMarker(TriMesh *pmesh, Bool_Fun* pbfun)
+  MeshMarker::MeshMarker(TriMesh *pmesh, BooleanFunction* pbfun)
     :MeshPainter(pmesh) {
 
   }
@@ -280,13 +280,13 @@ namespace meshtk {
     glClearColor(1.0, 1.0, 1.0, 0.0);
     glClearDepth(1.0);
 
-    GLfloat center_x = (coord_min_x + coord_max_x) /2.;
-    GLfloat center_y = (coord_min_y + coord_max_y) /2.;
-    GLfloat center_z = (coord_min_z + coord_max_z) /2.;
-    GLfloat length_z = (coord_max_z - coord_min_z) /2.;
+    GLfloat center_x = (coordinate_min_x + coordinate_max_x) /2.;
+    GLfloat center_y = (coordinate_min_y + coordinate_max_y) /2.;
+    GLfloat center_z = (coordinate_min_z + coordinate_max_z) /2.;
+    GLfloat length_z = (coordinate_max_z - coordinate_min_z) /2.;
   
-    GLfloat radio_x = (coord_max_x - coord_min_x) /  width;
-    GLfloat radio_y = (coord_max_y - coord_min_y) /  height;
+    GLfloat radio_x = (coordinate_max_x - coordinate_min_x) /  width;
+    GLfloat radio_y = (coordinate_max_y - coordinate_min_y) /  height;
     GLfloat radio = (radio_x > radio_y)? radio_x: radio_y;
 
     //std::cout<< length_z << std::endl;
@@ -314,13 +314,13 @@ namespace meshtk {
 
   void MeshViewer::add_lights(){
     /*
-      light_position0[0] = coord_max_x * perfect_factor;
-      light_position0[1] = coord_max_y * perfect_factor;
-      light_position0[2] = coord_max_z * perfect_factor;
+      light_position0[0] = coordinate_max_x * perfect_factor;
+      light_position0[1] = coordinate_max_y * perfect_factor;
+      light_position0[2] = coordinate_max_z * perfect_factor;
 
-      light_position1[0] =  coord_min_x * perfect_factor;
-      light_position1[1] =  coord_min_y * perfect_factor;
-      light_position1[2] =  coord_min_z * perfect_factor;
+      light_position1[0] =  coordinate_min_x * perfect_factor;
+      light_position1[1] =  coordinate_min_y * perfect_factor;
+      light_position1[2] =  coordinate_min_z * perfect_factor;
     */
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
@@ -346,12 +346,18 @@ namespace meshtk {
   void MeshViewer::add_painter(MeshPainter *painter){
     Painters.push_back(painter);
     GLuint count = Painters.size();
-    if (painter->coord_min_x < coord_min_x|| count ==1) coord_min_x = painter->coord_min_x;
-    if (painter->coord_min_y < coord_min_y|| count ==1) coord_min_y = painter->coord_min_y;
-    if (painter->coord_min_z < coord_min_z|| count ==1) coord_min_z = painter->coord_min_z;
-    if (painter->coord_max_x > coord_max_x|| count ==1) coord_max_x = painter->coord_max_x;
-    if (painter->coord_max_y > coord_max_y|| count ==1) coord_max_y = painter->coord_max_y;
-    if (painter->coord_max_z > coord_max_z|| count ==1) coord_max_z = painter->coord_max_z;
+    if (painter->coordinate_min_x < coordinate_min_x|| count ==1) 
+      coordinate_min_x = painter->coordinate_min_x;
+    if (painter->coordinate_min_y < coordinate_min_y|| count ==1) 
+      coordinate_min_y = painter->coordinate_min_y;
+    if (painter->coordinate_min_z < coordinate_min_z|| count ==1)
+      coordinate_min_z = painter->coordinate_min_z;
+    if (painter->coordinate_max_x > coordinate_max_x|| count ==1) 
+      coordinate_max_x = painter->coordinate_max_x;
+    if (painter->coordinate_max_y > coordinate_max_y|| count ==1) 
+      coordinate_max_y = painter->coordinate_max_y;
+    if (painter->coordinate_max_z > coordinate_max_z|| count ==1) 
+      coordinate_max_z = painter->coordinate_max_z;
 
 
     painter->prepare();    

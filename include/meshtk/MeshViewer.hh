@@ -45,8 +45,8 @@ namespace meshtk {
   public:
     GLuint LIST_NAME; //name of display list
 
-    GLfloat coord_min_x, coord_min_y, coord_min_z;
-    GLfloat coord_max_x, coord_max_y, coord_max_z;
+    GLfloat coordinate_min_x, coordinate_min_y, coordinate_min_z;
+    GLfloat coordinate_max_x, coordinate_max_y, coordinate_max_z;
 
 
     MeshPainter(TriMesh *); 
@@ -61,7 +61,7 @@ namespace meshtk {
 
     GLfloat *color_array;
   public:
-    MeshRamper(TriMesh *, Scalar_Fun *);
+    MeshRamper(TriMesh *, ScalarFunction *);
     void prepare();
 
     ~MeshRamper();
@@ -72,15 +72,15 @@ namespace meshtk {
     GLuint *mark_array;
 
   public:
-    MeshMarker(TriMesh *, Bool_Fun *);
+    MeshMarker(TriMesh *, BooleanFunction *);
     void prepare();
     ~MeshMarker();
   };
 
   class MeshViewer {
     int width, height;
-    GLfloat coord_min_x, coord_min_y, coord_min_z;
-    GLfloat coord_max_x, coord_max_y, coord_max_z;
+    GLfloat coordinate_min_x, coordinate_min_y, coordinate_min_z;
+    GLfloat coordinate_max_x, coordinate_max_y, coordinate_max_z;
 
     std::vector<MeshPainter*> Painters;
   

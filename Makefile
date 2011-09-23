@@ -12,7 +12,7 @@ LIBPATH = -L$(LIBDIR)
 
 OBJDIR =obj
 
-OBJECTS = TriMesh.o MeshViewer.o mesh_assist.o ##temp objects
+OBJECTS = TriMesh.o DynamicTriMesh.o MeshViewer.o mesh_assist.o ##temp objects
 
 VPATH = src
 

@@ -23,33 +23,7 @@
 #define _TRIMESH_HH_
 #include <vector>
 #include "mesh_topo.hh"
-
-
-#define MESHTK_USER_ATTRIBUTE_START (128)
-///////////////////////////////////////////////////////////////
-//Following are used in function TriMesh::attribute_allocate()
-// 1st argument
-#define MESHTK_VERTEX                   0
-#define MESHTK_FACET                    1
-#define MESHTK_HALFEDGE                 2
-// 2nd argument
-#define MESHTK_SCALAR                   3
-#define MESHTK_VECTOR                   4
-#define MESHTK_BOOLEAN                  5
-/////////////////////////////////////////////////////////////////
-// Following are registration number of inherent mesh attributes
-// Scalar section: 0-31
-#define MESHTK_VERTEX_PC0               0
-#define MESHTK_VERTEX_PC1               1
-#define MESHTK_VERTEX_HCURV             2
-#define MESHTK_VERTEX_KCURV             3
-
-#define MESHTK_FACET_PC0                4
-#define MESHTK_FACET_PC1                5
-#define MESHTK_FACET_HCURV              6
-#define MESHTK_FACET_KCURV              7
-// Vector section: 32-63
-
+#include "mesh_precompile.hh"
 
 namespace meshtk {
 
@@ -69,7 +43,7 @@ namespace meshtk {
   // define over mesh domain, with respect to halfedges, vertices or facets.
   // ScalarFunction and BooleanFunction correspond to scalar and boolean
   // function defined over mesh domain.
-  typedef std::vector<Vector> VectorFunction; 
+  typedef std::vector<Vector> VectorFunction; // 
   typedef std::vector<double> ScalarFunction; // displayed by color ramper
   typedef std::vector<double> BooleanFunction;// displayed by point marker.
 
@@ -88,7 +62,11 @@ namespace meshtk {
   // This class may not provide access to individual vertex or facet of mesh. User only manipulate
   // mesh globally, like compute normal, estimate curvature, denoise or smooth mesh, etc. and 
   // manage data by returning a pointer of array.
-  class TriMesh {
+  class TriMesh {/* One may use TriMesh for static mesh analysis, if the mesh is dynamic, such 
+		    as smoothing, denoising, deformation and remeshing,  please consider the 
+		    inheritant class called DynamicTriMesh  */
+		 
+  protected:
     // CGAL Polyhedron data
     Polyhedron P;
 
@@ -148,9 +126,9 @@ namespace meshtk {
     /////////////////////////////////////////////////////////////////////
     // private routines to update item attributes starts here
 
-    double update_halfedge();// to update: halfedge_vec, avg_edge_len    
-    double update_facet();// to update: facet_norm, facet_area
-    void update_vertex();// to update: vertex_norm, vertex_area, vertex_avg_len
+    virtual double update_halfedge();// to update: halfedge_vec, avg_edge_len    
+    virtual double update_facet();// to update: facet_norm, facet_area
+    virtual void update_vertex();// to update: vertex_norm, vertex_area, vertex_avg_len
 
     void update_facet_localchart();// to update local chart setting of facet - facet_LC[]
     void update_vertex_localchart();// to update local chart setting of vertex - vertex_LC[]
@@ -201,7 +179,7 @@ namespace meshtk {
 
     // update base attributes of mesh, namely three private routines:
     //  update_halfedge(), update_facet(), update_vertex(); 
-    void update_base();
+    virtual void update_base();
 
     // update curvature attributes of mesh, update: 
     // update_[facet, vertex]_localchart() and update_[facet, vertex]_curvature()

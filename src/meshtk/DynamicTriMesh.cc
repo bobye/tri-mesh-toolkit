@@ -125,8 +125,8 @@ namespace meshtk {
             
       for (int j=0; j < vertex_num; ++j) {// the algorithm below is not much efficient
 	
+	/****************************************************************************/
 	HV_circulator hv=IV[j]->vertex_begin();	
-
 	bool tmp = true;
 	if (buffer_doh[one][j] < buffer_doh[two][j] || buffer_doh[one][j] < buffer_doh[zero][j])
 	  tmp = false;
@@ -139,8 +139,30 @@ namespace meshtk {
 	    break;
 	  }	  
 	} while (++hv != IV[j]->vertex_begin());
-	vertex_salient_sup[j] = vertex_salient_sup[j] || tmp;
+
+	if (tmp) {	  
+	  /*
+	  double scale, total_scale=0, LBH=0;
+	  hv = IV[j]->vertex_begin();
+	  do {
+	    if (hv->facet() == NULL) {
+	      tmp = false; break;// rule out boundary vertex 
+	    }
+	    scale = (CGAL::sqrt(halfedge_vec[hv->prev()->index] * halfedge_vec[hv->prev()->index])
+		     + CGAL::sqrt(halfedge_vec[hv->opposite()->next()->index] * halfedge_vec[hv->opposite()->next()->index]))/CGAL::sqrt(halfedge_vec[hv->index()] * halfedge_vec[hv->index()]);
+	   
+	    total_scale += scale;
+	    LBH += scale * (buffer_hcurv[one][hv->prev()->vertex()->index] + buffer_hcurv[two][hv->prev()->vertex()->index]  - buffer_hcurv[one][j] - buffer_hcurv[two][j])/ 4.;
+	  } while (++hv !=IV[j]->vertex_begin());
+	  
+	  LBH /= total_scale * vertex_area[j];
+	  */
+	}
 	
+	vertex_salient_sup[j] = vertex_salient_sup[j] || tmp;
+
+	/****************************************************************************/
+	hv = IV[j]->vertex_begin();
 	tmp = true;
 	if (buffer_doh[one][j] > buffer_doh[two][j] || buffer_doh[one][j] > buffer_doh[zero][j])
 	  tmp = false;
@@ -153,16 +175,28 @@ namespace meshtk {
 	    break;
 	  }	  
 	} while (++hv != IV[j]->vertex_begin());
+
+	if (tmp) {
+	  //if ((buffer_hcurv[one][j]+buffer_hcurv[two][j]) < 0) tmp = false;
+	}
+
 	vertex_salient_inf[j] = vertex_salient_inf[j] || tmp;
 
 	vertex_salient[j] = vertex_salient[j] || vertex_salient_sup[j] || vertex_salient_inf[j];
 
       }
-      std::cout<< "Salient Detection Iteration: "<< i << "\t Found " << std::accumulate( vertex_salient.begin(), vertex_salient.end(), 0) <<" salient points" << std::endl;
+      std::cout<< "Salient Detection Iteration: "<< i << "\t Found " << std::accumulate( vertex_salient.begin(), vertex_salient.end(), 0) <<
+	"("<< std::accumulate( vertex_salient_sup.begin(), vertex_salient_sup.end(), 0) <<
+	","<< std::accumulate( vertex_salient_inf.begin(), vertex_salient_inf.end(), 0) << 
+	") salient points" << std::endl;
 
       buffer_renew = (buffer_renew +1) % 4;
       buffer_curr = (buffer_curr +1) % 4;
     }
+   
+    attribute[MESHTK_VERTEX_SALIENT] = &vertex_salient;
+    attribute[MESHTK_VERTEX_SALIENT_SUP] = &vertex_salient_sup;
+    attribute[MESHTK_VERTEX_SALIENT_INF] = &vertex_salient_inf;
     
   }
 

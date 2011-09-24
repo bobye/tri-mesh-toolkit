@@ -188,19 +188,61 @@ namespace meshtk {
   }
 
 
+
   MeshRamper::~MeshRamper() {
     delete [] color_array;
   }
 
   MeshMarker::MeshMarker(TriMesh *pmesh, BooleanFunction* pbfun)
     :MeshPainter(pmesh) {
-
+    mark_count = std::accumulate(pbfun->begin(), pbfun->end(), 0);
+    mark_array = new GLuint[mark_count];    
+    int j=0, n=pbfun->size();
+    for (int i=0; i < n; ++i) 
+      if ((*pbfun)[i]) mark_array[j++]=i;
+    
   }
 
   void MeshMarker::prepare(){
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    glNormalPointer(GL_FLOAT, 0, normal_array);
+    glVertexPointer(3, GL_FLOAT, 0, vertex_array); 
   }
 
+  void MeshMarker::draw(){
 
+    glEnable(GL_COLOR_MATERIAL);
+    glColor3f(0.3, 0.5, 0.6);
+
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    //glCullFace(GL_BACK);
+  
+
+    glDrawElements(GL_TRIANGLES, 3*fn, GL_UNSIGNED_INT, index_array);
+
+    //glDisable(GL_LIGHTING);
+    glColor3f(1., 0., 0.);
+    //glPointSize(4);
+    //glDrawElements(GL_POINTS, mark_count, GL_UNSIGNED_INT, mark_array);
+
+    for (GLuint i= 0; i< mark_count; ++i){
+      glPushMatrix();
+      glTranslatef(vertex_array[3*mark_array[i]], vertex_array[3*mark_array[i] +1] , vertex_array[3*mark_array[i]+2]);
+      glutSolidSphere(0.01, 20, 20);
+      glPopMatrix();
+    }
+    glDisable(GL_COLOR_MATERIAL);
+
+    //glEnable(GL_LIGHTING);
+
+    
+    
+  }
+  
   MeshMarker::~MeshMarker() {
     delete [] mark_array;
   }

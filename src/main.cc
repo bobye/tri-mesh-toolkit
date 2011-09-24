@@ -79,8 +79,16 @@ int main(int argc, char** argv){
 
     /***************************************************************************/
     // region to test
-    mesh.update_vertex_salient(10,10);
-    
+    mesh.update_vertex_salient(5,1);
+    meshtk::MeshViewer viewer(argc, argv);
+    meshtk::BooleanFunction *salient_points = (meshtk::BooleanFunction *) mesh.attribute_extract(MESHTK_VERTEX_SALIENT);
+    meshtk::MeshMarker painter(&mesh, salient_points);
+    viewer.add_painter(&painter);
+      
+    viewer.init();// call this func last before loop
+    viewer.view();
+
+
     /***************************************************************************/    
     // output and display
     if (outputMeshSwitch.getValue())

@@ -51,7 +51,7 @@ namespace meshtk {
 
     MeshPainter(TriMesh *); 
     virtual void prepare();
-    void draw();
+    virtual void draw();
   
     ~MeshPainter();
     
@@ -68,12 +68,13 @@ namespace meshtk {
   };
 
   class MeshMarker : public MeshPainter {
-  
+    GLuint mark_count;
     GLuint *mark_array;
 
   public:
     MeshMarker(TriMesh *, BooleanFunction *);
     void prepare();
+    void draw();
     ~MeshMarker();
   };
 

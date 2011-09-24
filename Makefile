@@ -1,12 +1,17 @@
-## Please modify the following options 
+## Please modify the following options properly 
 
 CC = gcc
 CPP = g++
-CPPFLAGS = -Wall -I include 
+CPPFLAGS = -Wall -I include
 
+## options for CGAL, OpenGL and freeglut 
 LIBOPT = -lCGAL -lglut -lGL -lGLU 
+## option for TCLAP 
+LIBTCLAP = -I/usr/local/include/tclap
 
+#####################################################################################
 ## DO NOT change anything below here
+
 LIBDIR=lib
 LIBPATH = -L$(LIBDIR)
 
@@ -27,10 +32,13 @@ lib: $(addprefix $(OBJDIR)/, $(OBJECTS))
 	$(CPP) -shared -Wl,-soname,$(LIBDIR)/libmeshtk.so -o $(LIBDIR)/libmeshtk.so $^
 
 MeshTK: main.cc
-	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) -I/usr/local/include/tclap/ -lmeshtk -o MeshTK $< 
+	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) $(LIBTCLAP) -lmeshtk -o MeshTK $< 
 
 all: lib MeshTK
 
 clean: 
 	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so MeshTK
+
+
+
 

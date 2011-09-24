@@ -14,7 +14,7 @@ OBJDIR =obj
 
 OBJECTS = TriMesh.o DynamicTriMesh.o MeshViewer.o mesh_assist.o ##temp objects
 
-VPATH = src
+VPATH = src src/meshtk
 
 
 

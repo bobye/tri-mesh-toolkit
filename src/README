@@ -1,0 +1,5 @@
+# source files for libmeshtk.so
+methk/*.cc
+
+# basic demo and toolkit using libmeshtk
+main.cc

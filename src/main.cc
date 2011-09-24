@@ -30,10 +30,9 @@ typedef TCLAP::ValueArg<double>                      Opt_scalar;
 typedef TCLAP::ValueArg<int>                         Opt_Int;
 typedef TCLAP::SwitchArg                             Opt_Bool;
 
-//#include "mesh_topo.hh"
-#include "meshtk/TriMesh.hh"
-#include "meshtk/DynamicTriMesh.hh"
-#include "meshtk/MeshViewer.hh"
+#include <meshtk/TriMesh.hh>
+#include <meshtk/DynamicTriMesh.hh>
+#include <meshtk/MeshViewer.hh>
 
 
 

@@ -217,14 +217,14 @@ namespace meshtk {
 
   void TriMesh::update_facet_curvature(){
 
-    facet_CT[0] = ScalarFunction(facet_num);
-    facet_CT[1] = ScalarFunction(facet_num);
-    facet_CT[2] = ScalarFunction(facet_num);
+    facet_CT[0].resize(facet_num);
+    facet_CT[1].resize(facet_num);
+    facet_CT[2].resize(facet_num);
 
-    facet_PC0 = ScalarFunction(facet_num);
-    facet_PC1 = ScalarFunction(facet_num);
-    facet_hcurv = ScalarFunction(facet_num);
-    facet_kcurv = ScalarFunction(facet_num);
+    facet_PC0.resize(facet_num);
+    facet_PC1.resize(facet_num);
+    facet_hcurv.resize(facet_num);
+    facet_kcurv.resize(facet_num);
   
     //for (int i=0;i<1;i++){
     for (int i=0;i<facet_num;i++){
@@ -300,15 +300,15 @@ namespace meshtk {
 
 
   void TriMesh::update_vertex_curvature(){
-    vertex_CT[0] = ScalarFunction(vertex_num);
-    vertex_CT[1] = ScalarFunction(vertex_num);
-    vertex_CT[2] = ScalarFunction(vertex_num);
+    vertex_CT[0].resize(vertex_num);
+    vertex_CT[1].resize(vertex_num);
+    vertex_CT[2].resize(vertex_num);
 
-    vertex_PC0 = ScalarFunction(vertex_num);
-    vertex_PC1 = ScalarFunction(vertex_num);
+    vertex_PC0.resize(vertex_num);
+    vertex_PC1.resize(vertex_num);
 
-    vertex_hcurv = ScalarFunction(vertex_num);
-    vertex_kcurv = ScalarFunction(vertex_num);
+    vertex_hcurv.resize(vertex_num);
+    vertex_kcurv.resize(vertex_num);
     double sigma = avg_edge_len;
     Vector tmp;
 

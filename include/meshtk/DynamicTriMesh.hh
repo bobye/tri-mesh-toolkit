@@ -36,6 +36,10 @@ namespace meshtk {
     PointFunction vertex_coord;
     PointFunction facet_coord;
     
+    // Salient vertex mark
+    BooleanFunction vertex_salient;
+    BooleanFunction vertex_salient_sup;
+    BooleanFunction vertex_salient_inf;
     /////////////////////////////////////////////////////////////////////
     // private routines to update item attributes starts here
 
@@ -55,9 +59,15 @@ namespace meshtk {
     // Apply Gaussian smooth operator over entire mesh
     // The new point is an averaging of one ring configuration with unnormalized
     //    weight = exp ( - distance ^2 / sigma ^2 )
-    // where distance is the attached edge length, and 
+    // where distance is the attached edge length, and the argument coeff is given by
     //    sigma = coeff * avg_edge_len
-    void gaussian_smooth(double coeff);
+    void gaussian_smooth(double );
+
+    // Update mark for salient vertex, the argument are taken as num of smooth 
+    // iteration (>0 preconditioned)
+    void update_vertex_salient(int , int pre_inter = 1);
+
+
 
 
   };

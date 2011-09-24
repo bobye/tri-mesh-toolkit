@@ -47,5 +47,9 @@
 #define MESHTK_FACET_KCURV              7
 // Vector section: 32-63
 
+// Boolean section: 64 - 95             
+#define MESHTK_VERTEX_SALIENT           64
+#define MESHTK_VERTEX_SALIENT_SUP       65
+#define MESHTK_VERTEX_SALIENT_INF       66
 
 #endif /* _MESH_PRECOMPILE_HH_ */

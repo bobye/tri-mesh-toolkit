@@ -78,9 +78,11 @@ int main(int argc, char** argv){
 
 
     /***************************************************************************/
-
-    /***************************************************************************/    
+    // region to test
+    mesh.update_vertex_salient(10,10);
     
+    /***************************************************************************/    
+    // output and display
     if (outputMeshSwitch.getValue())
       mesh.write(outputMeshName.getValue(), outputMeshType.getValue());
 

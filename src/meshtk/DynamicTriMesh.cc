@@ -21,7 +21,7 @@
 */
 
 #include "meshtk/DynamicTriMesh.hh"
-
+#include <algorithm>
 
 
 namespace meshtk {
@@ -70,6 +70,100 @@ namespace meshtk {
     }
 
     restore_coord();
+  }
+
+
+  void DynamicTriMesh::update_vertex_salient(int iter, int pre_iter){
+    vertex_salient.resize(vertex_num);
+    vertex_salient_sup.resize(vertex_num);
+    vertex_salient_inf.resize(vertex_num);
+
+    // buffers of mean curvature
+    ScalarFunction buffer_hcurv[4]; 
+    ScalarFunction buffer_doh[4];
+
+    for (int i=0;i<4;i++ ) {buffer_hcurv[i].resize(vertex_num); buffer_doh[i].resize(vertex_num);}
+
+    double coeff = 1.;
+    int buffer_curr=0, buffer_renew=0;
+    
+    //pre-smooth, if the input mesh is manifold mesh, set pre_iter as default
+    while (pre_iter-- > 0)  { gaussian_smooth(1.); update_base();}
+
+
+    update_curvature();    
+    buffer_hcurv[buffer_renew++] = vertex_hcurv;
+
+    gaussian_smooth(coeff);
+    update_base();
+    update_curvature();
+    buffer_hcurv[buffer_renew++] = vertex_hcurv;
+
+    gaussian_smooth(coeff);
+    update_base();
+    update_curvature();
+    buffer_hcurv[buffer_renew++] = vertex_hcurv;
+
+    for (int i=0; i < vertex_num; ++i) {
+      buffer_doh[0][i] = buffer_hcurv[1][i] - buffer_hcurv[0][i];
+      buffer_doh[1][i] = buffer_hcurv[2][i] - buffer_hcurv[1][i];
+    }
+
+    for (int i=0; i < iter; ++i) {
+      
+      gaussian_smooth(coeff);
+      update_base();
+      update_curvature();
+      buffer_hcurv[buffer_renew] = vertex_hcurv;
+      
+      int zero = buffer_curr, 
+	one = (buffer_curr +1 )%4,
+	two = (buffer_curr +2 )%4,
+	three = (buffer_curr +3)%4;
+      
+      for (int j=0; j < vertex_num; ++j) buffer_doh[two][j] = buffer_hcurv[three][j] - buffer_hcurv[two][j];
+            
+      for (int j=0; j < vertex_num; ++j) {// the algorithm below is not much efficient
+	
+	HV_circulator hv=IV[j]->vertex_begin();	
+
+	bool tmp = true;
+	if (buffer_doh[one][j] < buffer_doh[two][j] || buffer_doh[one][j] < buffer_doh[zero][j])
+	  tmp = false;
+	
+	do {
+	  if (buffer_doh[one][j] < buffer_doh[one][hv->next()->vertex()->index] ||
+	      buffer_doh[two][j] < buffer_doh[two][hv->next()->vertex()->index] ||
+	      buffer_doh[zero][j] < buffer_doh[zero][hv->next()->vertex()->index]) {
+	    tmp = false;
+	    break;
+	  }	  
+	} while (++hv != IV[j]->vertex_begin());
+	vertex_salient_sup[j] = vertex_salient_sup[j] || tmp;
+	
+	tmp = true;
+	if (buffer_doh[one][j] > buffer_doh[two][j] || buffer_doh[one][j] > buffer_doh[zero][j])
+	  tmp = false;
+	
+	do {
+	  if (buffer_doh[one][j] > buffer_doh[one][hv->next()->vertex()->index] ||
+	      buffer_doh[two][j] > buffer_doh[two][hv->next()->vertex()->index] ||
+	      buffer_doh[zero][j] > buffer_doh[zero][hv->next()->vertex()->index]) {
+	    tmp = false;
+	    break;
+	  }	  
+	} while (++hv != IV[j]->vertex_begin());
+	vertex_salient_inf[j] = vertex_salient_inf[j] || tmp;
+
+	vertex_salient[j] = vertex_salient[j] || vertex_salient_sup[j] || vertex_salient_inf[j];
+
+      }
+      std::cout<< "Salient Detection Iteration: "<< i << "\t Found " << std::accumulate( vertex_salient.begin(), vertex_salient.end(), 0) <<" salient points" << std::endl;
+
+      buffer_renew = (buffer_renew +1) % 4;
+      buffer_curr = (buffer_curr +1) % 4;
+    }
+    
   }
 
 }

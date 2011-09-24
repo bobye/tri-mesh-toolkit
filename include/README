@@ -1,0 +1,2 @@
+# the directory contains the C++ header files for libmeshtk
+meshtk/*.hh

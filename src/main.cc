@@ -25,10 +25,10 @@
 #include <algorithm>
 
 #include <tclap/CmdLine.h>
-typedef TCLAP::ValueArg<std::string>                 Opt_String;
-typedef TCLAP::ValueArg<double>                      Opt_scalar;
-typedef TCLAP::ValueArg<int>                         Opt_Int;
-typedef TCLAP::SwitchArg                             Opt_Bool;
+typedef TCLAP::ValueArg<std::string>                 OptString;
+typedef TCLAP::ValueArg<double>                      OptScalar;
+typedef TCLAP::ValueArg<int>                         OptInt;
+typedef TCLAP::SwitchArg                             OptBool;
 
 #include <meshtk/TriMesh.hh>
 #include <meshtk/DynamicTriMesh.hh>
@@ -41,55 +41,70 @@ int main(int argc, char** argv){
   try {
     TCLAP::CmdLine cmd("3D Mesh Toolkit, Supporting mesh (pre-)processing, visualization, ... \nContributor: Jianbo YE<yelpoo@gmail.com>", ' ', "0.1");
 
-    Opt_String inputMeshName("i", "input_mesh", "File name of input mesh without file extension", true, "", "string", cmd); 
-    Opt_String outputMeshName("o", "output_mesh", "File name of output mesh without file extension", false, "out", "string", cmd);
-    Opt_String inputMeshType("", "input_mesh_type", "Input mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
-    Opt_String outputMeshType("", "output_mesh_type", "output mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
+    OptString inputMeshName("i", "input_mesh_name", "File name of input mesh without file extension", true, "", "string", cmd); 
+    OptString outputMeshName("", "output_mesh_name", "File name of output mesh without file extension", false, "out", "string", cmd);
+    OptString inputMeshType("", "input_mesh_type", "Input mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
+    OptString outputMeshType("", "output_mesh_type", "output mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
     
-    Opt_Int smoothIteration("s", "smooth", "Number of Guassian Smoothing Iterations", false, 0, "unsigned int", cmd);
+    OptInt smoothMeshIteration("s", "smooth_mesh_iter", "Number of Guassian smoothing iterations", false, 0, "unsigned int", cmd);
 
 
+    OptScalar smoothMeshCoefficient("", "smooth_mesh_coeff", "Coefficient specified for Guassian smoothing", false, 1., "float", cmd);
+
+    OptBool outputMeshSwitch("o", "output_mesh_enable", "Enable mesh Output before program exits", cmd, false) ;
+    OptBool viewMeshOnly("v", "view_mesh_only", "View mesh without other rending", cmd, false);
+    OptBool viewMeshCurvature("", "view_mesh_curv", "View mesh with color ramping of mean curvature", cmd, false);
+
+    // process input argument
     cmd.parse( argc, argv );
 
-    std::string input_mesh_name  = inputMeshName.getValue();
-    std::string output_mesh_name = outputMeshName.getValue();
-    std::string input_mesh_type  = inputMeshType.getValue();
-    std::string output_mesh_type = outputMeshType.getValue();
     
-    
+    /////////////////////////////////////////////////////////////////////////////////    
     meshtk::DynamicTriMesh mesh;// index mapping from array to halfedge data structure
-
-    mesh.read(input_mesh_name, input_mesh_type);
-
-    mesh.init_index();
-    
-    // Update mesh infomation
+    // load mesh by name and type, required for program run successfully
+    mesh.read(inputMeshName.getValue(), inputMeshType.getValue());
+    mesh.init_index();// initialize mesh    
+    // Update mesh infomation, prompt after init_index()
     mesh.update_base();
 
-    for (int i=0; i<smoothIteration.getValue(); ++i) {
-      mesh.gaussian_smooth(1.0);
+    /////////////////////////////////////////////////////////////////////////////////
+    // dynamic mesh processing starts here
+    // mesh Gaussian smooth iteration
+    for (int i=0; i<smoothMeshIteration.getValue(); ++i) {
+      std::cout<< "Smooth Iteration Count: " << i << " with coefficient "<< smoothMeshCoefficient.getValue() << std::endl;
+      mesh.gaussian_smooth(smoothMeshCoefficient.getValue());
       mesh.update_base();
     }
 
-    //mesh processing
+
     /***************************************************************************/
 
-    //Compute facet curvature tensor
-    mesh.update_curvature();
     /***************************************************************************/    
-
-
-    mesh.write(output_mesh_name, output_mesh_type);
     
-    meshtk::MeshViewer viewer(argc, argv);
-    //meshtk::MeshPainter painter(&mesh);
-    meshtk::ScalarFunction *mean_curv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
-    meshtk::MeshRamper painter(&mesh, mean_curv);
+    if (outputMeshSwitch.getValue())
+      mesh.write(outputMeshName.getValue(), outputMeshType.getValue());
 
-    viewer.add_painter(&painter);
+    if (viewMeshOnly.getValue()) {
+      meshtk::MeshViewer viewer(argc, argv);
+      meshtk::MeshPainter painter(&mesh);
+      viewer.add_painter(&painter);
 
-    viewer.init();// call this func last before loop
-    viewer.view();
+      viewer.init();// call this func last before loop
+      viewer.view();
+    }
+    else if (viewMeshCurvature.getValue()) {
+      //Compute facet curvature tensor
+      mesh.update_curvature();
+
+
+      meshtk::MeshViewer viewer(argc, argv);
+      meshtk::ScalarFunction *mean_curv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
+      meshtk::MeshRamper painter(&mesh, mean_curv);
+      viewer.add_painter(&painter);
+
+      viewer.init();// call this func last before loop
+      viewer.view();
+    }
 
   } catch (TCLAP::ArgException &e) //catch any expections 
     {

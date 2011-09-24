@@ -44,8 +44,10 @@ namespace meshtk {
       std::ifstream mesh_Fin;
       file.append("."); file.append("off");    
       mesh_Fin.open(file.c_str());
-      if (!mesh_Fin.is_open())
-	std::cerr << "Cannot open file " << file << std::endl;
+      if (!mesh_Fin.is_open()){
+	std::cerr << "Error: Cannot open file " << file << std::endl;
+	exit(1);
+      }
       mesh_Fin >> P;// mesh read
       mesh_Fin.close();
     }

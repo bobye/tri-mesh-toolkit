@@ -1,39 +1,45 @@
-You need to install several libraries before to compile the toolkit.
+You need to install several libraries before to compile the library 
+libmeshtk.so and command-line program called MeshTK.
 
 ---------------------------------------------------------------------
 Please follow the instructions provided by the offical sites to 
-install following library.
+install following libraries. OpenGL and CGAL are compulsory to link
+by building libraries, and TCLAP is only used for MeshTK.
+ 
 * OpenGL
-http://www.opengl.org/
-http://freeglut.sourceforge.net/
+ http://www.opengl.org/
+ http://freeglut.sourceforge.net/
 
 * CGAL
-
-http://www.cgal.org/
+ http://www.cgal.org/
 
 * TCLAP
-
-http://tclap.sourceforge.net/
+ http://tclap.sourceforge.net/
 ---------------------------------------------------------------------
 
-Edit *Makefile* in root directory, to make sure the configuration is 
-correct, and type
+Edit *Makefile* in root directory properly, to make sure the 
+compile option is correct, and type
 
-make all
+ make all
 
-to build library and compile the software, this will generate a binary 
-excutable one in the current directly:
+to build library and compile the command-line software, this will 
+generate a binary excutable one in the current directly:
 
-MeshTK
+ MeshTK
 
 and dynamic library and header files in directory
 
-include
-lib
+ include/
+ lib/
 
+If you are just interested in compiling libmeshtk.so and would like 
+to write program with support of libmeshtk, you may compile the 
+library only by typing
+
+ make lib 
 
 ----------------------------------------------------------------------
 
 Author: Bobby, Jianbo YE<yelpoo@gmail.com>
-Date  : Sep 21, 2011
+Date  : Sep 24, 2011
 

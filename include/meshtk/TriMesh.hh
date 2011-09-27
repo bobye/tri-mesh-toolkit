@@ -194,6 +194,38 @@ namespace meshtk {
     // update_[facet, vertex]_localchart() and update_[facet, vertex]_curvature()
     void update_curvature();
 
+    // guassian smooth an attribute function 
+    // input: v0
+    // output: v1
+    template <class T>
+    void guassian_smooth_vertex(double coeff, std::vector<T> &v0, std::vector<T> &v1, T zero){
+      // preconditioned with vertex_neighbor
+      // update_vertex_neighbor(3 * coeff);
+      double sigma = coeff * avg_edge_len;
+
+
+      for (int i = 0; i < vertex_num; i++){
+	T vec = zero;
+	Vector tmp;
+	double scale, total_scale = 0;
+      
+
+	for (std::set<int>::iterator it = vertex_neighbor[i].begin();
+	     it != vertex_neighbor[i].end(); ++it) {
+	  tmp = IV[*it]->point() - IV[i]->point();
+	  scale = CGAL::sqrt(tmp * tmp);
+	  scale = vertex_area[*it] * std::exp( - (scale * scale) / (2 * sigma * sigma));
+	  total_scale += scale;
+	  vec = vec + scale * v0[*it];
+	}
+
+	v1[i] = vec / total_scale;
+      
+      }
+      
+    };
+
+
     // allocate memory for attribute function
     unsigned attribute_allocate(unsigned, unsigned);
     // return reference of attribute function by register number

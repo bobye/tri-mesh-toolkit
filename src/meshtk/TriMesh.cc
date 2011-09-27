@@ -378,6 +378,44 @@ namespace meshtk {
 
   }
 
+  double TriMesh::update_vertex_neighbor(double coeff){
+    double distance_threshold = coeff * avg_edge_len; 
+    vertex_neighbor.resize(vertex_num);
+    int count=0;
+
+    // The algorithm implemented is a wide search 
+    
+    for (int i = 0; i < vertex_num; ++i) {
+      
+      std::set<int> buffer;
+      buffer.insert(i);
+
+      while (!buffer.empty()) {
+	std::set<int>::iterator it = buffer.begin();
+	Vector displace = IV[*it]->point()- IV[i]->point();
+	
+	if (displace * displace < distance_threshold * distance_threshold) {
+	  vertex_neighbor[i].insert(*it);
+	  vertex_neighbor[*it].insert(i);
+	  
+	  HV_circulator hv = IV[*it]->vertex_begin();
+	  do {
+	    int j =hv->opposite()->vertex()->index;
+	    if (vertex_neighbor[i].count(j) == 0) buffer.insert(j);
+	  }while (++hv != IV[*it]->vertex_begin());
+	}
+
+	buffer.erase(it);
+	
+      }
+
+      count += vertex_neighbor[i].size();
+
+    }
+
+    return (double )count / (double) vertex_num;
+  }
+
   
   unsigned TriMesh::attribute_allocate(unsigned item, unsigned type){
     int n;

@@ -22,6 +22,7 @@
 #ifndef _TRIMESH_HH_
 #define _TRIMESH_HH_
 #include <vector>
+#include <set>
 #include "mesh_topo.hh"
 #include "mesh_precompile.hh"
 
@@ -120,6 +121,14 @@ namespace meshtk {
     ScalarFunction facet_kcurv;
 
 
+    // neighbor vertices indices, which store the a neighborhood of vertex
+    // the indices of neighbor are stored in set with an iterator access
+    std::vector<std::set<int> > vertex_neighbor;
+
+    // update vertices neighbor, argument coeff is to take all *-ring within a Euclidean distance
+    // return the average number of neighbor vertices associated
+    double update_vertex_neighbor(double );//to update: vertex_neighbor[][]
+
     double avg_edge_len;//average edge length globally
 
 
@@ -136,6 +145,7 @@ namespace meshtk {
     void update_facet_curvature();// to update: facet_CT[], facet_PC*, facet_?curv
     void update_vertex_curvature();// to update: vertex_CT[], vertex_PC*, vertex_?curv
 
+
     ///////////////////////////////////////////////////////////////////////
     // Map register number to reference of functions define over mesh domain. 
     // Register number is unsigned integer and have some predefined ones for inherent item
@@ -149,7 +159,6 @@ namespace meshtk {
     unsigned set_attribute_id; 
 
   public:  
-
     TriMesh();
     ~TriMesh();
     ////////////////////////////////////////////////////////////////////////////

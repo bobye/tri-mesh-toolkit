@@ -41,30 +41,26 @@ namespace meshtk {
   }
 
   void DynamicTriMesh::gaussian_smooth(double coeff){
+    // preconditioned with vertex_neighbor
+    double sigma = coeff * avg_edge_len;
+
+    update_vertex_neighbor(3 * coeff);
+
     for (int i = 0; i < vertex_num; i++){
       Vector tmp, vec(0,0,0);
-      double scale, total_scale = vertex_area[i], sigma = coeff * avg_edge_len /2.;
-      HV_circulator hv=IV[i]->vertex_begin();
-            
-
-      do {
-	//	sigma = coeff * vertex_avg_len[i];
-
-	if (hv->facet() == NULL) continue;
-	
-	tmp = ( - halfedge_vec[hv->index] + halfedge_vec[hv->next()->index] )/3.;
-	//tmp2 = tmp - (tmp * vertex_norm[i]) * vertex_norm[i];
-	//scale = CGAL::sqrt(tmp2 * tmp2);
-
-	scale = CGAL::sqrt(tmp * tmp);
-
-	scale = facet_area[hv->facet()->index] * std::exp (- (scale * scale) / (2 * sigma * sigma));
-	total_scale +=scale;
-
-	vec = vec + scale * tmp;
- 
-      }while (++hv != IV[i]->vertex_begin());
+      double scale, total_scale = 0;
       
+
+      for (std::set<int>::iterator it = vertex_neighbor[i].begin();
+	   it != vertex_neighbor[i].end(); ++it) {
+	tmp = IV[*it]->point() - IV[i]->point();
+	scale = CGAL::sqrt(tmp * tmp);
+	scale = vertex_area[*it] * std::exp( - (scale * scale) / (2 * sigma * sigma));
+	total_scale += scale;
+	vec = vec + scale * tmp;
+      }
+
+      vec = (vec * vertex_norm[i]) * vertex_norm[i];
       vertex_coord[i] = IV[i]->point() + vec / total_scale;
       
     }
@@ -84,11 +80,11 @@ namespace meshtk {
 
     for (int i=0;i<4;i++ ) {buffer_hcurv[i].resize(vertex_num); buffer_doh[i].resize(vertex_num);}
 
-    double coeff = 1.;
+    double coeff = .6;
     int buffer_curr=0, buffer_renew=0;
     
     //pre-smooth, if the input mesh is manifold mesh, set pre_iter as default
-    while (pre_iter-- > 0)  { gaussian_smooth(1.); update_base();}
+    while (pre_iter-- > 0)  { gaussian_smooth(coeff); update_base();}
 
 
     update_curvature();    

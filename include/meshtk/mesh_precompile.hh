@@ -46,10 +46,14 @@
 #define MESHTK_FACET_HCURV              6
 #define MESHTK_FACET_KCURV              7
 // Vector section: 32-63
+#define MESHTK_VERTEX_NORM              32
 
+#define MESHTK_FACET_NORM               33
 // Boolean section: 64 - 95             
 #define MESHTK_VERTEX_SALIENT           64
 #define MESHTK_VERTEX_SALIENT_SUP       65
 #define MESHTK_VERTEX_SALIENT_INF       66
 
+// Point section: 96 - 127
+#define MESHTK_VERTEX_COORD             96
 #endif /* _MESH_PRECOMPILE_HH_ */

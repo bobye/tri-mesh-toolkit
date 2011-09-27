@@ -53,7 +53,8 @@ namespace meshtk {
     // and [vertex, facet, halfedge]_handle->index 
     void init_index();    
 
-    // push vertex_coord to CGAL Polyhedron data mesh
+    // load and restore vertex_coord to CGAL Polyhedron data mesh
+    void load_coord();
     void restore_coord();
 
     // Apply Gaussian smooth operator over entire mesh

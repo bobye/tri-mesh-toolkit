@@ -81,7 +81,55 @@ int main(int argc, char** argv){
 
     /***************************************************************************/    
     // region to test
-    mesh.update_vertex_salient(5,1);
+    //mesh.update_vertex_salient(5,1);
+    
+    meshtk::DynamicTriMesh mesh_base;
+    mesh_base.read("mesh_base", "off");
+    mesh_base.init_index();
+    mesh_base.update_base();
+    mesh_base.load_coord();
+    mesh.load_coord();
+
+    meshtk::PointFunction *mesh_coord = (meshtk::PointFunction *) mesh.attribute_extract(MESHTK_VERTEX_COORD);
+    meshtk::PointFunction *mesh_base_coord=(meshtk::PointFunction *) mesh_base.attribute_extract(MESHTK_VERTEX_COORD);
+
+    unsigned USER_MESH_OFFSET = mesh_base.attribute_allocate(MESHTK_VERTEX, MESHTK_VECTOR);
+    meshtk::VectorFunction *mesh_offset = (meshtk::VectorFunction *) mesh_base.attribute_extract(USER_MESH_OFFSET);
+
+    unsigned USER_MESH_OFFSET_NORM = mesh_base.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
+    meshtk::ScalarFunction *mesh_offset_proj = (meshtk::ScalarFunction *) mesh_base.attribute_extract(USER_MESH_OFFSET_NORM);
+
+    meshtk::VectorFunction *mesh_base_norm = (meshtk::VectorFunction *) mesh_base.attribute_extract(MESHTK_VERTEX_NORM);
+
+    int vertex_size = mesh_coord->size();
+    for (int i=0;i<vertex_size;++i) {
+      (*mesh_offset)[i] = (*mesh_coord)[i] - (*mesh_base_coord)[i];
+      (*mesh_offset_proj)[i] = (*mesh_offset)[i] * (*mesh_base_norm)[i];
+      //(*mesh_base_coord)[i] = (*mesh_base_coord)[i] + (*mesh_offset_proj)[i] * (*mesh_base_norm)[i];
+    }
+    
+    unsigned USER_MESH_BUFFER_SCALAR = mesh_base.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
+    meshtk::ScalarFunction *mesh_buffer_scalar = (meshtk::ScalarFunction *) mesh_base.attribute_extract(USER_MESH_BUFFER_SCALAR);
+
+    mesh_base.update_vertex_neighbor(3.);
+    for (int i=0; i<10; i++) {
+      std::cout<<i<<std::endl;
+      mesh_base.gaussian_smooth_vertex(1., *mesh_offset_proj, *mesh_buffer_scalar, 0.);
+      std::swap(mesh_offset_proj, mesh_buffer_scalar);
+    }
+    //mesh_base.restore_coord();
+    //mesh.write("out","off");
+
+    meshtk::MeshViewer viewer(argc, argv);
+    meshtk::MeshRamper painter(&mesh_base, mesh_offset_proj);
+    //meshtk::MeshPainter painter(&mesh_base);
+    viewer.add_painter(&painter);
+
+    viewer.init();// call this func last before loop
+    viewer.view();
+    
+    
+
 
     /***************************************************************************/    
     // output and display
@@ -114,7 +162,7 @@ int main(int argc, char** argv){
 
     /***************************************************************************/
     // region to test
-
+    /*
     meshtk::MeshViewer viewer(argc, argv);
     meshtk::BooleanFunction *salient_points = (meshtk::BooleanFunction *) mesh.attribute_extract(MESHTK_VERTEX_SALIENT);
     meshtk::MeshMarker painter(&mesh, salient_points);
@@ -122,7 +170,7 @@ int main(int argc, char** argv){
       
     viewer.init();// call this func last before loop
     viewer.view();
-
+    */
 
     //std::cout<<mesh.update_vertex_neighbor(3.)<<std::endl;
 

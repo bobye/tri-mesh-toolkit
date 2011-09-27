@@ -40,6 +40,7 @@ namespace meshtk {
   };
 
   void TriMesh::read(std::string file, std::string type){
+
     if (type.compare("off")==0){
       std::ifstream mesh_Fin;
       file.append("."); file.append("off");    
@@ -58,6 +59,7 @@ namespace meshtk {
   };
 
   void TriMesh::write(std::string file, std::string type){
+
     if (type.compare("off")==0){
       std::ofstream mesh_Fout;
       file.append("."); file.append(type);
@@ -125,6 +127,8 @@ namespace meshtk {
       facet_norm[i] = normal / CGAL::sqrt(facet_area[i]); 
       facet_area[i] /= 2.;
     }
+    
+    attribute[MESHTK_FACET_NORM] = &facet_norm;
   
     return  total_area;
   }
@@ -183,6 +187,8 @@ namespace meshtk {
     for (int i=0;i<vertex_num;i++){
       vertex_norm[i] = vertex_norm[i] / CGAL::sqrt(vertex_norm[i] * vertex_norm[i]);
     }
+    
+    attribute[MESHTK_VERTEX_NORM] = &vertex_norm;
 
     
   }

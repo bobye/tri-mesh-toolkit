@@ -33,6 +33,17 @@ namespace meshtk {
     facet_coord = PointFunction(facet_num);
   }
 
+  void DynamicTriMesh::load_coord(){    
+    vertex_coord.resize(vertex_num);
+
+
+    for (int i=0;i<vertex_num; i++){
+      vertex_coord[i] =  IV[i]->point();
+    }
+
+    attribute[MESHTK_VERTEX_COORD] = &vertex_coord;
+
+  }
   
   void DynamicTriMesh::restore_coord(){
     for (int i=0;i<vertex_num; i++){

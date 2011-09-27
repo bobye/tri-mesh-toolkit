@@ -173,7 +173,7 @@ namespace meshtk {
     // read mesh with format specification, for example 
     //   M.read("input", "off"); 
     // would load input.off into the TriMesh instance M
-    void read(std::string, std::string);
+    void read(std::string , std::string);
     // like read( , ), just output mesh with specific format
     void write(std::string, std::string);
 
@@ -199,7 +199,7 @@ namespace meshtk {
     // input: v0
     // output: v1
     template <class T>
-    void guassian_smooth_vertex(double coeff, std::vector<T> &v0, std::vector<T> &v1, T zero){
+    void gaussian_smooth_vertex(double coeff, std::vector<T> &v0, std::vector<T> &v1, T zero){
       // preconditioned with vertex_neighbor
       // update_vertex_neighbor(3 * coeff);
       double sigma = coeff * avg_edge_len;
@@ -283,7 +283,7 @@ namespace meshtk {
     };
 
 
-
+    // some protected variable are accessible in MeshPainter and its derivative
     friend class MeshPainter;
   
 

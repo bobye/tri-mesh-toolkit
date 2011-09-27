@@ -44,7 +44,7 @@ namespace meshtk {
     // preconditioned with vertex_neighbor
     double sigma = coeff * avg_edge_len;
 
-    update_vertex_neighbor(3 * coeff);
+    //update_vertex_neighbor(3 * coeff);
 
     for (int i = 0; i < vertex_num; i++){
       Vector tmp, vec(0,0,0);
@@ -84,17 +84,22 @@ namespace meshtk {
     int buffer_curr=0, buffer_renew=0;
     
     //pre-smooth, if the input mesh is manifold mesh, set pre_iter as default
-    while (pre_iter-- > 0)  { gaussian_smooth(coeff); update_base();}
+    while (pre_iter-- > 0)  { 
+      update_vertex_neighbor(3 * coeff);
+      gaussian_smooth(coeff); update_base();
+    }
 
 
     update_curvature();    
     buffer_hcurv[buffer_renew++] = vertex_hcurv;
 
+    update_vertex_neighbor(3 * coeff);
     gaussian_smooth(coeff);
     update_base();
     update_curvature();
     buffer_hcurv[buffer_renew++] = vertex_hcurv;
 
+    update_vertex_neighbor(3 * coeff);
     gaussian_smooth(coeff);
     update_base();
     update_curvature();
@@ -107,6 +112,7 @@ namespace meshtk {
 
     for (int i=0; i < iter; ++i) {
       
+      update_vertex_neighbor(3 * coeff);
       gaussian_smooth(coeff);
       update_base();
       update_curvature();

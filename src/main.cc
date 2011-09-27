@@ -72,25 +72,16 @@ int main(int argc, char** argv){
     // mesh Gaussian smooth iteration
     for (int i=0; i<smoothMeshIteration.getValue(); ++i) {
       std::cout<< "Smooth Iteration Count: " << i << " with coefficient "<< smoothMeshCoefficient.getValue() << std::endl;
+      mesh.update_vertex_neighbor(3 * smoothMeshCoefficient.getValue());
       mesh.gaussian_smooth(smoothMeshCoefficient.getValue());
       mesh.update_base();
     }
 
 
-    /***************************************************************************/
-    // region to test
-    /*
-    mesh.update_vertex_salient(5,1);
-    meshtk::MeshViewer viewer(argc, argv);
-    meshtk::BooleanFunction *salient_points = (meshtk::BooleanFunction *) mesh.attribute_extract(MESHTK_VERTEX_SALIENT);
-    meshtk::MeshMarker painter(&mesh, salient_points);
-    viewer.add_painter(&painter);
-      
-    viewer.init();// call this func last before loop
-    viewer.view();
-    */
 
-    //std::cout<<mesh.update_vertex_neighbor(3.)<<std::endl;
+    /***************************************************************************/    
+    // region to test
+    mesh.update_vertex_salient(5,1);
 
     /***************************************************************************/    
     // output and display
@@ -118,6 +109,24 @@ int main(int argc, char** argv){
       viewer.init();// call this func last before loop
       viewer.view();
     }
+
+
+
+    /***************************************************************************/
+    // region to test
+
+    meshtk::MeshViewer viewer(argc, argv);
+    meshtk::BooleanFunction *salient_points = (meshtk::BooleanFunction *) mesh.attribute_extract(MESHTK_VERTEX_SALIENT);
+    meshtk::MeshMarker painter(&mesh, salient_points);
+    viewer.add_painter(&painter);
+      
+    viewer.init();// call this func last before loop
+    viewer.view();
+
+
+    //std::cout<<mesh.update_vertex_neighbor(3.)<<std::endl;
+
+
 
   } catch (TCLAP::ArgException &e) //catch any expections 
     {

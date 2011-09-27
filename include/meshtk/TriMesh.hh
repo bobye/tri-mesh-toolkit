@@ -125,10 +125,6 @@ namespace meshtk {
     // the indices of neighbor are stored in set with an iterator access
     std::vector<std::set<int> > vertex_neighbor;
 
-    // update vertices neighbor, argument coeff is to take all *-ring within a Euclidean distance
-    // return the average number of neighbor vertices associated
-    double update_vertex_neighbor(double );//to update: vertex_neighbor[][]
-
     double avg_edge_len;//average edge length globally
 
 
@@ -193,6 +189,11 @@ namespace meshtk {
     // update curvature attributes of mesh, update: 
     // update_[facet, vertex]_localchart() and update_[facet, vertex]_curvature()
     void update_curvature();
+
+
+    // update vertices neighbor, argument coeff is to take all *-ring within a Euclidean distance
+    // return the average number of neighbor vertices associated
+    double update_vertex_neighbor(double );//to update: vertex_neighbor[][]
 
     // guassian smooth an attribute function 
     // input: v0

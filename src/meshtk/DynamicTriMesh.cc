@@ -21,6 +21,7 @@
 */
 
 #include "meshtk/DynamicTriMesh.hh"
+#include "meshtk/mesh_assist.hh"
 #include <algorithm>
 
 
@@ -53,28 +54,67 @@ namespace meshtk {
 
   void DynamicTriMesh::gaussian_smooth(double coeff){
     // preconditioned with vertex_neighbor
-    double sigma = coeff * avg_edge_len;
 
     //update_vertex_neighbor(3 * coeff);
 
-    for (int i = 0; i < vertex_num; i++){
-      Vector tmp, vec(0,0,0);
-      double scale, total_scale = 0;
-      
+    VectorFunction smoothed_normal(vertex_num);
 
+    update_vertex_neighbor(3 * coeff);
+    gaussian_smooth_vertex(coeff, vertex_norm, smoothed_normal, Vector(0,0,0));
+    for (int j=0; j<vertex_num; j++) vertex_norm[j] = smoothed_normal[j]/CGAL::sqrt(smoothed_normal[j] * smoothed_normal[j]);
+      
+    update_curvature();
+
+
+
+    for (int i = 0; i < vertex_num; i++){
+      Vector tmp;
+      double tmp_scalar, norm_displace=0;
+
+      double scale, total_scale = 0;
+
+      
+      
+      /*
       for (std::set<int>::iterator it = vertex_neighbor[i].begin();
 	   it != vertex_neighbor[i].end(); ++it) {
 	tmp = IV[*it]->point() - IV[i]->point();
+	
+	double coord[2];
+	localcoord(tmp, vertex_LC[0][i], vertex_LC[1][i], coord);
+	tmp_scalar = (tmp * vertex_norm[i] + (vertex_CT[0][i]*coord[0]*coord[0] + 2*vertex_CT[1][i]*coord[0]*coord[1] + vertex_CT[2][i]*coord[1]*coord[1])) * (vertex_norm[i]*vertex_norm[*it]) * (vertex_norm[i]*vertex_norm[*it]);
+	
 	scale = CGAL::sqrt(tmp * tmp);
 	scale = vertex_area[*it] * std::exp( - (scale * scale) / (2 * sigma * sigma));
 	total_scale += scale;
-	vec = vec + scale * tmp;
+	norm_displace += scale * tmp_scalar;
       }
+      // IMPORTANT Comments: projecting the displacement to normal direction is 
+      // necessary to prevent vertex-draft. However, it still shrink the volume.
+      */
+      double sigma = vertex_avg_len[i];
 
-      vec = (vec * vertex_norm[i]) * vertex_norm[i];
-      vertex_coord[i] = IV[i]->point() + vec / total_scale;
+      HV_circulator hv = IV[i]->vertex_begin();
+      do {
+
+	tmp = hv->opposite()->vertex()->point() - IV[i]->point(); 
+	double coord[2];
+
+	localcoord(tmp, vertex_LC[0][i], vertex_LC[1][i], coord);
+	tmp_scalar = (tmp * vertex_norm[i] + (vertex_CT[0][i]*coord[0]*coord[0] + 2*vertex_CT[1][i]*coord[0]*coord[1] + vertex_CT[2][i]*coord[1]*coord[1]));
+	
+	scale = CGAL::sqrt(tmp * tmp);
+	scale = vertex_area[hv->opposite()->vertex()->index] * std::exp( - (scale * scale) / (2 * sigma * sigma));
+	total_scale += scale;
+	norm_displace += scale * tmp_scalar;
+
+
+      }while (++hv!=IV[i]->vertex_begin());
+
+      vertex_coord[i] = IV[i]->point() + (norm_displace / total_scale) * vertex_norm[i];
       
     }
+      
 
     restore_coord();
   }

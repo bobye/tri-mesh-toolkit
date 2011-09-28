@@ -34,7 +34,10 @@ lib: $(addprefix $(OBJDIR)/, $(OBJECTS))
 MeshTK: main.cc
 	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) $(LIBTCLAP) -lmeshtk -o MeshTK $< 
 
-all: lib MeshTK
+test: test.cc
+	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) -lmeshtk -o test $<
+
+all: lib MeshTK test
 
 clean: 
 	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so MeshTK

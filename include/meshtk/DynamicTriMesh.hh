@@ -67,7 +67,7 @@ namespace meshtk {
 
     // Update mark for salient vertex, the argument are taken as num of smooth 
     // iteration (>0 preconditioned)
-    void update_vertex_salient(int , int pre_inter = 1);
+    void detect_vertex_salient(int , int pre_inter = 1);
 
 
 

@@ -80,7 +80,7 @@ namespace meshtk {
   }
 
 
-  void DynamicTriMesh::update_vertex_salient(int iter, int pre_iter){
+  void DynamicTriMesh::detect_vertex_salient(int iter, int pre_iter){
     vertex_salient.resize(vertex_num);
     vertex_salient_sup.resize(vertex_num);
     vertex_salient_inf.resize(vertex_num);
@@ -117,8 +117,8 @@ namespace meshtk {
     buffer_hcurv[buffer_renew++] = vertex_hcurv;
 
     for (int i=0; i < vertex_num; ++i) {
-      buffer_doh[0][i] = buffer_hcurv[1][i] - buffer_hcurv[0][i];
-      buffer_doh[1][i] = buffer_hcurv[2][i] - buffer_hcurv[1][i];
+      buffer_doh[0][i] =  (buffer_hcurv[1][i] - buffer_hcurv[0][i]);
+      buffer_doh[1][i] =  (buffer_hcurv[2][i] - buffer_hcurv[1][i]);
     }
 
     for (int i=0; i < iter; ++i) {
@@ -134,7 +134,7 @@ namespace meshtk {
 	two = (buffer_curr +2 )%4,
 	three = (buffer_curr +3)%4;
       
-      for (int j=0; j < vertex_num; ++j) buffer_doh[two][j] = buffer_hcurv[three][j] - buffer_hcurv[two][j];
+      for (int j=0; j < vertex_num; ++j) buffer_doh[two][j] =  (buffer_hcurv[three][j] - buffer_hcurv[two][j]);
             
       for (int j=0; j < vertex_num; ++j) {// the algorithm below is not much efficient
 	

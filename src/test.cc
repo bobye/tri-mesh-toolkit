@@ -66,10 +66,14 @@ int main(int argc, char *argv[])
 
   // keypoint detection
 
-  unsigned USER_MESH_KEYPOINT = mesh_base.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
-  meshtk::BooleanFunction *mesh_base_keypoint = (meshtk::BooleanFunction *) mesh_base.attribute_extract(USER_MESH_KEYPOINT);
+  unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
+  meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);
+  
+  mesh.update_curvature();
+  meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
+  mesh_base.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, 100,0);
 
-  mesh_base.detect_vertex_keypoint(*mesh_offset_proj, *mesh_base_keypoint, 20,0);
+
 
   // smooth iteration
   /*
@@ -97,10 +101,10 @@ int main(int argc, char *argv[])
 
 
   meshtk::MeshViewer viewer(argc, argv);
-  meshtk::MeshRamper ramper(&mesh_base, mesh_offset_proj);
-  meshtk::MeshMarker marker(&mesh_base, mesh_base_keypoint);
+  //meshtk::MeshRamper ramper(&mesh, mesh_hcurv);
+  meshtk::MeshMarker marker(&mesh, mesh_keypoint);
   //meshtk::MeshPainter painter(&mesh_base);
-  viewer.add_painter(&ramper);
+  //viewer.add_painter(&ramper);
   viewer.add_painter(&marker);
 
   viewer.init();// call this func last before loop

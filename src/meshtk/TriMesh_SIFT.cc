@@ -104,8 +104,8 @@ namespace meshtk{
 	  
 	  do {
 	    if (buffer_dv[one][j] < buffer_dv[one][hv->next()->vertex()->index] ||
-		buffer_dv[two][j] < buffer_dv[two][hv->next()->vertex()->index] ||
-		buffer_dv[zero][j] < buffer_dv[zero][hv->next()->vertex()->index]) {
+		buffer_dv[one][j] < buffer_dv[two][hv->next()->vertex()->index] ||
+		buffer_dv[one][j] < buffer_dv[zero][hv->next()->vertex()->index]) {
 	      tmp = false; break;
 	    }
 	  }while (++hv!=IV[j]->vertex_begin());

@@ -190,6 +190,7 @@ namespace meshtk {
     // update_[facet, vertex]_localchart() and update_[facet, vertex]_curvature()
     void update_curvature();
 
+    /**************************************************************************/
 
     // update vertices neighbor, argument coeff is to take all *-ring within a Euclidean distance
     // return the average number of neighbor vertices associated
@@ -229,13 +230,18 @@ namespace meshtk {
     // The following procedure is SIFT keypoint detection for scalar 
     // function on static manifold mesh domain. The input is scalar
     // function, the keypoints detected are given by boolean function
-    void detect_vertex_keypoint(ScalarFunction &, BooleanFunction &);
+    void detect_vertex_keypoint(ScalarFunction &, BooleanFunction &, int, int pre_iter=1);
 
+
+    /**************************************************************************/
     // allocate memory for attribute function
     unsigned attribute_allocate(unsigned, unsigned);
     // return reference of attribute function by register number
     void *attribute_extract(unsigned );
     void attribute_delete(unsigned, unsigned);
+
+
+    /**************************************************************************/
     
     // Below are weighted average template functions, which will 
     // convert facet attribute to vertex attribute or vice versa

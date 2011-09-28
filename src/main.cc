@@ -81,7 +81,7 @@ int main(int argc, char** argv){
 
     /***************************************************************************/    
     // region to test
-    mesh.update_vertex_salient(1,1);
+    mesh.detect_vertex_salient(1,1);
 
     /***************************************************************************/    
     // output and display

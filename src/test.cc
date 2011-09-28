@@ -64,16 +64,25 @@ int main(int argc, char *argv[])
     //(*mesh_base_coord)[i] = (*mesh_base_coord)[i] + (*mesh_offset_proj)[i] * (*mesh_base_norm)[i];
   }
 
+  // keypoint detection
+
+  unsigned USER_MESH_KEYPOINT = mesh_base.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
+  meshtk::BooleanFunction *mesh_base_keypoint = (meshtk::BooleanFunction *) mesh_base.attribute_extract(USER_MESH_KEYPOINT);
+
+  mesh_base.detect_vertex_keypoint(*mesh_offset_proj, *mesh_base_keypoint, 20,0);
+
+  // smooth iteration
+  /*
   unsigned USER_MESH_BUFFER_SCALAR = mesh_base.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
   meshtk::ScalarFunction *mesh_buffer_scalar = (meshtk::ScalarFunction *) mesh_base.attribute_extract(USER_MESH_BUFFER_SCALAR);
 
-  // smooth iteration
   mesh_base.update_vertex_neighbor(3.);
-  for (int i=0; i<10; i++) {
+  for (int i=0; i<30; i++) {
     std::cout<<i<<std::endl;
     mesh_base.gaussian_smooth_vertex(1., *mesh_offset_proj, *mesh_buffer_scalar, 0.);
     std::swap(mesh_offset_proj, mesh_buffer_scalar);
   }
+  */
   //mesh_base.restore_coord();
   //mesh.write("out","off");
 
@@ -86,16 +95,18 @@ int main(int argc, char *argv[])
   mesh_base.write("out","off");
   */
 
-  
+
   meshtk::MeshViewer viewer(argc, argv);
-  meshtk::MeshRamper painter(&mesh_base, mesh_offset_proj);
+  meshtk::MeshRamper ramper(&mesh_base, mesh_offset_proj);
+  meshtk::MeshMarker marker(&mesh_base, mesh_base_keypoint);
   //meshtk::MeshPainter painter(&mesh_base);
-  viewer.add_painter(&painter);
+  viewer.add_painter(&ramper);
+  viewer.add_painter(&marker);
 
   viewer.init();// call this func last before loop
   viewer.view();
     
-    
+
 
 
   return 0;

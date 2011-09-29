@@ -27,6 +27,7 @@ namespace meshtk{
 
   double TriMesh::update_vertex_neighbor(double coeff){
     double distance_threshold = coeff * avg_edge_len; 
+    vertex_neighbor.clear();
     vertex_neighbor.resize(vertex_num);
     int count=0;
 

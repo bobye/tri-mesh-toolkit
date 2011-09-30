@@ -52,6 +52,19 @@ namespace meshtk {
     }
   }
 
+
+  void DynamicTriMesh::add_mesh_noise(double coeff) {
+
+    double move = coeff * avg_edge_len;
+
+    load_coord();
+    srand((unsigned)time(NULL));
+    for (int i = 0;i<vertex_num; i++) 
+      vertex_coord[i] = vertex_coord[i] + ((double )rand()/(double) RAND_MAX -.5) * move * vertex_norm[i];
+    restore_coord();
+
+  }
+
   void DynamicTriMesh::gaussian_smooth(double coeff){
     // preconditioned with vertex_neighbor
 

@@ -57,6 +57,9 @@ namespace meshtk {
     void load_coord();
     void restore_coord();
 
+    // add mesh noise in normal direction, the argument specify the intensity.
+    void add_mesh_noise(double coeff=1.);
+    
     // Apply Gaussian smooth operator over entire mesh
     // The new point is an averaging of one ring configuration with unnormalized
     //    weight = area * exp ( - distance ^2 / sigma ^2 )

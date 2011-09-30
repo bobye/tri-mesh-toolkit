@@ -50,6 +50,7 @@ int main(int argc, char** argv){
 
 
     OptScalar smoothMeshCoefficient("", "smooth_mesh_coeff", "Coefficient specified for Guassian smoothing", false, 1., "float", cmd);
+    OptScalar addNoiseMesh("", "noise_mesh", "Coefficient specified for uniform mesh noise added", false, 0., "float", cmd);
 
     OptBool outputMeshSwitch("o", "output_mesh_enable", "Enable mesh Output before program exits", cmd, false) ;
     OptBool viewMeshOnly("v", "view_mesh_only", "View mesh without other rending", cmd, false);
@@ -69,8 +70,13 @@ int main(int argc, char** argv){
 
     /////////////////////////////////////////////////////////////////////////////////
     // dynamic mesh processing starts here
-    // mesh Gaussian smooth iteration
+    // add mesh noise
+    if (addNoiseMesh.getValue() > 0) {
+      mesh.add_mesh_noise(addNoiseMesh.getValue());
+      mesh.update_base();
+    }
 
+    // mesh Gaussian smooth iteration
     for (int i=0; i<smoothMeshIteration.getValue(); ++i) {
       std::cout<< "Smooth Iteration Count: " << i << " with coefficient "<< smoothMeshCoefficient.getValue() << std::endl;
       //mesh.update_vertex_neighbor(3 * smoothMeshCoefficient.getValue());
@@ -78,7 +84,6 @@ int main(int argc, char** argv){
       mesh.gaussian_smooth(smoothMeshCoefficient.getValue());
       mesh.update_base();
     }
-
 
 
     /***************************************************************************/    

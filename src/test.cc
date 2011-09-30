@@ -22,6 +22,7 @@
 
 #include <string>
 #include <algorithm>
+#include <cstdlib>
 
 #include <meshtk/TriMesh.hh>
 #include <meshtk/DynamicTriMesh.hh>
@@ -34,15 +35,17 @@ int main(int argc, char *argv[])
   //mesh.update_vertex_salient(5,1);
     
   meshtk::DynamicTriMesh mesh;
-  meshtk::DynamicTriMesh mesh_base;
-  mesh.read("mesh", "off");
-  mesh_base.read("mesh_base", "off");
+  //mesh.read("bimba_cvd", "off");
+  mesh.read(argv[1], "off");
 
   mesh.init_index();
-  mesh_base.init_index();
   mesh.update_base();
+  //  mesh.load_coord();
+  /*
+  meshtk::DynamicTriMesh mesh_base;
+  mesh_base.read("mesh_base", "off");
   mesh_base.update_base();
-  mesh.load_coord();
+  mesh_base.init_index();
   mesh_base.load_coord();
 
   meshtk::PointFunction *mesh_coord = (meshtk::PointFunction *) mesh.attribute_extract(MESHTK_VERTEX_COORD);
@@ -63,7 +66,7 @@ int main(int argc, char *argv[])
     (*mesh_offset_proj)[i] = (*mesh_offset)[i] * (*mesh_base_norm)[i];
     //(*mesh_base_coord)[i] = (*mesh_base_coord)[i] + (*mesh_offset_proj)[i] * (*mesh_base_norm)[i];
   }
-
+  */
   // keypoint detection
 
   unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
@@ -71,7 +74,7 @@ int main(int argc, char *argv[])
   
   mesh.update_curvature();
   meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
-  mesh_base.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, 100,0);
+  mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, atoi(argv[2]));
 
 
 
@@ -101,10 +104,10 @@ int main(int argc, char *argv[])
 
 
   meshtk::MeshViewer viewer(argc, argv);
-  //meshtk::MeshRamper ramper(&mesh, mesh_hcurv);
+  //  meshtk::MeshRamper ramper(&mesh, mesh_hcurv);
   meshtk::MeshMarker marker(&mesh, mesh_keypoint);
   //meshtk::MeshPainter painter(&mesh_base);
-  //viewer.add_painter(&ramper);
+  //  viewer.add_painter(&ramper);
   viewer.add_painter(&marker);
 
   viewer.init();// call this func last before loop

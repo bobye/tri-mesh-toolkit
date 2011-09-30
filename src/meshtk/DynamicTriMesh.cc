@@ -84,37 +84,18 @@ namespace meshtk {
       Vector tmp;
       double tmp_scalar, norm_displace=0;
 
-      double scale, total_scale = 0;
+      double scale, total_scale = vertex_area[i];
 
-      
-      
-      /*
-      for (std::set<int>::iterator it = vertex_neighbor[i].begin();
-	   it != vertex_neighbor[i].end(); ++it) {
-	tmp = IV[*it]->point() - IV[i]->point();
-	
-	double coord[2];
-	localcoord(tmp, vertex_LC[0][i], vertex_LC[1][i], coord);
-	tmp_scalar = (tmp * vertex_norm[i] + (vertex_CT[0][i]*coord[0]*coord[0] + 2*vertex_CT[1][i]*coord[0]*coord[1] + vertex_CT[2][i]*coord[1]*coord[1])) * (vertex_norm[i]*vertex_norm[*it]) * (vertex_norm[i]*vertex_norm[*it]);
-	
-	scale = CGAL::sqrt(tmp * tmp);
-	scale = vertex_area[*it] * std::exp( - (scale * scale) / (2 * sigma * sigma));
-	total_scale += scale;
-	norm_displace += scale * tmp_scalar;
-      }
-      // IMPORTANT Comments: projecting the displacement to normal direction is 
-      // necessary to prevent vertex-draft. However, it still shrink the volume.
-      */
       double sigma = vertex_avg_len[i];
+      double coord[2];
 
       HV_circulator hv = IV[i]->vertex_begin();
       do {
 
 	tmp = hv->opposite()->vertex()->point() - IV[i]->point(); 
-	double coord[2];
 
 	localcoord(tmp, vertex_LC[0][i], vertex_LC[1][i], coord);
-	tmp_scalar = (tmp * vertex_norm[i] + (vertex_CT[0][i]*coord[0]*coord[0] + 2*vertex_CT[1][i]*coord[0]*coord[1] + vertex_CT[2][i]*coord[1]*coord[1]));
+	tmp_scalar = tmp * vertex_norm[i] + (vertex_CT[0][i]*coord[0]*coord[0] + 2*vertex_CT[1][i]*coord[0]*coord[1] + vertex_CT[2][i]*coord[1]*coord[1]);
 	
 	scale = CGAL::sqrt(tmp * tmp);
 	scale = vertex_area[hv->opposite()->vertex()->index] * std::exp( - (scale * scale) / (2 * sigma * sigma));
@@ -144,12 +125,11 @@ namespace meshtk {
 
     for (int i=0;i<4;i++ ) {buffer_hcurv[i].resize(vertex_num); buffer_doh[i].resize(vertex_num);}
 
-    double coeff = .6;
+    double coeff = 1.;
     int buffer_curr=0, buffer_renew=0;
     
     //pre-smooth, if the input mesh is manifold mesh, set pre_iter as default
     while (pre_iter-- > 0)  { 
-      update_vertex_neighbor(3 * coeff);
       gaussian_smooth(coeff); update_base();
     }
 
@@ -157,13 +137,11 @@ namespace meshtk {
     update_curvature();    
     buffer_hcurv[buffer_renew++] = vertex_hcurv;
 
-    update_vertex_neighbor(3 * coeff);
     gaussian_smooth(coeff);
     update_base();
     update_curvature();
     buffer_hcurv[buffer_renew++] = vertex_hcurv;
 
-    update_vertex_neighbor(3 * coeff);
     gaussian_smooth(coeff);
     update_base();
     update_curvature();
@@ -176,7 +154,6 @@ namespace meshtk {
 
     for (int i=0; i < iter; ++i) {
       
-      update_vertex_neighbor(3 * coeff);
       gaussian_smooth(coeff);
       update_base();
       update_curvature();
@@ -187,7 +164,8 @@ namespace meshtk {
 	two = (buffer_curr +2 )%4,
 	three = (buffer_curr +3)%4;
       
-      for (int j=0; j < vertex_num; ++j) buffer_doh[two][j] =  (buffer_hcurv[three][j] - buffer_hcurv[two][j]);
+      for (int j=0; j < vertex_num; ++j) 
+	buffer_doh[two][j] =  (buffer_hcurv[three][j] - buffer_hcurv[two][j]);
             
       for (int j=0; j < vertex_num; ++j) {// the algorithm below is not much efficient
 	
@@ -195,35 +173,16 @@ namespace meshtk {
 	HV_circulator hv=IV[j]->vertex_begin();	
 	bool tmp = true;
 	if (buffer_doh[one][j] < buffer_doh[two][j] || buffer_doh[one][j] < buffer_doh[zero][j])
-	  tmp = false;
+	  tmp = false;	
+	else do {
+	    if (buffer_doh[one][j] < buffer_doh[one][hv->next()->vertex()->index] ||
+		buffer_doh[two][j] < buffer_doh[two][hv->next()->vertex()->index] ||
+		buffer_doh[zero][j] < buffer_doh[zero][hv->next()->vertex()->index]) {
+	      tmp = false;
+	      break;
+	    }	  
+	  } while (++hv != IV[j]->vertex_begin());
 	
-	do {
-	  if (buffer_doh[one][j] < buffer_doh[one][hv->next()->vertex()->index] ||
-	      buffer_doh[two][j] < buffer_doh[two][hv->next()->vertex()->index] ||
-	      buffer_doh[zero][j] < buffer_doh[zero][hv->next()->vertex()->index]) {
-	    tmp = false;
-	    break;
-	  }	  
-	} while (++hv != IV[j]->vertex_begin());
-
-	if (tmp) {	  
-	  /*
-	  double scale, total_scale=0, LBH=0;
-	  hv = IV[j]->vertex_begin();
-	  do {
-	    if (hv->facet() == NULL) {
-	      tmp = false; break;// rule out boundary vertex 
-	    }
-	    scale = (CGAL::sqrt(halfedge_vec[hv->prev()->index] * halfedge_vec[hv->prev()->index])
-		     + CGAL::sqrt(halfedge_vec[hv->opposite()->next()->index] * halfedge_vec[hv->opposite()->next()->index]))/CGAL::sqrt(halfedge_vec[hv->index()] * halfedge_vec[hv->index()]);
-	   
-	    total_scale += scale;
-	    LBH += scale * (buffer_hcurv[one][hv->prev()->vertex()->index] + buffer_hcurv[two][hv->prev()->vertex()->index]  - buffer_hcurv[one][j] - buffer_hcurv[two][j])/ 4.;
-	  } while (++hv !=IV[j]->vertex_begin());
-	  
-	  LBH /= total_scale * vertex_area[j];
-	  */
-	}
 	
 	vertex_salient_sup[j] = vertex_salient_sup[j] || tmp;
 
@@ -231,26 +190,23 @@ namespace meshtk {
 	hv = IV[j]->vertex_begin();
 	tmp = true;
 	if (buffer_doh[one][j] > buffer_doh[two][j] || buffer_doh[one][j] > buffer_doh[zero][j])
-	  tmp = false;
+	  tmp = false;	
+	else do {
+	    if (buffer_doh[one][j] > buffer_doh[one][hv->next()->vertex()->index] ||
+		buffer_doh[two][j] > buffer_doh[two][hv->next()->vertex()->index] ||
+		buffer_doh[zero][j] > buffer_doh[zero][hv->next()->vertex()->index]) {
+	      tmp = false;
+	      break;
+	    }	  
+	  } while (++hv != IV[j]->vertex_begin());
 	
-	do {
-	  if (buffer_doh[one][j] > buffer_doh[one][hv->next()->vertex()->index] ||
-	      buffer_doh[two][j] > buffer_doh[two][hv->next()->vertex()->index] ||
-	      buffer_doh[zero][j] > buffer_doh[zero][hv->next()->vertex()->index]) {
-	    tmp = false;
-	    break;
-	  }	  
-	} while (++hv != IV[j]->vertex_begin());
-
-	if (tmp) {
-	  //if ((buffer_hcurv[one][j]+buffer_hcurv[two][j]) < 0) tmp = false;
-	}
-
 	vertex_salient_inf[j] = vertex_salient_inf[j] || tmp;
 
 	vertex_salient[j] = vertex_salient[j] || vertex_salient_sup[j] || vertex_salient_inf[j];
 
       }
+
+
       std::cout<< "Salient Detection Iteration: "<< i << "\t Found " << std::accumulate( vertex_salient.begin(), vertex_salient.end(), 0) <<
 	"("<< std::accumulate( vertex_salient_sup.begin(), vertex_salient_sup.end(), 0) <<
 	","<< std::accumulate( vertex_salient_inf.begin(), vertex_salient_inf.end(), 0) << 

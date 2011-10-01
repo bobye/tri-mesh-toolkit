@@ -87,7 +87,7 @@ int main(int argc, char** argv){
 
     /***************************************************************************/    
     // region to test
-    mesh.detect_vertex_salient(10,1);
+    //mesh.detect_vertex_salient(10,1);
 
     /***************************************************************************/    
     // output and display
@@ -120,7 +120,7 @@ int main(int argc, char** argv){
 
     /***************************************************************************/
     // region to test
-
+    /*
     meshtk::MeshViewer viewer(argc, argv);
     meshtk::BooleanFunction *salient_points = (meshtk::BooleanFunction *) mesh.attribute_extract(MESHTK_VERTEX_SALIENT);
     meshtk::MeshMarker painter(&mesh, salient_points);
@@ -128,7 +128,7 @@ int main(int argc, char** argv){
       
     viewer.init();// call this func last before loop
     viewer.view();
-
+    */
 
     //std::cout<<mesh.update_vertex_neighbor(3.)<<std::endl;
 

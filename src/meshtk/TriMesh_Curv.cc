@@ -196,11 +196,19 @@ namespace meshtk {
 
   void TriMesh::update_curvature(){
 
+    time_t  start, end; 
+    time(&start);
+    std::cout << "Update curvature ..."<< std::flush; 
+
     update_facet_localchart();
     update_facet_curvature();
 
     update_vertex_localchart();
     update_vertex_curvature();
+
+    time(&end);
+    std::cout << "\t time: " << difftime( end, start) <<" seconds" << std::endl;
+
 
   }
 

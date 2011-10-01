@@ -230,8 +230,8 @@ namespace meshtk {
     // The following procedure is SIFT keypoint detection for scalar 
     // function on static manifold mesh domain. The input is scalar
     // function, the keypoints detected are given by boolean function
-    void detect_vertex_keypoint(ScalarFunction &, BooleanFunction &, int, int pre_iter=1);
-
+    int detect_vertex_keypoint(ScalarFunction &, BooleanFunction &, int, int pre_iter=1);
+    
 
     /**************************************************************************/
     // allocate memory for attribute function

@@ -21,6 +21,7 @@
 */
 
 #include "meshtk/TriMesh.hh"
+#include <ctime>
 
 namespace meshtk{
 
@@ -65,10 +66,17 @@ namespace meshtk{
   }
 
 
-  void TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, BooleanFunction &keyBoolean, int iter, int pre_iter){
-    double coeff = 1.2;
+
+  int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, BooleanFunction &keyBoolean, int iter, int pre_iter){
+    // in the implementation of keypoint detection, no threshold is taken.
+    int count = 0;
+    double coeff = .6;
+    double neighbor_size = 3*coeff > 3.? 3*coeff: 3.;
     
-    update_vertex_neighbor(3. * coeff);
+    time_t  start, end; time(&start);
+    std::cout << "Update neighbors, size: " << neighbor_size << std::flush; 
+    update_vertex_neighbor(neighbor_size); time(&end);
+    std::cout << ", time: " << difftime( end, start) <<" seconds" << std::endl;
 
     ScalarFunction buffer_v[4];
     ScalarFunction buffer_dv[4];
@@ -83,26 +91,31 @@ namespace meshtk{
     gaussian_smooth_vertex(coeff, buffer_v[2], buffer_v[3], 0.);
 
     for (int i = 0; i < vertex_num; ++i) {
-      buffer_dv[0][i] =  (buffer_v[1][i] - buffer_v[0][i]);
-      buffer_dv[1][i] =  (3+2*std::sqrt(2)) * (buffer_v[2][i] - buffer_v[1][i]);
+      buffer_dv[0][i] =   (buffer_v[1][i] - buffer_v[0][i]) / std::log(2.);
+      buffer_dv[1][i] =   (buffer_v[2][i] - buffer_v[1][i]) / std::log(1.5);
     }
     
     for (int i=0; i< iter; ++i) {
       
+      //      double radio = 0,// (0.001 / std::sqrt(total_area)) * coeff * coeff, 
+      //radio2 = 0.;
+
       int zero = buffer_curr, one=(buffer_curr +1)%4, 
 	two=(buffer_curr +2)%4, three=(buffer_curr +3)%4;
 
       gaussian_smooth_vertex(coeff, buffer_v[two], buffer_v[three], 0.);
       for (int j=0; j < vertex_num; ++j) 
-	buffer_dv[two][j] = (2*i+5+2*std::sqrt((i+2)*(i+3))) * (buffer_v[three][j] - buffer_v[two][j]);
+	buffer_dv[two][j] = (buffer_v[three][j] - buffer_v[two][j]) / std::log(double (i+3)/ double(i+2));
 
-      if (pre_iter--<=0) {
-	for (int j=0; j < vertex_num; ++j) 
-	  if (!keyBoolean[j]) {
+
+
+
+      if (pre_iter--<=0 && i*coeff >= 1.) {
+	for (int j=0; j < vertex_num; ++j) {
 	    HV_circulator hv=IV[j]->vertex_begin();
 	    bool tmp = true;
 	  
-	    if (buffer_dv[one][j] < buffer_dv[two][j] || buffer_dv[one][j] < buffer_dv[zero][j])
+	    if (buffer_dv[one][j] < buffer_dv[two][j]  || buffer_dv[one][j] < buffer_dv[zero][j] )
 	      tmp = false;	  
 	    else do {
 		if (buffer_dv[one][j] < buffer_dv[one][hv->next()->vertex()->index] ||
@@ -111,11 +124,12 @@ namespace meshtk{
 		  tmp = false; break;
 		}
 	      }while (++hv!=IV[j]->vertex_begin());
-	    if (tmp && std::fabs(buffer_dv[one][j]) * avg_edge_len > 0.05)
-	      { keyBoolean[j] = true; continue;}
+	    if (tmp)// && std::fabs(buffer_dv[one][j]) > radio2 )
+	      { keyBoolean[j] = true; ++ count; continue;}
+
 	  
 	    hv=IV[j]->vertex_begin(); tmp = true;
-	    if (buffer_dv[one][j] > buffer_dv[two][j] || buffer_dv[one][j] > buffer_dv[zero][j])
+	    if (buffer_dv[one][j] > buffer_dv[two][j]  || buffer_dv[one][j] > buffer_dv[zero][j] )
 	      tmp = false;
 	    else do {
 		if (buffer_dv[one][j] > buffer_dv[one][hv->next()->vertex()->index] ||
@@ -124,11 +138,12 @@ namespace meshtk{
 		  tmp = false; break;
 		}
 	      }while (++hv!=IV[j]->vertex_begin());
-	    if (tmp && std::fabs(buffer_dv[one][j]) * avg_edge_len > 0.05)	  
-	      { keyBoolean[j] = true; continue; }
+	    if (tmp)// && std::fabs(buffer_dv[one][j])  > radio2 )
+	      { keyBoolean[j] = true; ++ count; continue; }
+
 	  }
 	
-	std::cout<< "Keypoint detection iteration: "<<i<< "\t Found " << std::accumulate(keyBoolean.begin(), keyBoolean.end(), 0)<< std::endl;
+	std::cout<< "Keypoint detection iteration: "<<i<< "\t Found " << count << std::endl;
 	
       } else {
 	std::cout <<"Smooth count"<<std::endl;
@@ -139,7 +154,7 @@ namespace meshtk{
     }
 
     valueScalar = buffer_v[ buffer_curr ];
-        
+    return count;
   }
 
 }

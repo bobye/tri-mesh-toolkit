@@ -49,6 +49,7 @@ namespace meshtk {
 	std::cerr << "Error: Cannot open file " << file << std::endl;
 	exit(1);
       }
+
       mesh_Fin >> P;// mesh read
       mesh_Fin.close();
     }
@@ -196,11 +197,16 @@ namespace meshtk {
 
   void TriMesh::update_base(){//base update halfedge, facet, vertex.
 
+    time_t  start, end; 
+    time(&start);
+    std::cout << "Update base ..."<< std::flush; 
     update_halfedge();
 
     update_facet();
   
     update_vertex();
+    time(&end);
+    std::cout << "\t time: " << difftime( end, start) <<" seconds" << std::endl;
 
   };
   

@@ -27,43 +27,160 @@ namespace meshtk{
 
 
   double TriMesh::update_vertex_neighbor(double coeff){
-    double distance_threshold = coeff * avg_edge_len; 
+
+    double square_distance_threshold = coeff * avg_edge_len; 
+    square_distance_threshold *=square_distance_threshold;
+
     vertex_neighbor.clear();
     vertex_neighbor.resize(vertex_num);
-    int count=0;
+    int count=0;// to record average neighbor size of vertices
 
     // The algorithm implemented is a wide search 
-    
+    // which is not very efficient
+    /*
     for (int i = 0; i < vertex_num; ++i) {
-      
+      int j;
+      std::set<int>::iterator it;
       std::set<int> buffer;
+      Vector displace;
       buffer.insert(i);
+      HV_circulator hv;
 
       while (!buffer.empty()) {
-	std::set<int>::iterator it = buffer.begin();
-	Vector displace = IV[*it]->point()- IV[i]->point();
+	it = buffer.begin();
+	displace = IV[*it]->point()- IV[i]->point();
 	
-	if (displace * displace < distance_threshold * distance_threshold) {
+	if (displace * displace < square_distance_threshold) {
 	  vertex_neighbor[i].insert(*it);
-	  vertex_neighbor[*it].insert(i);
 	  
-	  HV_circulator hv = IV[*it]->vertex_begin();
+	  hv = IV[*it]->vertex_begin();
 	  do {
-	    int j =hv->opposite()->vertex()->index;
-	    if (vertex_neighbor[i].count(j) == 0) buffer.insert(j);
+	    j =hv->opposite()->vertex()->index;
+	    if (vertex_neighbor[i].find(j) == vertex_neighbor[i].end()) buffer.insert(j);
 	  }while (++hv != IV[*it]->vertex_begin());
 	}
 
-	buffer.erase(it);
-	
+	buffer.erase(it);	
       }
 
       count += vertex_neighbor[i].size();
-
     }
+    */
 
-    return (double )count / (double) vertex_num;
+    // the algorithm implemented is a front propagation one
+    // initialization from a 1-ring neighbor
+    struct front_circ {
+      Halfedge_handle hf;
+      front_circ *prev;
+      front_circ *next;
+    };
+    
+
+    for (int i = 0; i < vertex_num; ++i){      
+      Vector displace;
+      front_circ *start = new front_circ; start->prev = start->next = start;
+      front_circ *front;
+      vertex_neighbor[i].insert(i);
+
+      HV_circulator hv = IV[i]->vertex_begin();
+      int M=-1;
+
+      do {	
+	front = new front_circ;
+	front->hf = hv->prev()->opposite();
+	front->next = start; front->prev = start->prev;
+	start->prev->next = front; start->prev = front; 
+	vertex_neighbor[i].insert(hv->opposite()->vertex()->index);
+	if (i==M) std::cout<< hv->opposite()->vertex()->index <<" -> "<< hv->prev()->opposite()->vertex()->index << std::endl;
+	//getchar();
+	
+      } while (++hv != IV[i]->vertex_begin());
+      start->prev->next = start->next; start->next->prev = start->prev;
+      delete start;
+      start = front;
+      bool front_reached = false;
+      
+      do {	  
+	if (i==M) getchar();
+	
+	front_reached = true;
+	//while (front->hf->opposite() == front->prev->hf || front->hf->opposite() == front->next->hf ){
+	while (front->hf->opposite() == front->next->hf) {	  
+	  // delete verbose pair of halfedges to improve performance and 
+	  // insert the corresponding vertex into neighbor set
+	  if (i==M) std::cout<<"- "<<front->hf->vertex()->index <<std::endl;
+
+	  front->next = front->next->next; 
+	  delete front->next->prev;
+	  front->next->prev = front; 
+	  front = front->prev;
+	  front->next = front->next->next; 
+	  delete front->next->prev;
+	  front->next->prev = front;
+	  start = front;
+	}
+
+	/*
+	while (front->hf->opposite() == front->prev->hf) {
+	  front = front->prev;
+	  front->next = front->next->next; 
+	  delete front->next->prev;
+	  front->next->prev = front; 
+	  front = front->prev;
+	  front->next = front->next->next; 
+	  delete front->next->prev;
+	  front->next->prev = front;	  
+	  start = front;	  
+	}
+	//	}
+	*/
+	if (front->hf->facet()==NULL){
+	  // delete verbose boundary halfedge to improve performance and 
+	  // insert the corresponding vertex into neighbor set
+	  //std::cout << "d " << front->hf->opposite()->vertex()->index << std::endl;
+	  front = front->prev;
+	  front->next = front->next->next;
+	  delete front->next->prev;
+	  front->next->prev = front;
+	  start = front;
+	}
+
+	// to test whether propagate toward the facet
+	displace = front->hf->next()->vertex()->point() - IV[i]->point();
+	if (displace * displace < square_distance_threshold) {
+	  // insert new vertex to the front
+	  
+	  vertex_neighbor[i].insert(front->hf->next()->vertex()->index);
+	  front_circ *insert = new front_circ;
+	  insert->hf = front->hf->prev()->opposite();
+	  insert->prev = front->prev; insert->next = front;
+	  front->hf = front->hf->next()->opposite();
+	  front->prev->next = insert; front->prev = insert;
+	  front_reached =false;
+	  start=front;
+	  if (i==M) std::cout<<"+ " <<front->hf->opposite()->vertex()->index << " -> " <<front->hf->vertex()->index << std::endl;
+	}
+	else {
+	  front = front->next; 
+	  if (i==M) std::cout<<"h "<<front->hf->vertex()->index <<std::endl;
+	}
+	  
+
+      } while (front!= start || !front_reached);
+      
+      front->next->prev = NULL;
+      while (front->prev!= NULL) { front = front->prev; delete front->next;  } delete front;
+
+      std::cout << i << std::endl;
+
+      count += vertex_neighbor[i].size();
+    }
+    
+    return (double) count/(double) vertex_num;
   }
+
+
+
 
 
 

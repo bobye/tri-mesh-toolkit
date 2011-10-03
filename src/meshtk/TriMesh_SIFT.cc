@@ -28,6 +28,9 @@ namespace meshtk{
 
   double TriMesh::update_vertex_neighbor(double coeff){
 
+    time_t  start, end; time(&start);
+    std::cout << "Update neighbors, size: " << (double) coeff << std::flush; 
+
     double square_distance_threshold = coeff * avg_edge_len; 
     square_distance_threshold *=square_distance_threshold;
 
@@ -35,27 +38,22 @@ namespace meshtk{
     vertex_neighbor.resize(vertex_num);
     int count=0;// to record average neighbor size of vertices
 
-    // The algorithm implemented is a wide search 
+    // The algorithm implemented below is a wide search 
     // which is not very efficient
     /*
     for (int i = 0; i < vertex_num; ++i) {
-      int j;
-      std::set<int>::iterator it;
-      std::set<int> buffer;
-      Vector displace;
+      std::set<int> buffer;      
       buffer.insert(i);
-      HV_circulator hv;
-
       while (!buffer.empty()) {
-	it = buffer.begin();
-	displace = IV[*it]->point()- IV[i]->point();
+	std::set<int>::iterator it = buffer.begin();
+	Vector displace = IV[*it]->point()- IV[i]->point();
 	
 	if (displace * displace < square_distance_threshold) {
 	  vertex_neighbor[i].insert(*it);
 	  
-	  hv = IV[*it]->vertex_begin();
+	  HV_circulator hv = IV[*it]->vertex_begin();
 	  do {
-	    j =hv->opposite()->vertex()->index;
+	    int j =hv->opposite()->vertex()->index;
 	    if (vertex_neighbor[i].find(j) == vertex_neighbor[i].end()) buffer.insert(j);
 	  }while (++hv != IV[*it]->vertex_begin());
 	}
@@ -67,114 +65,115 @@ namespace meshtk{
     }
     */
 
-    // the algorithm implemented is a front propagation one
+    // the algorithm implemented below is a front propagation one
     // initialization from a 1-ring neighbor
+
     struct front_circ {
-      Halfedge_handle hf;
-      front_circ *prev;
+      Halfedge_handle hf; // Halfedge 
+      front_circ *prev; // pointers
       front_circ *next;
+      bool fr;// front reached?
     };
     
 
     for (int i = 0; i < vertex_num; ++i){      
+      std::set<int> facet_occupied;
+      //std::set<int> vertex_outbound;
       Vector displace;
-      front_circ *start = new front_circ; start->prev = start->next = start;
-      front_circ *front;
+      front_circ *start = new front_circ; //start->prev = start->next = start;
+      front_circ *front = start;
       vertex_neighbor[i].insert(i);
 
       HV_circulator hv = IV[i]->vertex_begin();
-      int M=-1;
-
       do {	
-	front = new front_circ;
+	front->next = new front_circ;
+	front->next->prev = front; 
+	front = front->next;
 	front->hf = hv->prev()->opposite();
-	front->next = start; front->prev = start->prev;
-	start->prev->next = front; start->prev = front; 
-	vertex_neighbor[i].insert(hv->opposite()->vertex()->index);
-	if (i==M) std::cout<< hv->opposite()->vertex()->index <<" -> "<< hv->prev()->opposite()->vertex()->index << std::endl;
-	//getchar();
-	
+
+	//if (hv->facet()!=NULL) facet_occupied.insert(hv->facet()->index);
+	vertex_neighbor[i].insert(hv->opposite()->vertex()->index);	
+
       } while (++hv != IV[i]->vertex_begin());
-      start->prev->next = start->next; start->next->prev = start->prev;
+      start->next->prev = front; front->next = start->next;
       delete start;
       start = front;
       bool front_reached = false;
       
       do {	  
-	if (i==M) getchar();
+	//if (i==M) getchar();
 	
 	front_reached = true;
-	//while (front->hf->opposite() == front->prev->hf || front->hf->opposite() == front->next->hf ){
-	while (front->hf->opposite() == front->next->hf) {	  
-	  // delete verbose pair of halfedges to improve performance and 
-	  // insert the corresponding vertex into neighbor set
-	  if (i==M) std::cout<<"- "<<front->hf->vertex()->index <<std::endl;
 
-	  front->next = front->next->next; 
-	  delete front->next->prev;
-	  front->next->prev = front; 
-	  front = front->prev;
-	  front->next = front->next->next; 
-	  delete front->next->prev;
-	  front->next->prev = front;
-	  start = front;
-	}
 
-	/*
-	while (front->hf->opposite() == front->prev->hf) {
-	  front = front->prev;
-	  front->next = front->next->next; 
-	  delete front->next->prev;
-	  front->next->prev = front; 
-	  front = front->prev;
-	  front->next = front->next->next; 
-	  delete front->next->prev;
-	  front->next->prev = front;	  
-	  start = front;	  
-	}
-	//	}
-	*/
-	if (front->hf->facet()==NULL){
+	while (front->hf->facet()==NULL){
 	  // delete verbose boundary halfedge to improve performance and 
 	  // insert the corresponding vertex into neighbor set
-	  //std::cout << "d " << front->hf->opposite()->vertex()->index << std::endl;
-	  front = front->prev;
-	  front->next = front->next->next;
-	  delete front->next->prev;
-	  front->next->prev = front;
+	  front = front->next;
+	  front->prev = front->prev->prev;
+	  delete front->prev->next;
+	  front->prev->next = front;
 	  start = front;
 	}
 
 	// to test whether propagate toward the facet
-	displace = front->hf->next()->vertex()->point() - IV[i]->point();
-	if (displace * displace < square_distance_threshold) {
-	  // insert new vertex to the front
-	  
-	  vertex_neighbor[i].insert(front->hf->next()->vertex()->index);
-	  front_circ *insert = new front_circ;
-	  insert->hf = front->hf->prev()->opposite();
-	  insert->prev = front->prev; insert->next = front;
-	  front->hf = front->hf->next()->opposite();
-	  front->prev->next = insert; front->prev = insert;
-	  front_reached =false;
-	  start=front;
-	  if (i==M) std::cout<<"+ " <<front->hf->opposite()->vertex()->index << " -> " <<front->hf->vertex()->index << std::endl;
-	}
+	int facet_index, vertex_index = front->hf->next()->vertex()->index;
+	if (facet_occupied.find(facet_index = front->hf->facet()->index) == facet_occupied.end() && !front->fr) {
+	  // && vertex_outbound.find(vertex_index = front->hf->next()->vertex()->index) == vertex_outbound.end()) {
+
+	  displace = IV[vertex_index]->point() - IV[i]->point();
+	  if (displace * displace < square_distance_threshold) {
+	    // insert new vertex to the front
+	    facet_occupied.insert(facet_index);
+	    vertex_neighbor[i].insert(vertex_index);
+	    
+	    front_circ *insert = new front_circ;
+	    insert->hf = front->hf->prev()->opposite();
+	    insert->prev = front->prev; insert->next = front;
+	    front->hf = front->hf->next()->opposite();
+	    front->prev->next = insert; front->prev = insert;
+	    front_reached =false;
+
+	    start=front;
+	    //if (i==M) std::cout<<"+ " <<front->hf->opposite()->vertex()->index << " -> " <<front->hf->vertex()->index << std::endl;
+	  }
+	  else {
+	    front->fr = true; 
+	    front = front->next;
+	  }
+
+	}	
+
 	else {
 	  front = front->next; 
-	  if (i==M) std::cout<<"h "<<front->hf->vertex()->index <<std::endl;
 	}
+
+	while (front->hf->opposite() == front->next->hf) {	  
+	  // delete verbose pair of halfedges to improve performance and 
+	  // insert the corresponding vertex into neighbor set
+	  //if (i==M) std::cout<<"- "<<front->hf->vertex()->index <<std::endl;
 	  
+	  front->prev->next = front->next->next;
+	  front = front->prev;
+	  delete front->next->prev->prev;
+	  delete front->next->prev;
+	  front->next->prev = front;
+	  start = front;
+	}
 
       } while (front!= start || !front_reached);
       
       front->next->prev = NULL;
       while (front->prev!= NULL) { front = front->prev; delete front->next;  } delete front;
 
-      std::cout << i << std::endl;
+
 
       count += vertex_neighbor[i].size();
     }
+
+
+    time(&end);
+    std::cout << ", time: " << difftime( end, start) <<" seconds" << std::endl;
     
     return (double) count/(double) vertex_num;
   }
@@ -189,11 +188,33 @@ namespace meshtk{
     int count = 0;
     double coeff = .6;
     double neighbor_size = 3*coeff > 3.? 3*coeff: 3.;
-    
-    time_t  start, end; time(&start);
-    std::cout << "Update neighbors, size: " << neighbor_size << std::flush; 
-    update_vertex_neighbor(neighbor_size); time(&end);
-    std::cout << ", time: " << difftime( end, start) <<" seconds" << std::endl;
+
+    update_vertex_neighbor(neighbor_size); 
+
+    // update static coefficient for smooth
+    double sigma = coeff * avg_edge_len;
+    std::vector<std::map<int, double> > coeff_list(vertex_num);
+    for (int i=0; i<vertex_num; ++i) {
+      Vector tmp;
+      double scale, total_scale = 0;
+      
+      for (std::set<int>::iterator it = vertex_neighbor[i].begin();
+	   it != vertex_neighbor[i].end(); ++it) {
+	tmp = IV[*it]->point() - IV[i]->point();
+	scale = CGAL::sqrt(tmp * tmp);
+	scale = vertex_area[*it] * std::exp( - (scale * scale) / (2 * sigma * sigma));
+	total_scale += scale;
+	coeff_list[i][*it] = scale;
+      }
+
+      for (std::map<int, double>::iterator it = coeff_list[i].begin();
+	   it != coeff_list[i].end(); ++it) {
+	it->second /= total_scale;
+      }
+	
+    }
+
+
 
     ScalarFunction buffer_v[4];
     ScalarFunction buffer_dv[4];
@@ -203,9 +224,16 @@ namespace meshtk{
     
     buffer_v[0] = valueScalar;
 
+    /*
     gaussian_smooth_vertex(coeff, buffer_v[0], buffer_v[1], 0.);
     gaussian_smooth_vertex(coeff, buffer_v[1], buffer_v[2], 0.);
     gaussian_smooth_vertex(coeff, buffer_v[2], buffer_v[3], 0.);
+    */
+    
+    smooth_vertex(coeff_list, buffer_v[0], buffer_v[1], 0.);
+    smooth_vertex(coeff_list, buffer_v[1], buffer_v[2], 0.);
+    smooth_vertex(coeff_list, buffer_v[2], buffer_v[3], 0.);
+
 
     for (int i = 0; i < vertex_num; ++i) {
       buffer_dv[0][i] =   (buffer_v[1][i] - buffer_v[0][i]) / std::log(2.);
@@ -220,7 +248,10 @@ namespace meshtk{
       int zero = buffer_curr, one=(buffer_curr +1)%4, 
 	two=(buffer_curr +2)%4, three=(buffer_curr +3)%4;
 
-      gaussian_smooth_vertex(coeff, buffer_v[two], buffer_v[three], 0.);
+      //gaussian_smooth_vertex(coeff, buffer_v[two], buffer_v[three], 0.);
+      smooth_vertex(coeff_list, buffer_v[two], buffer_v[three], 0.);
+
+
       for (int j=0; j < vertex_num; ++j) 
 	buffer_dv[two][j] = (buffer_v[three][j] - buffer_v[two][j]) / std::log(double (i+3)/ double(i+2));
 

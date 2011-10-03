@@ -40,7 +40,7 @@ test: test.cc
 all: lib MeshTK test
 
 clean: 
-	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so MeshTK
+	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so MeshTK test
 
 
 

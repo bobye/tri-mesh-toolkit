@@ -124,6 +124,7 @@ namespace meshtk {
     // neighbor vertices indices, which store the a neighborhood of vertex
     // the indices of neighbor are stored in set with an iterator access
     std::vector<std::set<int> > vertex_neighbor;
+    //std::vector<std::set<int> > facet_neighbor;
 
     double avg_edge_len;//average edge length globally
 
@@ -201,7 +202,7 @@ namespace meshtk {
     // output: v1
     template <class T>
     void gaussian_smooth_vertex(double coeff, std::vector<T> &v0, std::vector<T> &v1, T zero){
-      // preconditioned with vertex_neighbor
+      // preconditioned with vertex_neighbor 
       // update_vertex_neighbor(3 * coeff);
       double sigma = coeff * avg_edge_len;
 
@@ -226,6 +227,22 @@ namespace meshtk {
       }
       
     };
+
+    // smooth with prescribed coefficient, normalized precondition
+    template <class T>
+    void smooth_vertex(std::vector<std::map<int, double> > &coeff, 
+				std::vector<T> &v0, std::vector<T> &v1, T zero){
+      for (int i = 0; i < vertex_num; i++){
+	v1[i] = zero;	
+
+	for (std::map<int, double>::iterator it = coeff[i].begin();
+	     it != coeff[i].end(); ++it) {
+	  v1[i] = v1[i] + (*it).second * v0[(*it).first];
+	}
+      
+      }
+
+    }
     
     // The following procedure is SIFT keypoint detection for scalar 
     // function on static manifold mesh domain. The input is scalar

@@ -29,7 +29,7 @@ namespace meshtk{
   double TriMesh::update_vertex_neighbor(double coeff){
 
     time_t  start, end; time(&start);
-    std::cout << "Update neighbors, size: " << (double) coeff << std::flush; 
+    std::cout << "Update neighbors ... " << std::flush; 
 
     double square_distance_threshold = coeff * avg_edge_len; 
     square_distance_threshold *=square_distance_threshold;
@@ -291,10 +291,10 @@ namespace meshtk{
 
 	  }
 	
-	std::cout<< "Keypoint detection iteration: "<<i<< "\t Found " << count << std::endl;
+	std::cout<< "#" << i << " detect Keypoint iteration\t Found " << count << std::endl;
 	
       } else {
-	std::cout <<"Smooth count"<<std::endl;
+	std::cout <<"#" << i << " pre-smooth count" << std::endl;
       }      
 
       buffer_curr = (buffer_curr +1)%4;

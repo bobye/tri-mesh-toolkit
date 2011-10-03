@@ -250,6 +250,13 @@ namespace meshtk {
 
 
   MeshViewer* MeshViewer::currentMeshViewer;
+  GLfloat scale = 1.;
+  int origin_x, origin_y;
+  int transform_x=0., transform_y=0.;
+  //int displace_x=0, displace_y=0;
+  bool left_button = false , right_button= false;
+  GLfloat CTM[16];
+
 
   MeshViewer::MeshViewer(int argc, char** argv) 
     :width(800), height(800) {
@@ -293,6 +300,8 @@ namespace meshtk {
     GLuint n = currentMeshViewer->Painters.size();
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);//(NEW) setup our buffers
 
+    glPushMatrix();
+    
     for (GLuint i=0; i<n; i++) 
       { 
 
@@ -305,12 +314,134 @@ namespace meshtk {
 	glPushMatrix();//pop i-th matrix
 
       }
+
+    glPopMatrix();
+
     glutSwapBuffers();
+
+    
       
+  }
+
+  
+  void MeshViewer::reshape(int width, int height){
+
+    glViewport(0, 0, width, height);    
+    
+    GLfloat radio_x = (currentMeshViewer->coordinate_max_x - currentMeshViewer->coordinate_min_x) /  width;
+    GLfloat radio_y = (currentMeshViewer->coordinate_max_y - currentMeshViewer->coordinate_min_y) /  height;
+    GLfloat radio = scale *((radio_x > radio_y)? radio_x: radio_y);
+
+
+
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho( currentMeshViewer->center_x - radio * width/perfect_factor, 
+	     currentMeshViewer->center_x + radio * width/perfect_factor,
+	     currentMeshViewer->center_y - radio * height/perfect_factor, 
+	     currentMeshViewer->center_y + radio * height/perfect_factor,
+	     //100000, -100000);
+	     - currentMeshViewer->center_z - 2* currentMeshViewer->length_z ,
+	     - currentMeshViewer->center_z + 2* currentMeshViewer->length_z);//(NEW) set up our viewing area
+
+
+    //glOrtho(-1,1,-1,1,-10,10);
+    glMatrixMode(GL_MODELVIEW);
+
+    
+  }
+
+  void MeshViewer::keyboard(unsigned char key, int x, int y) {
+    if (key=='q'||key=='Q') exit(0);
   }
 
 
 
+  void MeshViewer::motion(int x, int y) {
+    if (left_button) {
+      glLoadIdentity();
+      glTranslated(
+		   (currentMeshViewer->coordinate_max_x - currentMeshViewer->coordinate_min_x) *(GLfloat) (x-origin_x)/(GLfloat) currentMeshViewer->width * scale * 2./perfect_factor,
+		    - (currentMeshViewer->coordinate_max_y - currentMeshViewer->coordinate_min_y) * (GLfloat) (y-origin_y)/(GLfloat) currentMeshViewer->height * scale* 2./ perfect_factor, 0.0);
+      glMultMatrixf(CTM);
+
+      glutPostRedisplay();
+    }
+
+    else if (right_button) {
+      glLoadIdentity();
+
+      glRotatef(90.0* (GLfloat) (x-origin_x)/(GLfloat) currentMeshViewer->width * scale * 2./perfect_factor, 0.0, 1.0, 0.0);
+      glRotatef(90.0* (GLfloat) (y-origin_y)/(GLfloat) currentMeshViewer->height *scale * 2./perfect_factor, 1.0, 0.0, 0.0);                
+
+      glMultMatrixf(CTM);	
+
+      glutPostRedisplay();
+    }
+
+  }
+
+
+// compatibility with original GLUT
+
+#if !defined(GLUT_WHEEL_UP)
+#  define GLUT_WHEEL_UP   3
+#  define GLUT_WHEEL_DOWN 4
+#endif
+
+#define scale_coeff       (1.2)
+
+  void MeshViewer::mouse(int button, int state, int x, int y) {
+    switch(button) {
+    case GLUT_LEFT_BUTTON:
+      if (state == GLUT_DOWN) {
+	origin_x = x; origin_y = y; left_button =true;
+	glGetFloatv(GL_MODELVIEW_MATRIX, CTM);
+      }
+      else if (state == GLUT_UP) {
+	left_button = false;
+	glutPostRedisplay();
+      }
+      break;
+    case GLUT_MIDDLE_BUTTON:
+      if (state == GLUT_DOWN) {
+	glLoadIdentity();
+	scale =1.;
+	reshape(currentMeshViewer->width, currentMeshViewer->height);
+	glutPostRedisplay();
+      }
+      break;
+    case GLUT_RIGHT_BUTTON:
+      if (state == GLUT_DOWN) {
+	origin_x = x; origin_y = y; right_button =true;
+	glGetFloatv(GL_MODELVIEW_MATRIX, CTM);
+      }
+      else if (state == GLUT_UP) {
+	right_button = false;
+	glutPostRedisplay();
+      }
+
+      break;
+    case GLUT_WHEEL_UP:
+      if (state == GLUT_UP){	
+	scale *= scale_coeff;
+	reshape(currentMeshViewer->width, currentMeshViewer->height);
+	glutPostRedisplay();      
+      }
+      break;
+    case GLUT_WHEEL_DOWN:
+      if (state == GLUT_DOWN){	
+	scale /= scale_coeff;
+	reshape(currentMeshViewer->width, currentMeshViewer->height);
+	glutPostRedisplay();      
+      }
+      break;
+    default:
+      break;
+    }
+
+  }
 
 
 
@@ -321,11 +452,11 @@ namespace meshtk {
     // clear the window color and depth buffer
     glClearColor(1.0, 1.0, 1.0, 0.0);
     glClearDepth(1.0);
-
-    GLfloat center_x = (coordinate_min_x + coordinate_max_x) /2.;
-    GLfloat center_y = (coordinate_min_y + coordinate_max_y) /2.;
-    GLfloat center_z = (coordinate_min_z + coordinate_max_z) /2.;
-    GLfloat length_z = (coordinate_max_z - coordinate_min_z) /2.;
+    
+    center_x = (coordinate_min_x + coordinate_max_x) /2.;
+    center_y = (coordinate_min_y + coordinate_max_y) /2.;
+    center_z = (coordinate_min_z + coordinate_max_z) /2.;
+    length_z = (coordinate_max_z - coordinate_min_z) /2.;
   
     GLfloat radio_x = (coordinate_max_x - coordinate_min_x) /  width;
     GLfloat radio_y = (coordinate_max_y - coordinate_min_y) /  height;
@@ -339,7 +470,7 @@ namespace meshtk {
     glOrtho( center_x - radio * width/perfect_factor, center_x + radio * width/perfect_factor,
 	     center_y - radio * height/perfect_factor, center_y + radio * height/perfect_factor,
 	     //100000, -100000);
-	     - center_z -  length_z , - center_z +  length_z);//(NEW) set up our viewing area
+	     - center_z - 2* length_z , - center_z + 2* length_z);//(NEW) set up our viewing area
 
 
     //glOrtho(-1,1,-1,1,-10,10);
@@ -347,9 +478,16 @@ namespace meshtk {
 
 
     /////////////////////////
+    scale =1.;
+
+
+    ///////////////////////
     add_lights();
     glutDisplayFunc(display);
-
+    glutReshapeFunc(reshape);
+    glutKeyboardFunc(keyboard);
+    glutMotionFunc(motion);
+    glutMouseFunc(mouse);
 
   }
 

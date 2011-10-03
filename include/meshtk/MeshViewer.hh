@@ -83,11 +83,19 @@ namespace meshtk {
     GLfloat coordinate_min_x, coordinate_min_y, coordinate_min_z;
     GLfloat coordinate_max_x, coordinate_max_y, coordinate_max_z;
 
+    GLfloat center_x, center_y, center_z, length_z;
     std::vector<MeshPainter*> Painters;
   
     static MeshViewer* currentMeshViewer;
-    static void display() ;
-  
+    static void display();
+    static void reshape(int, int);
+    static void keyboard(unsigned char, int, int);
+    static void motion(int, int);
+    static void mouse(int, int, int, int);
+
+
+
+
     void add_lights();  
 
   public:

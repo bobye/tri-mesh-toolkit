@@ -173,7 +173,7 @@ namespace meshtk{
 
 
     time(&end);
-    std::cout << ", time: " << difftime( end, start) <<" seconds" << std::endl;
+    std::cout << "\t[done] " << difftime( end, start) <<" seconds" << std::endl;
     
     return (double) count/(double) vertex_num;
   }
@@ -190,6 +190,10 @@ namespace meshtk{
     double neighbor_size = 3*coeff > 3.? 3*coeff: 3.;
 
     update_vertex_neighbor(neighbor_size); 
+
+    time_t  start, end; time(&start);
+    std::cout <<"Start keypoint detection ..." << std::endl;
+
 
     // update static coefficient for smooth
     double sigma = coeff * avg_edge_len;
@@ -302,6 +306,9 @@ namespace meshtk{
     }
 
     valueScalar = buffer_v[ buffer_curr ];
+
+    time(&end);
+    std::cout << "\t[done] " << difftime( end, start) <<" seconds" << std::endl;
     return count;
   }
 

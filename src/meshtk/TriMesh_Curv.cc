@@ -207,7 +207,7 @@ namespace meshtk {
     update_vertex_curvature();
 
     time(&end);
-    std::cout << "\t time: " << difftime( end, start) <<" seconds" << std::endl;
+    std::cout << "\t[done] " << difftime( end, start) <<" seconds" << std::endl;
 
 
   }

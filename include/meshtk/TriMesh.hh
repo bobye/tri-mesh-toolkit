@@ -144,7 +144,7 @@ namespace meshtk {
 
     // find the local extrema near an interest point
     // this will be used to rule out keypoint of low contrast 
-    double local_quadratic_extrema(ScalarFunction &, int );
+    //double local_quadratic_extrema(ScalarFunction &, int );
 
 
     ///////////////////////////////////////////////////////////////////////

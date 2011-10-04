@@ -179,11 +179,11 @@ namespace meshtk{
   }
 
 
-
+  /*
   double TriMesh::local_quadratic_extrema(ScalarFunction &value, int focus){
     return 0;
   }
-
+  */
 
   int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, BooleanFunction &keyBoolean, int iter, int pre_iter){
     // in the implementation of keypoint detection, no threshold is taken.

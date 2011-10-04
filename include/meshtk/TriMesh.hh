@@ -142,6 +142,10 @@ namespace meshtk {
     void update_facet_curvature();// to update: facet_CT[], facet_PC*, facet_?curv
     void update_vertex_curvature();// to update: vertex_CT[], vertex_PC*, vertex_?curv
 
+    // find the local extrema near an interest point
+    // this will be used to rule out keypoint of low contrast 
+    double local_quadratic_extrema(ScalarFunction &, int );
+
 
     ///////////////////////////////////////////////////////////////////////
     // Map register number to reference of functions define over mesh domain. 

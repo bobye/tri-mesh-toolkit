@@ -180,7 +180,9 @@ namespace meshtk{
 
 
 
-
+  double TriMesh::local_quadratic_extrema(ScalarFunction &value, int focus){
+    return 0;
+  }
 
 
   int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, BooleanFunction &keyBoolean, int iter, int pre_iter){
@@ -247,7 +249,7 @@ namespace meshtk{
     for (int i=0; i< iter; ++i) {
       
       //      double radio = 0,// (0.001 / std::sqrt(total_area)) * coeff * coeff, 
-      //radio2 = 0.;
+      double radio2 = 0.01;
 
       int zero = buffer_curr, one=(buffer_curr +1)%4, 
 	two=(buffer_curr +2)%4, three=(buffer_curr +3)%4;
@@ -276,7 +278,7 @@ namespace meshtk{
 		  tmp = false; break;
 		}
 	      }while (++hv!=IV[j]->vertex_begin());
-	    if (tmp)// && std::fabs(buffer_dv[one][j]) > radio2 )
+	    if (tmp && std::fabs(buffer_dv[one][j]) * avg_edge_len > radio2 )
 	      { keyBoolean[j] = true; ++ count; continue;}
 
 	  
@@ -290,7 +292,7 @@ namespace meshtk{
 		  tmp = false; break;
 		}
 	      }while (++hv!=IV[j]->vertex_begin());
-	    if (tmp)// && std::fabs(buffer_dv[one][j])  > radio2 )
+	    if (tmp && std::fabs(buffer_dv[one][j]) * avg_edge_len  > radio2 )
 	      { keyBoolean[j] = true; ++ count; continue; }
 
 	  }

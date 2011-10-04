@@ -28,6 +28,15 @@
 
 namespace meshtk {
 
+
+  MeshViewer* MeshViewer::currentMeshViewer;
+  GLfloat scale = 1.;
+  int origin_x, origin_y;
+  int transform_x=0., transform_y=0.;
+  //int displace_x=0, displace_y=0;
+  bool left_button = false , right_button= false;
+  GLfloat CTM[16];
+
   GLfloat light_ambient[] = { .4, .4, .4, 1.0 };
   GLfloat light_diffuse[] = { .8, .8, .8, 1.0 };
   GLfloat light_specular[] = { .5, .5, .5, 1.0 };
@@ -229,10 +238,12 @@ namespace meshtk {
     //glPointSize(4);
     //glDrawElements(GL_POINTS, mark_count, GL_UNSIGNED_INT, mark_array);
 
+    GLfloat radius = 2 * (MeshViewer::currentMeshViewer->coordinate_max_x - MeshViewer::currentMeshViewer->coordinate_min_x)/ MeshViewer::currentMeshViewer->width / scale * perfect_factor;
+    
     for (GLuint i= 0; i< mark_count; ++i){
       glPushMatrix();
       glTranslatef(vertex_array[3*mark_array[i]], vertex_array[3*mark_array[i] +1] , vertex_array[3*mark_array[i]+2]);
-      glutSolidSphere(0.01, 20, 20);
+      glutSolidSphere(radius , 20, 20);
       glPopMatrix();
     }
     glDisable(GL_COLOR_MATERIAL);
@@ -249,13 +260,6 @@ namespace meshtk {
 
 
 
-  MeshViewer* MeshViewer::currentMeshViewer;
-  GLfloat scale = 1.;
-  int origin_x, origin_y;
-  int transform_x=0., transform_y=0.;
-  //int displace_x=0, displace_y=0;
-  bool left_button = false , right_button= false;
-  GLfloat CTM[16];
 
 
   MeshViewer::MeshViewer(int argc, char** argv) 

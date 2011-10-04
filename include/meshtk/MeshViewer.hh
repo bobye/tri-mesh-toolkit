@@ -79,14 +79,8 @@ namespace meshtk {
   };
 
   class MeshViewer {
-    int width, height;
-    GLfloat coordinate_min_x, coordinate_min_y, coordinate_min_z;
-    GLfloat coordinate_max_x, coordinate_max_y, coordinate_max_z;
-
-    GLfloat center_x, center_y, center_z, length_z;
     std::vector<MeshPainter*> Painters;
   
-    static MeshViewer* currentMeshViewer;
     static void display();
     static void reshape(int, int);
     static void keyboard(unsigned char, int, int);
@@ -99,6 +93,14 @@ namespace meshtk {
     void add_lights();  
 
   public:
+    int width, height;
+    GLfloat coordinate_min_x, coordinate_min_y, coordinate_min_z;
+    GLfloat coordinate_max_x, coordinate_max_y, coordinate_max_z;
+
+    GLfloat center_x, center_y, center_z, length_z;
+    static MeshViewer* currentMeshViewer;
+
+
     MeshViewer(int ,char** );//init windows and gl setting
     void init(); //call in main()
 

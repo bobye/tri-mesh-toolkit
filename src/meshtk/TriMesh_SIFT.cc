@@ -21,21 +21,132 @@
 */
 
 #include "meshtk/TriMesh.hh"
-#include <ctime>
+#include "meshtk/mesh_assist.hh"
 
 namespace meshtk{
 
+  struct front_circ {
+    Halfedge_handle hf; // Halfedge 
+    front_circ *prev; // pointers
+    front_circ *next;
+    bool fr;// front reached?
+  };
 
-  double TriMesh::update_vertex_neighbor(double coeff){
+  int TriMesh::update_vertex_neighbor_euclidean(int source_vertex_index, 
+						double propagation_distance){
+    
+    //std::set<int> vertex_outbound;
+    Vector displace; double distance;
+    front_circ *start = new front_circ; //start->prev = start->next = start;
+    front_circ *front = start;
+    vertex_neighbor_euclidean[source_vertex_index][source_vertex_index] = 0.;
 
-    time_t  start, end; time(&start);
-    std::cout << "Update neighbors ... " << std::flush; 
+    HV_circulator hv = IV[source_vertex_index]->vertex_begin();
+    do {	
+      front->next = new front_circ;
+      front->next->prev = front; 
+      front = front->next;
+      front->hf = hv->prev()->opposite();
 
-    double square_distance_threshold = coeff * avg_edge_len; 
-    square_distance_threshold *=square_distance_threshold;
+      //if (hv->facet()!=NULL) facet_neighbor_euclidean[i].insert(hv->facet()->index);
+      int vertex_index = hv->opposite()->vertex()->index;
+      displace = IV[vertex_index]->point() - IV[source_vertex_index]->point();
+      distance = std::sqrt(displace * displace);
 
-    vertex_neighbor.clear();
-    vertex_neighbor.resize(vertex_num);
+      vertex_neighbor_euclidean[source_vertex_index][vertex_index] = distance;
+
+      if (hv->facet()!=NULL ) facet_neighbor_euclidean[source_vertex_index].insert(hv->facet()->index);
+
+    } while (++hv != IV[source_vertex_index]->vertex_begin());
+    start->next->prev = front; front->next = start->next;
+    delete start;
+    start = front;
+    bool front_reached = false;
+      
+    do {	  
+      //if (i==M) getchar();
+	
+      front_reached = true;
+
+
+      while (front->hf->facet()==NULL){
+	// delete verbose boundary halfedge to improve performance and 
+	// insert the corresponding vertex into neighbor set
+	front = front->next;
+	front->prev = front->prev->prev;
+	delete front->prev->next;
+	front->prev->next = front;
+	start = front;
+      }
+
+      // to test whether propagate toward the facet
+      int facet_index, vertex_index = front->hf->next()->vertex()->index;
+      if (facet_neighbor_euclidean[source_vertex_index].find(facet_index = front->hf->facet()->index) == facet_neighbor_euclidean[source_vertex_index].end() && !front->fr) {
+	// && vertex_outbound.find(vertex_index = front->hf->next()->vertex()->index) == vertex_outbound.end()) {
+
+	displace = IV[vertex_index]->point() - IV[source_vertex_index]->point();
+	distance = std::sqrt(displace * displace);
+	if (distance < propagation_distance) {
+	  // insert new vertex to the front
+	  facet_neighbor_euclidean[source_vertex_index].insert(facet_index);
+	  vertex_neighbor_euclidean[source_vertex_index][vertex_index] = distance;
+	    
+	  front_circ *insert = new front_circ;
+	  insert->hf = front->hf->prev()->opposite();
+	  insert->prev = front->prev; insert->next = front;
+	  front->hf = front->hf->next()->opposite();
+	  front->prev->next = insert; front->prev = insert;
+	  front_reached =false;
+
+	  start=front;
+	  //if (i==M) std::cout<<"+ " <<front->hf->opposite()->vertex()->index << " -> " <<front->hf->vertex()->index << std::endl;
+	}
+	else {
+	  front->fr = true; 
+	  front = front->next;
+	}
+
+      }	
+
+      else {
+	front = front->next; 
+      }
+
+      while (front->hf->opposite() == front->next->hf) {	  
+	// delete verbose pair of halfedges to improve performance and 
+	// insert the corresponding vertex into neighbor set
+	//if (i==M) std::cout<<"- "<<front->hf->vertex()->index <<std::endl;
+	  
+	front->prev->next = front->next->next;
+	front = front->prev;
+	delete front->next->prev->prev;
+	delete front->next->prev;
+	front->next->prev = front;
+	start = front;
+      }
+
+    } while (front!= start || !front_reached);
+      
+    front->next->prev = NULL;
+    while (front->prev!= NULL) { front = front->prev; delete front->next;  } delete front;
+    return vertex_neighbor_euclidean[source_vertex_index].size();
+
+  }
+
+
+  double TriMesh::update_vertex_neighbor_euclidean(double propagation_distance_coeff){
+
+    clock_start("Update neighbors w.r.t Euclidean");
+
+
+    double distance_threshold = propagation_distance_coeff * avg_edge_len; 
+
+    //vertex_neighbor.clear();
+    //vertex_neighbor.resize(vertex_num);
+    facet_neighbor_euclidean.clear();
+    facet_neighbor_euclidean.resize(vertex_num);
+    vertex_neighbor_euclidean.clear();
+    vertex_neighbor_euclidean.resize(vertex_num);
     int count=0;// to record average neighbor size of vertices
 
     // The algorithm implemented below is a wide search 
@@ -48,7 +159,7 @@ namespace meshtk{
 	std::set<int>::iterator it = buffer.begin();
 	Vector displace = IV[*it]->point()- IV[i]->point();
 	
-	if (displace * displace < square_distance_threshold) {
+	if (displace * displace < distance_threshold * distance_threshold) {
 	  vertex_neighbor[i].insert(*it);
 	  
 	  HV_circulator hv = IV[*it]->vertex_begin();
@@ -68,113 +179,14 @@ namespace meshtk{
     // the algorithm implemented below is a front propagation one
     // initialization from a 1-ring neighbor
 
-    struct front_circ {
-      Halfedge_handle hf; // Halfedge 
-      front_circ *prev; // pointers
-      front_circ *next;
-      bool fr;// front reached?
-    };
     
 
     for (int i = 0; i < vertex_num; ++i){      
-      std::set<int> facet_occupied;
-      //std::set<int> vertex_outbound;
-      Vector displace;
-      front_circ *start = new front_circ; //start->prev = start->next = start;
-      front_circ *front = start;
-      vertex_neighbor[i].insert(i);
-
-      HV_circulator hv = IV[i]->vertex_begin();
-      do {	
-	front->next = new front_circ;
-	front->next->prev = front; 
-	front = front->next;
-	front->hf = hv->prev()->opposite();
-
-	//if (hv->facet()!=NULL) facet_occupied.insert(hv->facet()->index);
-	vertex_neighbor[i].insert(hv->opposite()->vertex()->index);	
-
-      } while (++hv != IV[i]->vertex_begin());
-      start->next->prev = front; front->next = start->next;
-      delete start;
-      start = front;
-      bool front_reached = false;
-      
-      do {	  
-	//if (i==M) getchar();
-	
-	front_reached = true;
-
-
-	while (front->hf->facet()==NULL){
-	  // delete verbose boundary halfedge to improve performance and 
-	  // insert the corresponding vertex into neighbor set
-	  front = front->next;
-	  front->prev = front->prev->prev;
-	  delete front->prev->next;
-	  front->prev->next = front;
-	  start = front;
-	}
-
-	// to test whether propagate toward the facet
-	int facet_index, vertex_index = front->hf->next()->vertex()->index;
-	if (facet_occupied.find(facet_index = front->hf->facet()->index) == facet_occupied.end() && !front->fr) {
-	  // && vertex_outbound.find(vertex_index = front->hf->next()->vertex()->index) == vertex_outbound.end()) {
-
-	  displace = IV[vertex_index]->point() - IV[i]->point();
-	  if (displace * displace < square_distance_threshold) {
-	    // insert new vertex to the front
-	    facet_occupied.insert(facet_index);
-	    vertex_neighbor[i].insert(vertex_index);
-	    
-	    front_circ *insert = new front_circ;
-	    insert->hf = front->hf->prev()->opposite();
-	    insert->prev = front->prev; insert->next = front;
-	    front->hf = front->hf->next()->opposite();
-	    front->prev->next = insert; front->prev = insert;
-	    front_reached =false;
-
-	    start=front;
-	    //if (i==M) std::cout<<"+ " <<front->hf->opposite()->vertex()->index << " -> " <<front->hf->vertex()->index << std::endl;
-	  }
-	  else {
-	    front->fr = true; 
-	    front = front->next;
-	  }
-
-	}	
-
-	else {
-	  front = front->next; 
-	}
-
-	while (front->hf->opposite() == front->next->hf) {	  
-	  // delete verbose pair of halfedges to improve performance and 
-	  // insert the corresponding vertex into neighbor set
-	  //if (i==M) std::cout<<"- "<<front->hf->vertex()->index <<std::endl;
-	  
-	  front->prev->next = front->next->next;
-	  front = front->prev;
-	  delete front->next->prev->prev;
-	  delete front->next->prev;
-	  front->next->prev = front;
-	  start = front;
-	}
-
-      } while (front!= start || !front_reached);
-      
-      front->next->prev = NULL;
-      while (front->prev!= NULL) { front = front->prev; delete front->next;  } delete front;
-
-
-
-      count += vertex_neighbor[i].size();
+      count += update_vertex_neighbor_euclidean(i, distance_threshold);
     }
 
 
-    time(&end);
-    std::cout << "\t[done] " << difftime( end, start) <<" seconds" << std::endl;
-    
+    clock_end();
     return (double) count/(double) vertex_num;
   }
 
@@ -185,32 +197,136 @@ namespace meshtk{
   }
   */
 
-  int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, BooleanFunction &keyBoolean, int iter, int pre_iter){
+  /*
+  void TriMesh::geodesic_init() {
+    //create internal mesh data structure including edges
+    geodesic_mesh = new geodesic::Mesh;
+    geodesic_mesh -> initialize_mesh_data(vertex_array, tri_index_array);		
+    //create exact algorithm for the mesh
+    geodesic_algorithm = new geodesic::GeodesicAlgorithmExact(geodesic_mesh);	  
+  }
+  */
+
+
+  int TriMesh::update_vertex_neighbor_geodesic(int source_vertex_index, 
+					       double propagation_distance) {
+
+    std::vector<double> points(3*vertex_neighbor_euclidean[source_vertex_index].size());
+    std::vector<unsigned> faces(3*facet_neighbor_euclidean[source_vertex_index].size());
+    std::map<unsigned, unsigned> local_index;
+    int local_source_vertex_index, j=0;
+
+    for (std::map<int, double>::iterator it=vertex_neighbor_euclidean[source_vertex_index].begin();
+	 it != vertex_neighbor_euclidean[source_vertex_index].end(); ++it, ++j) {
+
+      points[3*j] = vertex_array[3 * (it->first)];
+      points[3*j+1] = vertex_array[3 * (it->first)+1];
+      points[3*j+2] = vertex_array[3 * (it->first)+2];
+      local_index[it->first] = j;
+      if (it->first == source_vertex_index) local_source_vertex_index = j;
+
+    }
+
+    j=0;
+    for (std::set<int>::iterator it=facet_neighbor_euclidean[source_vertex_index].begin();
+	 it!=facet_neighbor_euclidean[source_vertex_index].end(); ++it, ++j) {
+
+      faces[3*j] = local_index[tri_index_array[3* (*it)]];
+      faces[3*j+1] = local_index[tri_index_array[3* (*it) +1]];
+      faces[3*j+2] = local_index[tri_index_array[3* (*it) +2]];
+
+    }
+
+  
+    geodesic_mesh = new geodesic::Mesh; 
+    geodesic_mesh->initialize_mesh_data(points, faces);
+    geodesic_algorithm = new geodesic::GeodesicAlgorithmExact(geodesic_mesh);
+
+    geodesic::SurfacePoint source(&geodesic_mesh->vertices()[local_source_vertex_index]); //create source 
+    //in general, there could be multiple sources, but now we have only one
+    std::vector<geodesic::SurfacePoint> single_source(1,source); 
+
+    // propagation with certain distance
+    geodesic_algorithm->propagate(single_source, propagation_distance);	
+
+    for(std::map<int, double>::iterator it = vertex_neighbor_euclidean[source_vertex_index].begin();
+	it != vertex_neighbor_euclidean[source_vertex_index].end(); ++it) {
+      geodesic::SurfacePoint p(&geodesic_mesh->vertices()[local_index[it->first]]);		
+      
+      double distance;
+      geodesic_algorithm->best_source(p,distance);		//for a given surface point, find closets source and distance to this source
+      if (distance < propagation_distance) 
+	vertex_neighbor_geodesic[source_vertex_index][it->first] = distance;
+    }
+
+    delete geodesic_mesh;
+    delete geodesic_algorithm;
+
+    return vertex_neighbor_geodesic[source_vertex_index].size();
+
+  }
+
+
+  double TriMesh::update_vertex_neighbor_geodesic(double propagation_distance_coeff) {
+    // it is very slow to compute a neighbor with geodesic threshold
+
+    clock_start("Update neighbors w.r.t geodesic"); 
+
+    double propagation_distance = propagation_distance_coeff * avg_edge_len;
+    int count = 0;
+    vertex_neighbor_geodesic.clear();
+    vertex_neighbor_geodesic.resize(vertex_num);
+
+    printf("   ");
+    for (int i=0;i < vertex_num; ++i) {
+      //printf("\b\b\b%2d%%", (i+1)*100 / vertex_num);
+
+      count += update_vertex_neighbor_geodesic(i, propagation_distance);
+      //std::cout << i << std::endl;
+    }
+
+    clock_end();
+
+    return (double) count / (double) vertex_num;
+  }
+
+
+
+  int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, 
+				      BooleanFunction &keyBoolean, 
+				      int iter, 
+				      int pre_iter){
     // in the implementation of keypoint detection, no threshold is taken.
     int count = 0;
     double coeff = .6;
     double neighbor_size = 3*coeff > 3.? 3*coeff: 3.;
 
-    update_vertex_neighbor(neighbor_size); 
+    update_vertex_neighbor_euclidean(neighbor_size);     
+    update_vertex_neighbor_geodesic(neighbor_size); 
+    
+    neighbor_distance_map  = & vertex_neighbor_geodesic;
+    //neighbor_distance_map  = & vertex_neighbor_euclidean;
 
-    time_t  start, end; time(&start);
-    std::cout <<"Start keypoint detection ..." << std::endl;
+
+    clock_start("Start keypoint detection");
 
 
     // update static coefficient for smooth
     double sigma = coeff * avg_edge_len;
     std::vector<std::map<int, double> > coeff_list(vertex_num);
+
+
     for (int i=0; i<vertex_num; ++i) {
-      Vector tmp;
       double scale, total_scale = 0;
+
       
-      for (std::set<int>::iterator it = vertex_neighbor[i].begin();
-	   it != vertex_neighbor[i].end(); ++it) {
-	tmp = IV[*it]->point() - IV[i]->point();
-	scale = CGAL::sqrt(tmp * tmp);
-	scale = vertex_area[*it] * std::exp( - (scale * scale) / (2 * sigma * sigma));
+      for (std::map<int, double>::iterator it = (*neighbor_distance_map)[i].begin();
+	   it != (*neighbor_distance_map)[i].end(); ++it) {
+	// use the euclidean distance to contruct smooth stencil
+	scale = it->second;
+	scale = vertex_area[it->first] * std::exp( - (scale * scale) / (2 * sigma * sigma));
 	total_scale += scale;
-	coeff_list[i][*it] = scale;
+	coeff_list[i][it->first] = scale;
       }
 
       for (std::map<int, double>::iterator it = coeff_list[i].begin();
@@ -309,8 +425,7 @@ namespace meshtk{
 
     valueScalar = buffer_v[ buffer_curr ];
 
-    time(&end);
-    std::cout << "\t[done] " << difftime( end, start) <<" seconds" << std::endl;
+    clock_end();
     return count;
   }
 

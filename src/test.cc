@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
 
   mesh.init_index();
   mesh.update_base();
+  mesh.update_compact_base();
   //  mesh.load_coord();
   /*
   meshtk::DynamicTriMesh mesh_base;

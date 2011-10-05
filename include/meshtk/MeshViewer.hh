@@ -33,13 +33,14 @@ namespace meshtk {
 
   protected:
     TriMesh *obj;
+
     GLuint vn; //vertex number
     GLuint fn; //facet number
   
 
 
-    GLfloat *vertex_array;
-    GLfloat *normal_array;
+    GLdouble *vertex_array;
+    GLdouble *normal_array;
     GLuint *index_array;
 
   public:

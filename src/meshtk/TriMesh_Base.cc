@@ -197,22 +197,62 @@ namespace meshtk {
 
   void TriMesh::update_base(){//base update halfedge, facet, vertex.
 
-    time_t  start, end; 
-    time(&start);
-    std::cout << "Update base ..."<< std::flush; 
+    clock_start("Update base ...");
     update_halfedge();
 
     update_facet();
   
     update_vertex();
-    time(&end);
-    std::cout << "\t[done] " << difftime( end, start) <<" seconds" << std::endl;
+
+    clock_end();
 
   };
+
+
+  void TriMesh::update_compact_base() {
+
+    vertex_array.resize(3*vertex_num);
+    normal_array.resize(3*vertex_num);
+    tri_index_array.resize(3*facet_num);
   
+    for (int i=0; i<vertex_num; i++) {
+      Point p=IV[i]->point();
+      Vector n=vertex_norm[i];
+      vertex_array[3*i] = p.x();
+      vertex_array[3*i+1] = p.y();
+      vertex_array[3*i+2] = p.z();
+      normal_array[3*i] = n.x();
+      normal_array[3*i+1] = n.y();
+      normal_array[3*i+2] = n.z();
+
+    }
+
+    for (int i=0; i<facet_num; i++) {
+      HF_circulator hc = IF[i]->facet_begin();
+      int j=0;//preconditon: triangular mesh
+      do{
+	tri_index_array[3*i+j] = hc->vertex()->index;
+	++j;
+      }while(++hc != IF[i]->facet_begin());        
+    }
+
+  }
+
 
   TriMesh::~TriMesh(){    
+    if (geodesic_mesh) delete geodesic_mesh;
+    if (geodesic_algorithm) delete geodesic_algorithm;
+
   }
 
 
 }
+
+
+
+
+
+
+
+
+

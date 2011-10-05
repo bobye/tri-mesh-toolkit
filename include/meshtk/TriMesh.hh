@@ -26,6 +26,10 @@
 #include "mesh_topo.hh"
 #include "mesh_precompile.hh"
 
+
+// include header file for geodesic computation
+#include <geodesic/geodesic_algorithm_exact.h>
+
 namespace meshtk {
 
   // ISHalfedge_list represents Index System of Halfedges by std::vector. 
@@ -123,7 +127,18 @@ namespace meshtk {
 
     // neighbor vertices indices, which store the a neighborhood of vertex
     // the indices of neighbor are stored in set with an iterator access
-    std::vector<std::set<int> > vertex_neighbor;
+    //std::vector<std::set<int> > vertex_neighbor;
+    // neighbor vertices indices and Euclidean distance
+    std::vector<std::map<int, double> > vertex_neighbor_euclidean;
+    // neighbor facets of vertex with a Euclidean distance
+    std::vector<std::set<int> > facet_neighbor_euclidean;
+
+    // neighbor vertices indices and geodesic distance
+    std::vector<std::map<int, double> > vertex_neighbor_geodesic;
+
+    std::vector<std::map<int, double> > *neighbor_distance_map;
+
+
     //std::vector<std::set<int> > facet_neighbor;
 
     double avg_edge_len;//average edge length globally
@@ -146,6 +161,15 @@ namespace meshtk {
     // this will be used to rule out keypoint of low contrast 
     //double local_quadratic_extrema(ScalarFunction &, int );
 
+    // compact data structure for mesh, which can be used in 
+    // class MeshPainter and class geodesic::mesh
+    std::vector<double> vertex_array;// {v0.x, v0.y, v0.z, v1.x, v1.y, v1.z ...}
+    std::vector<double> normal_array;// {n0.x, n0.y, n0.z, n1.x, n1,y, n1.z ...}
+    std::vector<unsigned> tri_index_array;// {f0.0, f0.1, f0,2, f1.0, f1.1, f1.2, ...}
+
+    
+    geodesic::Mesh *geodesic_mesh; // geodesic mesh underlying
+    geodesic::GeodesicAlgorithmExact *geodesic_algorithm;	//exact algorithm for the mesh
 
     ///////////////////////////////////////////////////////////////////////
     // Map register number to reference of functions define over mesh domain. 
@@ -187,6 +211,9 @@ namespace meshtk {
     // and [vertex, facet, halfedge]_handle->index 
     virtual void init_index();
 
+    // store data in compact structure: vertex_array, normal_array, tri_index_array
+    void update_compact_base();
+
     // update base attributes of mesh, namely three private routines:
     //  update_halfedge(), update_facet(), update_vertex(); 
     void update_base();
@@ -197,9 +224,21 @@ namespace meshtk {
 
     /**************************************************************************/
 
-    // update vertices neighbor, argument coeff is to take all *-ring within a Euclidean distance
+    // update vertices neighbor, argument coeff is to take all vertices surrounding
+    // within a Euclidean distance.
     // return the average number of neighbor vertices associated
-    double update_vertex_neighbor(double );//to update: vertex_neighbor[][]
+    int update_vertex_neighbor_euclidean(int, double);
+    double update_vertex_neighbor_euclidean(double );//to update: vertex_neighbor[][]
+
+    // wrapper for geodesic algorithm
+    // void geodesic_init();
+    // update vertices neighbor, argument coeff is to take all vertices surrounding
+    // within a geodesic distance.  return the average number of neighbor vertices associated
+    
+    // for single source(vertex) with specific propapation distance    
+    int update_vertex_neighbor_geodesic(int, double); 
+    // for all sources
+    double update_vertex_neighbor_geodesic(double ); 
 
     // guassian smooth an attribute function 
     // input: v0
@@ -210,20 +249,19 @@ namespace meshtk {
       // update_vertex_neighbor(3 * coeff);
       double sigma = coeff * avg_edge_len;
 
-
       for (int i = 0; i < vertex_num; i++){
 	T vec = zero;
-	Vector tmp;
-	double scale, total_scale = 0;
-      
+	double scale, total_scale = 0;      
 
-	for (std::set<int>::iterator it = vertex_neighbor[i].begin();
-	     it != vertex_neighbor[i].end(); ++it) {
-	  tmp = IV[*it]->point() - IV[i]->point();
-	  scale = CGAL::sqrt(tmp * tmp);
-	  scale = vertex_area[*it] * std::exp( - (scale * scale) / (2 * sigma * sigma));
+	for (std::map<int, double>::iterator it = (*neighbor_distance_map)[i].begin();
+	     it != (*neighbor_distance_map)[i].end(); ++it) {
+
+	//	for (std::set<int>::iterator it = vertex_neighbor[i].begin();
+	//	     it != vertex_neighbor[i].end(); ++it) {
+	  scale = it->second;
+	  scale = vertex_area[it->first] * std::exp( - (scale * scale) / (2 * sigma * sigma));
 	  total_scale += scale;
-	  vec = vec + scale * v0[*it];
+	  vec = vec + scale * v0[it->first];
 	}
 
 	v1[i] = vec / total_scale;
@@ -241,7 +279,7 @@ namespace meshtk {
 
 	for (std::map<int, double>::iterator it = coeff[i].begin();
 	     it != coeff[i].end(); ++it) {
-	  v1[i] = v1[i] + (*it).second * v0[(*it).first];
+	  v1[i] = v1[i] + it->second * v0[it->first];
 	}
       
       }

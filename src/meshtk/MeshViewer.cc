@@ -54,9 +54,6 @@ namespace meshtk {
   const GLfloat perfect_factor = 1.414;
 
   MeshPainter::~MeshPainter() {
-    delete [] vertex_array;
-    delete [] normal_array;
-    delete [] index_array;
   }
 
   MeshPainter::MeshPainter(TriMesh *pmesh) : obj(pmesh){
@@ -70,7 +67,11 @@ namespace meshtk {
 
     vn = pmesh->vertex_num;
     fn = pmesh->facet_num;
+    vertex_array = & pmesh->vertex_array[0];
+    normal_array = & pmesh->normal_array[0];
+    index_array = & pmesh->tri_index_array[0];
 
+    /*
     vertex_array = new GLfloat[3*vn];
     normal_array = new GLfloat[3*vn];
     index_array = new GLuint[3*fn];
@@ -95,7 +96,7 @@ namespace meshtk {
 	++j;
       }while(++hc != pmesh->IF[i]->facet_begin());        
     }
-
+    */
     LIST_NAME =glGenLists(1);
 
 
@@ -124,8 +125,8 @@ namespace meshtk {
     glEnableClientState(GL_VERTEX_ARRAY);
     //load geometric information from painte
 
-    glNormalPointer(GL_FLOAT, 0, normal_array);
-    glVertexPointer(3, GL_FLOAT, 0, vertex_array); 
+    glNormalPointer(GL_DOUBLE, 0, normal_array);
+    glVertexPointer(3, GL_DOUBLE, 0, vertex_array); 
 
 
   }
@@ -190,8 +191,8 @@ namespace meshtk {
     glEnableClientState(GL_COLOR_ARRAY);
     //load geometric information from painte
 
-    glNormalPointer(GL_FLOAT, 0, normal_array);
-    glVertexPointer(3, GL_FLOAT, 0, vertex_array); 
+    glNormalPointer(GL_DOUBLE, 0, normal_array);
+    glVertexPointer(3, GL_DOUBLE, 0, vertex_array); 
     glColorPointer(3, GL_FLOAT, 0, color_array);
 
   }
@@ -216,8 +217,8 @@ namespace meshtk {
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    glNormalPointer(GL_FLOAT, 0, normal_array);
-    glVertexPointer(3, GL_FLOAT, 0, vertex_array); 
+    glNormalPointer(GL_DOUBLE, 0, normal_array);
+    glVertexPointer(3, GL_DOUBLE, 0, vertex_array); 
   }
 
   void MeshMarker::draw(){

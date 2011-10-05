@@ -95,6 +95,7 @@ int main(int argc, char** argv){
       mesh.write(outputMeshName.getValue(), outputMeshType.getValue());
 
     if (viewMeshOnly.getValue()) {
+      mesh.update_compact_base();
       meshtk::MeshViewer viewer(argc, argv);
       meshtk::MeshPainter painter(&mesh);
       viewer.add_painter(&painter);
@@ -104,8 +105,8 @@ int main(int argc, char** argv){
     }
     else if (viewMeshCurvature.getValue()) {
       //Compute facet curvature tensor
+      mesh.update_compact_base();
       mesh.update_curvature();
-
 
       meshtk::MeshViewer viewer(argc, argv);
       meshtk::ScalarFunction *mean_curv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);

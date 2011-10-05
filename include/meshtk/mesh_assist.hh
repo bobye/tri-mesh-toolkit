@@ -23,6 +23,7 @@
 #define _MESH_ASSIST_HH_
 
 #include "mesh_topo.hh"
+#include <string>
 
 extern void localchart(Vector &, Vector &, Vector);
 extern void localcoord(Vector, Vector, Vector, double*);
@@ -36,6 +37,9 @@ struct index_cmp {
   }
   const T arr;
 };
+
+extern void clock_start(std::string );
+extern void clock_end();
 
 
 #endif /* _MESH_ASSIST_HH_ */

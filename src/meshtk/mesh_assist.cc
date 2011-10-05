@@ -21,6 +21,7 @@
 
 
 #include "meshtk/mesh_topo.hh"
+#include <ctime>
 
 
 void localchart(Vector& u, Vector& v, Vector norm){
@@ -46,8 +47,16 @@ void localcoord(Vector proj, Vector u, Vector v, double coord[2]){
 }
 
 
+clock_t start, end;
+void clock_start(std::string description) {
+  start = clock();
+  std::cout << description <<" ... " << std::flush; 
+}
 
-
+void clock_end() {
+  end = clock();
+  std::cout << "\t[done] " << (static_cast<double> (end) - static_cast<double> (start)) / CLOCKS_PER_SEC <<" seconds" << std::endl;
+}
 
 
 

@@ -364,7 +364,7 @@ inline void Mesh::build_adjacencies()
 
 inline bool Mesh::verify()		//verifies connectivity of the mesh and prints some debug info
 {
-	std::cout << std::endl;
+	//std::cout << std::endl;
 	// make sure that all vertices are mentioned at least once. 
 	// though the loose vertex is not a bug, it most likely indicates that something is wrong with the mesh
 	std::vector<bool> map(m_vertices.size(), false);
@@ -404,11 +404,12 @@ inline bool Mesh::verify()		//verifies connectivity of the mesh and prints some 
 	assert(std::find(map.begin(), map.end(), false) == map.end());
 
 	//print some mesh statistics that can be useful in debugging
-	std::cout << "mesh has "	<< m_vertices.size() 
+	/*
+	  std::cout << "mesh has "	<< m_vertices.size() 
 			  << " vertices, "	<< m_faces.size() 
 			  << " faces, "		<< m_edges.size() 
 			  << " edges\n";
-	
+	*/
 	unsigned total_boundary_edges = 0;
 	double longest_edge = 0;
 	double shortest_edge = 1e100;
@@ -419,13 +420,14 @@ inline bool Mesh::verify()		//verifies connectivity of the mesh and prints some 
 		longest_edge = std::max(longest_edge, e.length());
 		shortest_edge = std::min(shortest_edge, e.length());
 	}
+	/*
 	std::cout << total_boundary_edges << " edges are boundary edges\n";
 	std::cout << "shortest/longest edges are " 
 			  << shortest_edge << "/"
 			  << longest_edge << " = "
 			  << shortest_edge/longest_edge
 			  << std::endl;
-
+	*/
 	double minx = 1e100;
 	double maxx = -1e100;
 	double miny = 1e100;
@@ -442,19 +444,21 @@ inline bool Mesh::verify()		//verifies connectivity of the mesh and prints some 
 		minz = std::min(minz, v.z());
 		maxz = std::max(maxz, v.z());
 	}
+	/*
 	std::cout << "enclosing XYZ box:"
 			  <<" X[" << minx << "," << maxx << "]"
 			  <<" Y[" << miny << "," << maxy << "]"
 			  <<" Z[" << minz << "," << maxz << "]"
 			  << std::endl;
-
+	*/
 	double dx = maxx - minx;
 	double dy = maxy - miny;
 	double dz = maxz - minz;
+	/*
 	std::cout << "approximate diameter of the mesh is "
 			  << sqrt(dx*dx + dy*dy + dz*dz)
 			  << std::endl;
-
+	*/
 	double min_angle = 1e100;
 	double max_angle = -1e100;
 	for(unsigned i=0; i<m_faces.size(); ++i)
@@ -467,12 +471,14 @@ inline bool Mesh::verify()		//verifies connectivity of the mesh and prints some 
 			max_angle = std::max(max_angle, angle);
 		}
 	}
+	/*
 	std::cout << "min/max face angles are "
 			  << min_angle/M_PI*180.0 << "/"
 			  << max_angle/M_PI*180.0
 			  << " degrees\n";
 
 	std::cout << std::endl;
+	*/
 	return true;
 }
 

@@ -1,6 +1,6 @@
 # the directory contains the C++ header files for libmeshtk
 meshtk/*.hh
 
-# the directory contains geodesic library for use, under MIT License
-# please refer to its content for detail
+# the directory contains a modified geodesic library for use, under MIT License
+# Please refer to its content for detail
 geodesic/

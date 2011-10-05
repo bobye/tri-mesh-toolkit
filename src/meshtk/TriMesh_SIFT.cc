@@ -277,7 +277,7 @@ namespace meshtk{
     vertex_neighbor_geodesic.clear();
     vertex_neighbor_geodesic.resize(vertex_num);
 
-    printf("   ");
+
     for (int i=0;i < vertex_num; ++i) {
       //printf("\b\b\b%2d%%", (i+1)*100 / vertex_num);
 

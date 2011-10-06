@@ -450,11 +450,11 @@ inline bool Mesh::verify()		//verifies connectivity of the mesh and prints some 
 			  <<" Y[" << miny << "," << maxy << "]"
 			  <<" Z[" << minz << "," << maxz << "]"
 			  << std::endl;
-	*/
+
 	double dx = maxx - minx;
 	double dy = maxy - miny;
 	double dz = maxz - minz;
-	/*
+
 	std::cout << "approximate diameter of the mesh is "
 			  << sqrt(dx*dx + dy*dy + dz*dz)
 			  << std::endl;

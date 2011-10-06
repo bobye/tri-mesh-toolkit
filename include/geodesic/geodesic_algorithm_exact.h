@@ -561,7 +561,7 @@ inline void GeodesicAlgorithmExact::propagate(std::vector<SurfacePoint>& sources
 		interval_pointer min_interval = *m_queue.begin();
 		m_queue.erase(m_queue.begin());
 		edge_pointer edge = min_interval->edge();
-		list_pointer list = interval_list(edge);
+		//list_pointer list = interval_list(edge); //comment out by bobye
 
 		assert(min_interval->d() < GEODESIC_INF);
 

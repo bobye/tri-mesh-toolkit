@@ -23,6 +23,9 @@
 #include "meshtk/TriMesh.hh"
 #include "meshtk/mesh_assist.hh"
 
+// include header file for geodesic computation
+#include <geodesic/geodesic_algorithm_exact.h>
+
 namespace meshtk{
 
   struct front_circ {
@@ -33,13 +36,15 @@ namespace meshtk{
   };
 
   int TriMesh::update_vertex_neighbor_euclidean(int source_vertex_index, 
-						double propagation_distance){
+						double propagation_distance,
+						std::map<int, double> &vertex_neighbor,
+						std::set<int> &facet_neighbor){
     
     //std::set<int> vertex_outbound;
     Vector displace; double distance;
     front_circ *start = new front_circ; //start->prev = start->next = start;
     front_circ *front = start;
-    vertex_neighbor_euclidean[source_vertex_index][source_vertex_index] = 0.;
+    vertex_neighbor[source_vertex_index] = 0.;
 
     HV_circulator hv = IV[source_vertex_index]->vertex_begin();
     do {	
@@ -53,9 +58,9 @@ namespace meshtk{
       displace = IV[vertex_index]->point() - IV[source_vertex_index]->point();
       distance = std::sqrt(displace * displace);
 
-      vertex_neighbor_euclidean[source_vertex_index][vertex_index] = distance;
+      vertex_neighbor[vertex_index] = distance;
 
-      if (hv->facet()!=NULL ) facet_neighbor_euclidean[source_vertex_index].insert(hv->facet()->index);
+      if (hv->facet()!=NULL ) facet_neighbor.insert(hv->facet()->index);
 
     } while (++hv != IV[source_vertex_index]->vertex_begin());
     start->next->prev = front; front->next = start->next;
@@ -81,15 +86,15 @@ namespace meshtk{
 
       // to test whether propagate toward the facet
       int facet_index, vertex_index = front->hf->next()->vertex()->index;
-      if (facet_neighbor_euclidean[source_vertex_index].find(facet_index = front->hf->facet()->index) == facet_neighbor_euclidean[source_vertex_index].end() && !front->fr) {
+      if (facet_neighbor.find(facet_index = front->hf->facet()->index) == facet_neighbor.end() && !front->fr) {
 	// && vertex_outbound.find(vertex_index = front->hf->next()->vertex()->index) == vertex_outbound.end()) {
 
 	displace = IV[vertex_index]->point() - IV[source_vertex_index]->point();
 	distance = std::sqrt(displace * displace);
 	if (distance < propagation_distance) {
 	  // insert new vertex to the front
-	  facet_neighbor_euclidean[source_vertex_index].insert(facet_index);
-	  vertex_neighbor_euclidean[source_vertex_index][vertex_index] = distance;
+	  facet_neighbor.insert(facet_index);
+	  vertex_neighbor[vertex_index] = distance;
 	    
 	  front_circ *insert = new front_circ;
 	  insert->hf = front->hf->prev()->opposite();
@@ -129,7 +134,7 @@ namespace meshtk{
       
     front->next->prev = NULL;
     while (front->prev!= NULL) { front = front->prev; delete front->next;  } delete front;
-    return vertex_neighbor_euclidean[source_vertex_index].size();
+    return vertex_neighbor_euclidean.size();
 
   }
 
@@ -182,7 +187,10 @@ namespace meshtk{
     
 
     for (int i = 0; i < vertex_num; ++i){      
-      count += update_vertex_neighbor_euclidean(i, distance_threshold);
+      count += update_vertex_neighbor_euclidean(i, 
+						distance_threshold,
+						vertex_neighbor_euclidean[i],
+						facet_neighbor_euclidean[i]);
     }
 
 
@@ -209,15 +217,18 @@ namespace meshtk{
 
 
   int TriMesh::update_vertex_neighbor_geodesic(int source_vertex_index, 
-					       double propagation_distance) {
+					       double propagation_distance,
+					       std::map<int, double> &vertex_neighbor,
+					       std::map<int, double> &vertex_neighbor_interest,
+					       std::set<int> &facet_neighbor_interest) {
 
-    std::vector<double> points(3*vertex_neighbor_euclidean[source_vertex_index].size());
-    std::vector<unsigned> faces(3*facet_neighbor_euclidean[source_vertex_index].size());
+    std::vector<double> points(3*vertex_neighbor_interest.size());
+    std::vector<unsigned> faces(3*facet_neighbor_interest.size());
     std::map<unsigned, unsigned> local_index;
     int local_source_vertex_index, j=0;
 
-    for (std::map<int, double>::iterator it=vertex_neighbor_euclidean[source_vertex_index].begin();
-	 it != vertex_neighbor_euclidean[source_vertex_index].end(); ++it, ++j) {
+    for (std::map<int, double>::iterator it=vertex_neighbor_interest.begin();
+	 it != vertex_neighbor_interest.end(); ++it, ++j) {
 
       points[3*j] = vertex_array[3 * (it->first)];
       points[3*j+1] = vertex_array[3 * (it->first)+1];
@@ -228,8 +239,8 @@ namespace meshtk{
     }
 
     j=0;
-    for (std::set<int>::iterator it=facet_neighbor_euclidean[source_vertex_index].begin();
-	 it!=facet_neighbor_euclidean[source_vertex_index].end(); ++it, ++j) {
+    for (std::set<int>::iterator it=facet_neighbor_interest.begin();
+	 it!=facet_neighbor_interest.end(); ++it, ++j) {
 
       faces[3*j] = local_index[tri_index_array[3* (*it)]];
       faces[3*j+1] = local_index[tri_index_array[3* (*it) +1]];
@@ -238,31 +249,28 @@ namespace meshtk{
     }
 
   
-    geodesic_mesh = new geodesic::Mesh; 
-    geodesic_mesh->initialize_mesh_data(points, faces);
-    geodesic_algorithm = new geodesic::GeodesicAlgorithmExact(geodesic_mesh);
+    geodesic::Mesh mesh; 
+    mesh.initialize_mesh_data(points, faces);
+    geodesic::GeodesicAlgorithmExact algorithm(&mesh);
 
-    geodesic::SurfacePoint source(&geodesic_mesh->vertices()[local_source_vertex_index]); //create source 
+    geodesic::SurfacePoint source(&mesh.vertices()[local_source_vertex_index]); //create source 
     //in general, there could be multiple sources, but now we have only one
     std::vector<geodesic::SurfacePoint> single_source(1,source); 
 
     // propagation with certain distance
-    geodesic_algorithm->propagate(single_source, propagation_distance);	
+    algorithm.propagate(single_source, propagation_distance);	
 
-    for(std::map<int, double>::iterator it = vertex_neighbor_euclidean[source_vertex_index].begin();
-	it != vertex_neighbor_euclidean[source_vertex_index].end(); ++it) {
-      geodesic::SurfacePoint p(&geodesic_mesh->vertices()[local_index[it->first]]);		
+    for(std::map<int, double>::iterator it = vertex_neighbor_interest.begin();
+	it != vertex_neighbor_interest.end(); ++it) {
+      geodesic::SurfacePoint p(&mesh.vertices()[local_index[it->first]]);		
       
       double distance;
-      geodesic_algorithm->best_source(p,distance);		//for a given surface point, find closets source and distance to this source
+      algorithm.best_source(p,distance);		//for a given surface point, find closets source and distance to this source
       if (distance < propagation_distance) 
-	vertex_neighbor_geodesic[source_vertex_index][it->first] = distance;
+	vertex_neighbor[it->first] = distance;
     }
 
-    delete geodesic_mesh;
-    delete geodesic_algorithm;
-
-    return vertex_neighbor_geodesic[source_vertex_index].size();
+    return vertex_neighbor.size();
 
   }
 
@@ -281,7 +289,11 @@ namespace meshtk{
     for (int i=0;i < vertex_num; ++i) {
       //printf("\b\b\b%2d%%", (i+1)*100 / vertex_num);
 
-      count += update_vertex_neighbor_geodesic(i, propagation_distance);
+      count += update_vertex_neighbor_geodesic(i, 
+					       propagation_distance, 
+					       vertex_neighbor_geodesic[i],
+					       vertex_neighbor_euclidean[i],
+					       facet_neighbor_euclidean[i]);
       //std::cout << i << std::endl;
     }
 
@@ -290,7 +302,12 @@ namespace meshtk{
     return (double) count / (double) vertex_num;
   }
 
-
+  void register_vertex_keypoint(int vertex_index, 
+				double scale_distance,
+				ScalarFunction& scale_space_function) {
+    
+    //update_vertex_neighbor_euclidean(vertex_index, scale_distance);
+  }
 
   int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, 
 				      BooleanFunction &keyBoolean, 

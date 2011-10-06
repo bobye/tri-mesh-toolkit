@@ -79,7 +79,7 @@ int main(int argc, char** argv){
     // mesh Gaussian smooth iteration
     for (int i=0; i<smoothMeshIteration.getValue(); ++i) {
       std::cout<< "Smooth Iteration Count: " << i << " with coefficient "<< smoothMeshCoefficient.getValue() << std::endl;
-
+      
       mesh.gaussian_smooth(smoothMeshCoefficient.getValue());
       mesh.update_base();
     }

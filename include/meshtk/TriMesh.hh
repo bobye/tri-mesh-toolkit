@@ -27,8 +27,6 @@
 #include "mesh_precompile.hh"
 
 
-// include header file for geodesic computation
-#include <geodesic/geodesic_algorithm_exact.h>
 
 namespace meshtk {
 
@@ -138,6 +136,8 @@ namespace meshtk {
 
     std::vector<std::map<int, double> > *neighbor_distance_map;
 
+    // neighbor vertices of keypoints, which is naturally a larger neighbor
+    std::vector<std::map<int, double> > keypoint_neighbor;
 
     //std::vector<std::set<int> > facet_neighbor;
 
@@ -168,8 +168,11 @@ namespace meshtk {
     std::vector<unsigned> tri_index_array;// {f0.0, f0.1, f0,2, f1.0, f1.1, f1.2, ...}
 
     
-    geodesic::Mesh *geodesic_mesh; // geodesic mesh underlying
-    geodesic::GeodesicAlgorithmExact *geodesic_algorithm;	//exact algorithm for the mesh
+    //this a private function to register a detection keypoint
+    void register_vertex_keypoint(int, double, ScalarFunction);
+
+    //geodesic::Mesh *geodesic_mesh; // geodesic mesh underlying
+    //geodesic::GeodesicAlgorithmExact *geodesic_algorithm;	//exact algorithm for the mesh
 
     ///////////////////////////////////////////////////////////////////////
     // Map register number to reference of functions define over mesh domain. 
@@ -227,7 +230,7 @@ namespace meshtk {
     // update vertices neighbor, argument coeff is to take all vertices surrounding
     // within a Euclidean distance.
     // return the average number of neighbor vertices associated
-    int update_vertex_neighbor_euclidean(int, double);
+    int update_vertex_neighbor_euclidean(int, double, std::map<int, double> &, std::set<int> &);
     double update_vertex_neighbor_euclidean(double );//to update: vertex_neighbor[][]
 
     // wrapper for geodesic algorithm
@@ -236,7 +239,8 @@ namespace meshtk {
     // within a geodesic distance.  return the average number of neighbor vertices associated
     
     // for single source(vertex) with specific propapation distance    
-    int update_vertex_neighbor_geodesic(int, double); 
+    int update_vertex_neighbor_geodesic(int, double, std::map<int, double> &, 
+					std::map<int, double>& , std::set<int> &); 
     // for all sources
     double update_vertex_neighbor_geodesic(double ); 
 

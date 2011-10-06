@@ -365,7 +365,7 @@ namespace meshtk{
     for (int i=0; i< iter; ++i) {
       
       //      double radio = 0,// (0.001 / std::sqrt(total_area)) * coeff * coeff, 
-      double radio2 = 0.01;
+      double radio2 = 0.05 * coeff * coeff;
 
       int zero = buffer_curr, one=(buffer_curr +1)%4, 
 	two=(buffer_curr +2)%4, three=(buffer_curr +3)%4;

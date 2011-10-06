@@ -73,6 +73,7 @@ namespace meshtk {
     VectorFunction smoothed_normal(vertex_num);
 
     update_vertex_neighbor_euclidean(3 * coeff);
+    neighbor_distance_map  = & vertex_neighbor_euclidean;
 
     gaussian_smooth_vertex(coeff, vertex_norm, smoothed_normal, Vector(0,0,0));
     for (int j=0; j<vertex_num; j++) vertex_norm[j] = smoothed_normal[j]/CGAL::sqrt(smoothed_normal[j] * smoothed_normal[j]);

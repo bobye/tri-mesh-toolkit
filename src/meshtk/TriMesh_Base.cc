@@ -240,9 +240,6 @@ namespace meshtk {
 
 
   TriMesh::~TriMesh(){    
-    if (geodesic_mesh) delete geodesic_mesh;
-    if (geodesic_algorithm) delete geodesic_algorithm;
-
   }
 
 

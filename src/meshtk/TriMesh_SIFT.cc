@@ -496,7 +496,7 @@ namespace meshtk{
 		register_vertex_keypoint(j, 
 					 std::sqrt(i+2)* sigma,
 					 std::fabs(buffer_dv[one][j] * avg_edge_len / radio2),
-					 buffer_v[two]);
+					 buffer_dv[one]);
 		continue;}
 
 	  
@@ -515,7 +515,7 @@ namespace meshtk{
 		register_vertex_keypoint(j, 
 					 std::sqrt(i+2)* sigma,
 					 std::fabs(buffer_dv[one][j]) * avg_edge_len / radio2,
-					 buffer_v[two]);
+					 buffer_dv[one]);
 		continue; }
 
 	  }

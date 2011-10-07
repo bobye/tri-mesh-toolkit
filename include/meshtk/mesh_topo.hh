@@ -31,8 +31,9 @@
 typedef CGAL::Simple_cartesian<double>                       Kernel;
 //typedef CGAL::Cartesian<double>                              Kernel;
 typedef Kernel::Vector_3                                     Vector;
+//typedef Kerenl::Vector_2                                     Vector2D;
 typedef Kernel::Point_3                                      Point;
-
+//typedef Kernel::Point_2                                      Point2D;
 
 template <class Refs, class T, class P>
 class Perel_vertex : public CGAL::HalfedgeDS_vertex_base<Refs, T, P> {

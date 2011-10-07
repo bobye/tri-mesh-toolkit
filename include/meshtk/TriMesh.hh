@@ -116,7 +116,7 @@ namespace meshtk {
     //std::vector<int> keypoint_index;
     std::vector<KeyPoint> keypoints;
 
-    //std::vector<NeighborIndex > facet_neighbor;
+
 
     double avg_edge_len;//average edge length globally
 
@@ -159,16 +159,32 @@ namespace meshtk {
     // class T may be ScalarFunction, or ScalarNeighborFunction
     // the return Vector lies in the facet plane 
     template <class T>
-    Vector facet_gradient(int facet_index,
-			   T scalars_vertex_neighbor) {
-      return Vector(0,0,0);
+    void facet_gradient(int facet_index,
+			T& scalars_vertex_neighbor,
+			double gradient[2]) {
+      // precondition of facet_LC;
+      double f1, f2; double x1[2], x2[2];
+      
+      int v0_index = tri_index_array[3*facet_index];
+      int v1_index = tri_index_array[3*facet_index +1];
+      int v2_index = tri_index_array[3*facet_index +2];
+
+      f1 = scalars_vertex_neighbor[v1_index] - scalars_vertex_neighbor[v0_index];
+      f2 = scalars_vertex_neighbor[v2_index] - scalars_vertex_neighbor[v0_index];
+
+      Vector v1 = IV[v1_index]->point() - IV[v0_index]->point();
+      Vector v2 = IV[v2_index]->point() - IV[v0_index]->point();
+
+      x1[0] = v1 * facet_LC[0][facet_index];
+      x1[1] = v1 * facet_LC[1][facet_index];
+      x2[0] = v2 * facet_LC[0][facet_index];
+      x2[1] = v2 * facet_LC[1][facet_index];
+
+      double det = v1[0]*v2[1] - v1[1]*v2[0];
+
+      gradient[0] = (v2[1]*f1 - v1[1]*f2)/det;
+      gradient[1] = (-v2[0]*f1 +v1[0]*f2)/det;
     };
-			   
-
-
-
-
-
 
 
 
@@ -253,6 +269,27 @@ namespace meshtk {
     // for all sources
     double update_vertex_neighbor_geodesic(double propagation_distance_coeff); 
 
+    // to update keypoints SIFT feature
+    void update_keypoint_SIFT(KeyPoint &keypoint, ScalarFunction &function);
+
+    // The following procedure is SIFT keypoint detection for scalar 
+    // function on static manifold mesh domain. The input is scalar
+    // function, the keypoints detected are given by boolean function
+    int detect_vertex_keypoint(ScalarFunction &valueScalar, 
+			       BooleanFunction &keyBoolean, 
+			       int iter, //total iteration including preprocessing smooth
+			       int pre_iter = 0);
+
+    void print_keypoint_SIFT(std::string filename);
+
+
+
+
+
+
+
+
+
     // guassian smooth an attribute function 
     // input: v0
     // output: v1
@@ -299,13 +336,6 @@ namespace meshtk {
 
     }
     
-    // The following procedure is SIFT keypoint detection for scalar 
-    // function on static manifold mesh domain. The input is scalar
-    // function, the keypoints detected are given by boolean function
-    int detect_vertex_keypoint(ScalarFunction &valueScalar, 
-			       BooleanFunction &keyBoolean, 
-			       int iter, //total iteration including preprocessing smooth
-			       int pre_iter = 0);
 
     
 

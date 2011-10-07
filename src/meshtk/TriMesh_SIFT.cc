@@ -279,6 +279,21 @@ namespace meshtk{
       }
     }
 
+
+    // at least 1-ring
+    HV_circulator hv = IV[source_vertex_index]->vertex_begin();
+    do {	
+      int vertex_index = hv->opposite()->vertex()->index;
+
+      vertex_neighbor[vertex_index] = vertex_neighbor_interest[vertex_index];
+
+      if (hv->facet()!=NULL ) facet_neighbor.insert(hv->facet()->index);
+
+    } while (++hv != IV[source_vertex_index]->vertex_begin());
+
+
+
+
     return vertex_neighbor.size();
 
   }
@@ -334,8 +349,44 @@ namespace meshtk{
 				    keypoints.back().facet_neighbor,
 				    buffer_vertex_neighbor_euclidean,
 				    buffer_facet_neighbor_euclidean);
+    update_keypoint_SIFT(keypoints.back(), scale_space_function);
     
   }
+
+  void TriMesh::update_keypoint_SIFT(KeyPoint& keypoint, ScalarFunction& function){   
+
+    for (int j=0; j<MESHTK_SIFT_BINS_NUMBER; ++j) keypoint.histogram[j] = 0;
+    
+    for (NeighborIndex::iterator it=keypoint.facet_neighbor.begin();
+	 it!=keypoint.facet_neighbor.end(); ++it) {
+      double gradient[2], propagation_direction[2];
+	
+      facet_gradient(*it, keypoint.vertex_neighbor, propagation_direction);
+      facet_gradient(*it, function, gradient);
+      double magnitude = std::sqrt(gradient[0]*gradient[0]+gradient[1]*gradient[1]);
+	
+      double sin_symbol = ((gradient[0]*propagation_direction[1] - gradient[1]*propagation_direction[0])>0? 1:-1);
+      double cos_value = (gradient[0]*propagation_direction[0] + gradient[1]*propagation_direction[1])/magnitude/std::sqrt(propagation_direction[0]*propagation_direction[0] + propagation_direction[1]*propagation_direction[1]);
+      if (cos_value >1.) cos_value =1; else if (cos_value <-1.) cos_value =1.;
+      double theta = sin_symbol * std::acos(cos_value) * 180/MESHTK_PI + 180;
+	
+      int n = (int) ((theta + 180/MESHTK_SIFT_BINS_NUMBER) *  MESHTK_SIFT_BINS_NUMBER/360.) % MESHTK_SIFT_BINS_NUMBER ;
+      double avg_distance = (keypoint.vertex_neighbor[tri_index_array[*it]*3] +
+			     keypoint.vertex_neighbor[tri_index_array[*it]*3+1] +
+			     keypoint.vertex_neighbor[tri_index_array[*it]*3+2])/3.;
+      
+      keypoint.histogram[n] += magnitude * facet_area[*it]* std::exp(- avg_distance * avg_distance / (2 * keypoint.scale * keypoint.scale));
+	
+    }
+      
+    double total_weight = 0;
+    for (int j=0;j < MESHTK_SIFT_BINS_NUMBER; ++j) total_weight += keypoint.histogram[j];
+
+    for (int j=0;j < MESHTK_SIFT_BINS_NUMBER; ++j) keypoint.histogram[j]/= total_weight;
+    
+
+  }
+
 
   int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, 
 				      BooleanFunction &keyBoolean, 
@@ -482,6 +533,19 @@ namespace meshtk{
 
     clock_end();
     return count;
+  }
+
+  void TriMesh::print_keypoint_SIFT(std::string filename) {
+    
+    std::ofstream SIFT_Fout;
+    filename.append(".sift");
+    SIFT_Fout.open(filename.c_str());
+    for (unsigned i = 0; i < keypoints.size(); ++i){
+      for (unsigned j =0; j <MESHTK_SIFT_BINS_NUMBER; ++j) 
+	SIFT_Fout << keypoints[i].histogram[j] << "\t";
+      SIFT_Fout << "\n";
+    }
+    SIFT_Fout.close();
   }
 
 }

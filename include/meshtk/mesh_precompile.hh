@@ -62,6 +62,7 @@
 
 
 
+#define MESHTK_PI                       (3.1415926535898)
 
 
 #endif /* _MESH_PRECOMPILE_HH_ */

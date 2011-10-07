@@ -24,6 +24,7 @@
 #include <map>
 #include "MeshAttributeType.hh"
 
+#define MESHTK_SIFT_BINS_NUMBER (36)
 
 namespace meshtk {
 
@@ -39,6 +40,9 @@ namespace meshtk {
     ScalarNeighborFunction vertex_neighbor;
     NeighborIndex facet_neighbor;
 
+    double histogram[MESHTK_SIFT_BINS_NUMBER];// descriptor, 36 bins [10*i-5, 10*i+5), i=0,...,35
+
+
     KeyPoint(int i, double s, double m) :
       index(i), scale(s), magnitude(m) {
     }
@@ -48,8 +52,6 @@ namespace meshtk {
 
 
   struct SIFTPoint {
-    double histogram[36];// descriptor, 36 bins [10*i-5, 10*i+5), i=0,...,35
-    KeyPoint *keypoint; //induced keypoint pointer
   };
 
 

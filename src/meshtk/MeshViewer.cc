@@ -213,6 +213,13 @@ namespace meshtk {
     
   }
 
+  MeshMarker::MeshMarker(TriMesh *pmesh, std::vector<int> &index_mark)
+    :MeshPainter(pmesh) {
+    mark_count = index_mark.size();
+    mark_array = new GLuint[mark_count];    
+    for (int i=0; i<mark_count; ++i) mark_array[i] = index_mark[i];
+  }
+
   void MeshMarker::prepare(){
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);

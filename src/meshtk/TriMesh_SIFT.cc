@@ -134,7 +134,7 @@ namespace meshtk{
       
     front->next->prev = NULL;
     while (front->prev!= NULL) { front = front->prev; delete front->next;  } delete front;
-    return vertex_neighbor_euclidean.size();
+    return vertex_neighbor.size();
 
   }
 
@@ -302,11 +302,26 @@ namespace meshtk{
     return (double) count / (double) vertex_num;
   }
 
-  void register_vertex_keypoint(int vertex_index, 
+  void TriMesh::register_vertex_keypoint(int vertex_index, 
 				double scale_distance,
+				double magnitude,
 				ScalarFunction& scale_space_function) {
+    std::map<int, double> buffer_vertex_neighbor_euclidean;
+    std::set<int> buffer_facet_neighbor_euclidean;
     
-    //update_vertex_neighbor_euclidean(vertex_index, scale_distance);
+    keypoints.push_back(KeyPoint(vertex_index, scale_distance, magnitude));
+
+    update_vertex_neighbor_euclidean(vertex_index, 
+				     scale_distance,
+				     buffer_vertex_neighbor_euclidean,
+				     buffer_facet_neighbor_euclidean);
+
+    update_vertex_neighbor_geodesic(vertex_index,
+				    scale_distance,
+				    keypoints.back().neighbor,
+				    buffer_vertex_neighbor_euclidean,
+				    buffer_facet_neighbor_euclidean);
+    
   }
 
   int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, 
@@ -412,7 +427,12 @@ namespace meshtk{
 		}
 	      }while (++hv!=IV[j]->vertex_begin());
 	    if (tmp && std::fabs(buffer_dv[one][j]) * avg_edge_len > radio2 )
-	      { keyBoolean[j] = true; ++ count; continue;}
+	      { keyBoolean[j] = true; ++ count; 
+		register_vertex_keypoint(j, 
+					 std::sqrt(i+2)* sigma,
+					 std::fabs(buffer_dv[one][j] * avg_edge_len / radio2),
+					 buffer_v[two]);
+		continue;}
 
 	  
 	    hv=IV[j]->vertex_begin(); tmp = true;
@@ -426,7 +446,12 @@ namespace meshtk{
 		}
 	      }while (++hv!=IV[j]->vertex_begin());
 	    if (tmp && std::fabs(buffer_dv[one][j]) * avg_edge_len  > radio2 )
-	      { keyBoolean[j] = true; ++ count; continue; }
+	      { keyBoolean[j] = true; ++ count; 
+		register_vertex_keypoint(j, 
+					 std::sqrt(i+2)* sigma,
+					 std::fabs(buffer_dv[one][j]) * avg_edge_len / radio2,
+					 buffer_v[two]);
+		continue; }
 
 	  }
 	

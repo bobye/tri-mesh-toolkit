@@ -22,6 +22,7 @@
 #ifndef _TRIMESH_HH_
 #define _TRIMESH_HH_
 #include <vector>
+#include <map>
 #include <set>
 #include "mesh_topo.hh"
 #include "mesh_precompile.hh"
@@ -59,6 +60,23 @@ namespace meshtk {
     
     static Curvature tensor_compute(double, double, double);
   };
+
+  // KeyPoint data type
+  struct KeyPoint {
+  public:  
+
+    int index; //reference in mesh vertex
+    double scale; // scale distance in mesh surface
+    double magnitude; // the extreme of DoH
+
+    std::map<int, double> neighbor;
+    
+    KeyPoint(int i, double s, double m) :
+      index(i), scale(s), magnitude(m) {
+    }
+  
+  };
+
 
 
   // class TriMesh is the main part of MeshTK, which manages almost all mesh processing functions
@@ -137,7 +155,9 @@ namespace meshtk {
     std::vector<std::map<int, double> > *neighbor_distance_map;
 
     // neighbor vertices of keypoints, which is naturally a larger neighbor
-    std::vector<std::map<int, double> > keypoint_neighbor;
+    //std::vector<std::map<int, double> > keypoint_neighbor;
+    //std::vector<int> keypoint_index;
+    std::vector<KeyPoint> keypoints;
 
     //std::vector<std::set<int> > facet_neighbor;
 
@@ -169,7 +189,10 @@ namespace meshtk {
 
     
     //this a private function to register a detection keypoint
-    void register_vertex_keypoint(int, double, ScalarFunction);
+    void register_vertex_keypoint(int vertex_index, 
+				  double scale_distance, 
+				  double magnitude, // the extreme value of DoH
+				  ScalarFunction & scale_space_function);
 
     //geodesic::Mesh *geodesic_mesh; // geodesic mesh underlying
     //geodesic::GeodesicAlgorithmExact *geodesic_algorithm;	//exact algorithm for the mesh
@@ -230,8 +253,11 @@ namespace meshtk {
     // update vertices neighbor, argument coeff is to take all vertices surrounding
     // within a Euclidean distance.
     // return the average number of neighbor vertices associated
-    int update_vertex_neighbor_euclidean(int, double, std::map<int, double> &, std::set<int> &);
-    double update_vertex_neighbor_euclidean(double );//to update: vertex_neighbor[][]
+    int update_vertex_neighbor_euclidean(int source_vertex_index,
+					 double propagation_distance, 
+					 std::map<int, double> & vertex_neighbor,//update
+					 std::set<int> & facet_neighbor);//update
+    double update_vertex_neighbor_euclidean(double propagation_distance_coeff);//to update: vertex_neighbor_euclidean[][]
 
     // wrapper for geodesic algorithm
     // void geodesic_init();
@@ -239,10 +265,15 @@ namespace meshtk {
     // within a geodesic distance.  return the average number of neighbor vertices associated
     
     // for single source(vertex) with specific propapation distance    
-    int update_vertex_neighbor_geodesic(int, double, std::map<int, double> &, 
-					std::map<int, double>& , std::set<int> &); 
+    int update_vertex_neighbor_geodesic(int source_vertex_index, 
+					double propagation_distance,
+					std::map<int, double> &vertex_neighbor,//update
+					//region interest of vertices and facets
+					std::map<int, double> &vertex_neighbor_interest, 
+					std::set<int> &facet_neighbor_interest);
+
     // for all sources
-    double update_vertex_neighbor_geodesic(double ); 
+    double update_vertex_neighbor_geodesic(double propagation_distance_coeff); 
 
     // guassian smooth an attribute function 
     // input: v0
@@ -293,15 +324,20 @@ namespace meshtk {
     // The following procedure is SIFT keypoint detection for scalar 
     // function on static manifold mesh domain. The input is scalar
     // function, the keypoints detected are given by boolean function
-    int detect_vertex_keypoint(ScalarFunction &, BooleanFunction &, int, int pre_iter=1);
+    int detect_vertex_keypoint(ScalarFunction &valueScalar, 
+			       BooleanFunction &keyBoolean, 
+			       int iter, //total iteration including preprocessing smooth
+			       int pre_iter = 0);
+
     
 
     /**************************************************************************/
     // allocate memory for attribute function
-    unsigned attribute_allocate(unsigned, unsigned);
+    unsigned attribute_allocate(unsigned item, //{MESHTK_VERTEX, MESHTK_FACET, MESHTK_HALFEDGE}
+				unsigned type);//{MESHTK_SCALAR, MESHTK_VECTOR, MESHTK_BOOLEAN}
     // return reference of attribute function by register number
-    void *attribute_extract(unsigned );
-    void attribute_delete(unsigned, unsigned);
+    void *attribute_extract(unsigned indice); // Indice of given attribute, see mesh_precompile.hh
+    void attribute_delete(unsigned indice, unsigned type);
 
 
     /**************************************************************************/

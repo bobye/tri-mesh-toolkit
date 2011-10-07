@@ -73,6 +73,7 @@ namespace meshtk {
     GLuint *mark_array;
 
   public:
+    MeshMarker(TriMesh *, std::vector<int> &);
     MeshMarker(TriMesh *, BooleanFunction *);
     void prepare();
     void draw();

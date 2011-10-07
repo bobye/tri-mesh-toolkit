@@ -335,16 +335,17 @@ namespace meshtk{
 				ScalarFunction& scale_space_function) {
     ScalarNeighborFunction buffer_vertex_neighbor_euclidean;
     NeighborIndex buffer_facet_neighbor_euclidean;
+    double circular_window_size = 1.5;
     
     keypoints.push_back(KeyPoint(vertex_index, scale_distance, magnitude));
 
     update_vertex_neighbor_euclidean(vertex_index, 
-				     scale_distance,
+				     circular_window_size * scale_distance,
 				     buffer_vertex_neighbor_euclidean,
 				     buffer_facet_neighbor_euclidean);
 
     update_vertex_neighbor_geodesic(vertex_index,
-				    scale_distance,
+				    circular_window_size * scale_distance,
 				    keypoints.back().vertex_neighbor,
 				    keypoints.back().facet_neighbor,
 				    buffer_vertex_neighbor_euclidean,

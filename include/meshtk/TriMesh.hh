@@ -157,10 +157,10 @@ namespace meshtk {
 
     // the template function is used to compute a gradient of a scalar function on surface domain
     // class T may be ScalarFunction, or ScalarNeighborFunction
-    // the return Vector is projected to the tangent plane 
+    // the return Vector lies in the facet plane 
     template <class T>
-    Vector vertex_gradient(int vertex_index, 
-			   T scalars_defined_neighbor) {
+    Vector facet_gradient(int facet_index,
+			   T scalars_vertex_neighbor) {
       return Vector(0,0,0);
     };
 			   

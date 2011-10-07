@@ -293,6 +293,8 @@ namespace meshtk{
     int count = 0;
     vertex_neighbor_geodesic.clear();
     vertex_neighbor_geodesic.resize(vertex_num);
+    facet_neighbor_geodesic.clear();
+    facet_neighbor_geodesic.resize(vertex_num);
 
 
     for (int i=0;i < vertex_num; ++i) {

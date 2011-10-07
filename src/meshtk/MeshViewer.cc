@@ -217,7 +217,7 @@ namespace meshtk {
     :MeshPainter(pmesh) {
     mark_count = index_mark.size();
     mark_array = new GLuint[mark_count];    
-    for (int i=0; i<mark_count; ++i) mark_array[i] = index_mark[i];
+    for (unsigned i=0; i<mark_count; ++i) mark_array[i] = index_mark[i];
   }
 
   void MeshMarker::prepare(){

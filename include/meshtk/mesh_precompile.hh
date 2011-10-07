@@ -56,4 +56,12 @@
 
 // Point section: 96 - 127
 #define MESHTK_VERTEX_COORD             96
+
+
+
+
+
+
+
+
 #endif /* _MESH_PRECOMPILE_HH_ */

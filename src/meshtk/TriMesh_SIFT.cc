@@ -37,10 +37,10 @@ namespace meshtk{
 
   int TriMesh::update_vertex_neighbor_euclidean(int source_vertex_index, 
 						double propagation_distance,
-						std::map<int, double> &vertex_neighbor,
-						std::set<int> &facet_neighbor){
+						ScalarNeighborFunction &vertex_neighbor,
+						NeighborIndex &facet_neighbor){
     
-    //std::set<int> vertex_outbound;
+    //NeighborIndex vertex_outbound;
     Vector displace; double distance;
     front_circ *start = new front_circ; //start->prev = start->next = start;
     front_circ *front = start;
@@ -158,10 +158,10 @@ namespace meshtk{
     // which is not very efficient
     /*
     for (int i = 0; i < vertex_num; ++i) {
-      std::set<int> buffer;      
+      NeighborIndex buffer;      
       buffer.insert(i);
       while (!buffer.empty()) {
-	std::set<int>::iterator it = buffer.begin();
+	NeighborIndex::iterator it = buffer.begin();
 	Vector displace = IV[*it]->point()- IV[i]->point();
 	
 	if (displace * displace < distance_threshold * distance_threshold) {
@@ -218,16 +218,17 @@ namespace meshtk{
 
   int TriMesh::update_vertex_neighbor_geodesic(int source_vertex_index, 
 					       double propagation_distance,
-					       std::map<int, double> &vertex_neighbor,
-					       std::map<int, double> &vertex_neighbor_interest,
-					       std::set<int> &facet_neighbor_interest) {
+					       ScalarNeighborFunction &vertex_neighbor,
+					       NeighborIndex &facet_neighbor,
+					       ScalarNeighborFunction &vertex_neighbor_interest,
+					       NeighborIndex &facet_neighbor_interest) {
 
     std::vector<double> points(3*vertex_neighbor_interest.size());
     std::vector<unsigned> faces(3*facet_neighbor_interest.size());
     std::map<unsigned, unsigned> local_index;
     int local_source_vertex_index, j=0;
 
-    for (std::map<int, double>::iterator it=vertex_neighbor_interest.begin();
+    for (ScalarNeighborFunction::iterator it=vertex_neighbor_interest.begin();
 	 it != vertex_neighbor_interest.end(); ++it, ++j) {
 
       points[3*j] = vertex_array[3 * (it->first)];
@@ -239,7 +240,7 @@ namespace meshtk{
     }
 
     j=0;
-    for (std::set<int>::iterator it=facet_neighbor_interest.begin();
+    for (NeighborIndex::iterator it=facet_neighbor_interest.begin();
 	 it!=facet_neighbor_interest.end(); ++it, ++j) {
 
       faces[3*j] = local_index[tri_index_array[3* (*it)]];
@@ -260,14 +261,22 @@ namespace meshtk{
     // propagation with certain distance
     algorithm.propagate(single_source, propagation_distance);	
 
-    for(std::map<int, double>::iterator it = vertex_neighbor_interest.begin();
+    facet_neighbor = facet_neighbor_interest; // copy the elements.
+
+    for(ScalarNeighborFunction::iterator it = vertex_neighbor_interest.begin();
 	it != vertex_neighbor_interest.end(); ++it) {
       geodesic::SurfacePoint p(&mesh.vertices()[local_index[it->first]]);		
       
       double distance;
       algorithm.best_source(p,distance);		//for a given surface point, find closets source and distance to this source
-      if (distance < propagation_distance) 
+      if (distance < propagation_distance) // it is within the geodesic range
 	vertex_neighbor[it->first] = distance;
+      else { // otherwise remove its associated facets from facet_neighbor
+	HV_circulator hv = IV[it->first]->vertex_begin();
+	do {
+	  if (hv->facet()!=NULL) facet_neighbor.erase(hv->facet()->index);
+	} while (++hv != IV[it->first]->vertex_begin());
+      }
     }
 
     return vertex_neighbor.size();
@@ -292,6 +301,7 @@ namespace meshtk{
       count += update_vertex_neighbor_geodesic(i, 
 					       propagation_distance, 
 					       vertex_neighbor_geodesic[i],
+					       facet_neighbor_geodesic[i],
 					       vertex_neighbor_euclidean[i],
 					       facet_neighbor_euclidean[i]);
       //std::cout << i << std::endl;
@@ -306,8 +316,8 @@ namespace meshtk{
 				double scale_distance,
 				double magnitude,
 				ScalarFunction& scale_space_function) {
-    std::map<int, double> buffer_vertex_neighbor_euclidean;
-    std::set<int> buffer_facet_neighbor_euclidean;
+    ScalarNeighborFunction buffer_vertex_neighbor_euclidean;
+    NeighborIndex buffer_facet_neighbor_euclidean;
     
     keypoints.push_back(KeyPoint(vertex_index, scale_distance, magnitude));
 
@@ -318,7 +328,8 @@ namespace meshtk{
 
     update_vertex_neighbor_geodesic(vertex_index,
 				    scale_distance,
-				    keypoints.back().neighbor,
+				    keypoints.back().vertex_neighbor,
+				    keypoints.back().facet_neighbor,
 				    buffer_vertex_neighbor_euclidean,
 				    buffer_facet_neighbor_euclidean);
     
@@ -345,14 +356,14 @@ namespace meshtk{
 
     // update static coefficient for smooth
     double sigma = coeff * avg_edge_len;
-    std::vector<std::map<int, double> > coeff_list(vertex_num);
+    std::vector<ScalarNeighborFunction > coeff_list(vertex_num);
 
 
     for (int i=0; i<vertex_num; ++i) {
       double scale, total_scale = 0;
 
       
-      for (std::map<int, double>::iterator it = (*neighbor_distance_map)[i].begin();
+      for (ScalarNeighborFunction::iterator it = (*neighbor_distance_map)[i].begin();
 	   it != (*neighbor_distance_map)[i].end(); ++it) {
 	// use the euclidean distance to contruct smooth stencil
 	scale = it->second;
@@ -361,7 +372,7 @@ namespace meshtk{
 	coeff_list[i][it->first] = scale;
       }
 
-      for (std::map<int, double>::iterator it = coeff_list[i].begin();
+      for (ScalarNeighborFunction::iterator it = coeff_list[i].begin();
 	   it != coeff_list[i].end(); ++it) {
 	it->second /= total_scale;
       }

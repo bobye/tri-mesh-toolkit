@@ -26,56 +26,10 @@
 #include <set>
 #include "mesh_topo.hh"
 #include "mesh_precompile.hh"
-
-
+#include "MeshAttributeType.hh"
+#include "KeyPoint.hh"
 
 namespace meshtk {
-
-  // ISHalfedge_list represents Index System of Halfedges by std::vector. 
-  // After initialization of class TriMesh by
-  //    ISHalfedge_list IH;
-  // One could use data member IH to reference a halfedge_handle instance
-  // For example:
-  //    Vertex_handle v = IH[i]->vertex(); //refer the vertex attached with
-  //                                       //the i-th halfedge
-  // ISVertex_list and ISFacet_list can be used in the same way.
-  typedef std::vector<Halfedge_handle> ISHalfedgeList;
-  typedef std::vector<Vertex_handle> ISVertexList;
-  typedef std::vector<Facet_handle> ISFacetList;
-
-  // Feature type defined from mesh, VectorFunction represents 3D vector function
-  // define over mesh domain, with respect to halfedges, vertices or facets.
-  // ScalarFunction and BooleanFunction correspond to scalar and boolean
-  // function defined over mesh domain.
-  typedef std::vector<Vector> VectorFunction; // 
-  typedef std::vector<double> ScalarFunction; // displayed by color ramper
-  typedef std::vector<double> BooleanFunction;// displayed by point marker.
-
-  // Curvature data type
-  struct Curvature {
-  public:
-    Curvature (const double pc0, const double pc1, const double hc, const double kc) 
- :principle_curv0(pc0), principle_curv1(pc1), mean_curv(hc), gaussian_curv(kc){}
-    const double principle_curv0, principle_curv1, mean_curv, gaussian_curv;
-    
-    static Curvature tensor_compute(double, double, double);
-  };
-
-  // KeyPoint data type
-  struct KeyPoint {
-  public:  
-
-    int index; //reference in mesh vertex
-    double scale; // scale distance in mesh surface
-    double magnitude; // the extreme of DoH
-
-    std::map<int, double> neighbor;
-    
-    KeyPoint(int i, double s, double m) :
-      index(i), scale(s), magnitude(m) {
-    }
-  
-  };
 
 
 
@@ -143,23 +97,26 @@ namespace meshtk {
 
     // neighbor vertices indices, which store the a neighborhood of vertex
     // the indices of neighbor are stored in set with an iterator access
-    //std::vector<std::set<int> > vertex_neighbor;
+    //std::vector<NeighborIndex > vertex_neighbor;
     // neighbor vertices indices and Euclidean distance
-    std::vector<std::map<int, double> > vertex_neighbor_euclidean;
+    std::vector<ScalarNeighborFunction > vertex_neighbor_euclidean;
     // neighbor facets of vertex with a Euclidean distance
-    std::vector<std::set<int> > facet_neighbor_euclidean;
+    std::vector<NeighborIndex > facet_neighbor_euclidean;
 
     // neighbor vertices indices and geodesic distance
-    std::vector<std::map<int, double> > vertex_neighbor_geodesic;
+    std::vector<ScalarNeighborFunction > vertex_neighbor_geodesic;
+    // neighbor facets of vertex with a geodesic distance
+    std::vector<NeighborIndex > facet_neighbor_geodesic;
 
-    std::vector<std::map<int, double> > *neighbor_distance_map;
+
+    std::vector<ScalarNeighborFunction > *neighbor_distance_map;
 
     // neighbor vertices of keypoints, which is naturally a larger neighbor
-    //std::vector<std::map<int, double> > keypoint_neighbor;
+    //std::vector<ScalarNeighborFunction > keypoint_neighbor;
     //std::vector<int> keypoint_index;
     std::vector<KeyPoint> keypoints;
 
-    //std::vector<std::set<int> > facet_neighbor;
+    //std::vector<NeighborIndex > facet_neighbor;
 
     double avg_edge_len;//average edge length globally
 
@@ -196,6 +153,26 @@ namespace meshtk {
 
     //geodesic::Mesh *geodesic_mesh; // geodesic mesh underlying
     //geodesic::GeodesicAlgorithmExact *geodesic_algorithm;	//exact algorithm for the mesh
+
+
+    // the template function is used to compute a gradient of a scalar function on surface domain
+    // class T may be ScalarFunction, or ScalarNeighborFunction
+    // the return Vector is projected to the tangent plane 
+    template <class T>
+    Vector vertex_gradient(int vertex_index, 
+			   T scalars_defined_neighbor) {
+      return Vector(0,0,0);
+    };
+			   
+
+
+
+
+
+
+
+
+
 
     ///////////////////////////////////////////////////////////////////////
     // Map register number to reference of functions define over mesh domain. 
@@ -255,8 +232,8 @@ namespace meshtk {
     // return the average number of neighbor vertices associated
     int update_vertex_neighbor_euclidean(int source_vertex_index,
 					 double propagation_distance, 
-					 std::map<int, double> & vertex_neighbor,//update
-					 std::set<int> & facet_neighbor);//update
+					 ScalarNeighborFunction & vertex_neighbor,//update
+					 NeighborIndex & facet_neighbor);//update
     double update_vertex_neighbor_euclidean(double propagation_distance_coeff);//to update: vertex_neighbor_euclidean[][]
 
     // wrapper for geodesic algorithm
@@ -267,10 +244,11 @@ namespace meshtk {
     // for single source(vertex) with specific propapation distance    
     int update_vertex_neighbor_geodesic(int source_vertex_index, 
 					double propagation_distance,
-					std::map<int, double> &vertex_neighbor,//update
+					ScalarNeighborFunction &vertex_neighbor,//update
+					NeighborIndex & facet_neighbor,
 					//region interest of vertices and facets
-					std::map<int, double> &vertex_neighbor_interest, 
-					std::set<int> &facet_neighbor_interest);
+					ScalarNeighborFunction &vertex_neighbor_interest, 
+					NeighborIndex &facet_neighbor_interest);
 
     // for all sources
     double update_vertex_neighbor_geodesic(double propagation_distance_coeff); 
@@ -288,10 +266,10 @@ namespace meshtk {
 	T vec = zero;
 	double scale, total_scale = 0;      
 
-	for (std::map<int, double>::iterator it = (*neighbor_distance_map)[i].begin();
+	for (ScalarNeighborFunction::iterator it = (*neighbor_distance_map)[i].begin();
 	     it != (*neighbor_distance_map)[i].end(); ++it) {
 
-	//	for (std::set<int>::iterator it = vertex_neighbor[i].begin();
+	//	for (NeighborIndex::iterator it = vertex_neighbor[i].begin();
 	//	     it != vertex_neighbor[i].end(); ++it) {
 	  scale = it->second;
 	  scale = vertex_area[it->first] * std::exp( - (scale * scale) / (2 * sigma * sigma));
@@ -307,12 +285,12 @@ namespace meshtk {
 
     // smooth with prescribed coefficient, normalized precondition
     template <class T>
-    void smooth_vertex(std::vector<std::map<int, double> > &coeff, 
+    void smooth_vertex(std::vector<ScalarNeighborFunction > &coeff, 
 				std::vector<T> &v0, std::vector<T> &v1, T zero){
       for (int i = 0; i < vertex_num; i++){
 	v1[i] = zero;	
 
-	for (std::map<int, double>::iterator it = coeff[i].begin();
+	for (ScalarNeighborFunction::iterator it = coeff[i].begin();
 	     it != coeff[i].end(); ++it) {
 	  v1[i] = v1[i] + it->second * v0[it->first];
 	}

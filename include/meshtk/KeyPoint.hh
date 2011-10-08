@@ -24,7 +24,8 @@
 #include <map>
 #include "MeshAttributeType.hh"
 
-#define MESHTK_SIFT_BINS_NUMBER (36)
+#define MESHTK_SIFT_BINS_NUMBER (8)
+#define MESHTK_ORIENTATION_BINS_NUMBER (36)
 
 namespace meshtk {
 

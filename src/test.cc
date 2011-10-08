@@ -69,13 +69,18 @@ int main(int argc, char *argv[])
   }
   */
   // keypoint detection
-
+  /*
   unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
   meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);
   
+
   mesh.update_curvature();
   meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
   mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, atoi(argv[2]));
+  */
+
+  mesh.update_all_vertices_SIFT();
+  
 
   mesh.print_keypoint_SIFT(argv[1]);
 
@@ -103,7 +108,7 @@ int main(int argc, char *argv[])
   mesh_base.write("out","off");
   */
 
-
+  /*
   meshtk::MeshViewer viewer(argc, argv);
   //  meshtk::MeshRamper ramper(&mesh, mesh_hcurv);
   meshtk::MeshMarker marker(&mesh, mesh_keypoint);
@@ -113,7 +118,7 @@ int main(int argc, char *argv[])
 
   viewer.init();// call this func last before loop
   viewer.view();
-    
+  */    
 
 
 

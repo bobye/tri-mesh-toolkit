@@ -330,9 +330,9 @@ namespace meshtk{
   }
 
   void TriMesh::register_vertex_keypoint(int vertex_index, 
-				double scale_distance,
-				double magnitude,
-				ScalarFunction& scale_space_function) {
+					 double scale_distance,
+					 double magnitude) {
+    //				ScalarFunction& scale_space_function) {
     ScalarNeighborFunction buffer_vertex_neighbor_euclidean;
     NeighborIndex buffer_facet_neighbor_euclidean;
     double circular_window_size = 1.5;
@@ -350,14 +350,14 @@ namespace meshtk{
 				    keypoints.back().facet_neighbor,
 				    buffer_vertex_neighbor_euclidean,
 				    buffer_facet_neighbor_euclidean);
-    update_keypoint_SIFT(keypoints.back(), scale_space_function);
+    //update_keypoint_SIFT(keypoints.back(), scale_space_function);
     
   }
 
-  void TriMesh::update_keypoint_SIFT(KeyPoint& keypoint, ScalarFunction& function){   
+  void TriMesh::update_keypoint_SIFT(KeyPoint& keypoint) { //, ScalarFunction& function){   
 
     for (int j=0; j<MESHTK_SIFT_BINS_NUMBER; ++j) keypoint.histogram[j] = 0;
-    
+    /*    
     for (NeighborIndex::iterator it=keypoint.facet_neighbor.begin();
 	 it!=keypoint.facet_neighbor.end(); ++it) {
       double gradient[2], propagation_direction[2];
@@ -379,7 +379,27 @@ namespace meshtk{
       keypoint.histogram[n] += magnitude * facet_area[*it]* std::exp(- avg_distance * avg_distance / (2 * keypoint.scale * keypoint.scale));
 	
     }
+    */      
+
+    double orientation_histogram[MESHTK_ORIENTATION_BINS_NUMBER] = {};
+
+    for (NeighborIndex::iterator it=keypoint.facet_neighbor.begin();
+	 it!=keypoint.facet_neighbor.end(); ++it) {
+      double normal[2];
+      normal[0] = facet_norm[*it] * vertex_LC[0][keypoint.index];
+      normal[1] = facet_norm[*it] * vertex_LC[1][keypoint.index];
+      double magnitude = std::sqrt(normal[0]*normal[0] + normal[1]*normal[1]);
+      double sin_symbol = (normal[1]>0)? 1:-1;
+      double theta = sin_symbol * std::acos(normal[0]/magnitude) * 180/MESHTK_PI + 180;
+      int n = (int) ((theta + 180/MESHTK_ORIENTATION_BINS_NUMBER) * MESHTK_ORIENTATION_BINS_NUMBER/360.) % MESHTK_ORIENTATION_BINS_NUMBER ;
+      double avg_distance = (keypoint.vertex_neighbor[tri_index_array[*it]*3] +
+			     keypoint.vertex_neighbor[tri_index_array[*it]*3+1] +
+			     keypoint.vertex_neighbor[tri_index_array[*it]*3+2])/3.;
+      orientation_histogram[n] += magnitude * facet_area[*it]* std::exp(- avg_distance * avg_distance / (2 * keypoint.scale * keypoint.scale));
       
+    }
+
+
     double total_weight = 0;
     for (int j=0;j < MESHTK_SIFT_BINS_NUMBER; ++j) total_weight += keypoint.histogram[j];
 
@@ -387,7 +407,22 @@ namespace meshtk{
     
 
   }
+  
+  void TriMesh::update_all_vertices_SIFT(double coeff) {
+    double neighbor_size = 3*coeff > 3.? 3*coeff: 3.;
 
+    keypoints.clear();
+    update_vertex_localchart();
+
+    for (int i = 0; i<vertex_num; ++i) {
+      register_vertex_keypoint(i, 
+			       neighbor_size,
+			       0.);
+      update_keypoint_SIFT(keypoints.back());
+      //std::cout<< i <<std::endl;
+    }
+
+  }
 
   int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, 
 				      BooleanFunction &keyBoolean, 
@@ -406,8 +441,8 @@ namespace meshtk{
 
 
     clock_start("Start keypoint detection");
-
-
+    keypoints.clear();
+    
     // update static coefficient for smooth
     double sigma = coeff * avg_edge_len;
     std::vector<ScalarNeighborFunction > coeff_list(vertex_num);
@@ -462,7 +497,7 @@ namespace meshtk{
     for (int i=0; i< iter; ++i) {
       
       //      double radio = 0,// (0.001 / std::sqrt(total_area)) * coeff * coeff, 
-      double radio2 = 0.05 * coeff * coeff;
+      double radio2 = 0;//0.05 * coeff * coeff;
 
       int zero = buffer_curr, one=(buffer_curr +1)%4, 
 	two=(buffer_curr +2)%4, three=(buffer_curr +3)%4;
@@ -495,8 +530,8 @@ namespace meshtk{
 	      { keyBoolean[j] = true; ++ count; 
 		register_vertex_keypoint(j, 
 					 std::sqrt(i+2)* sigma,
-					 std::fabs(buffer_dv[one][j] * avg_edge_len / radio2),
-					 buffer_dv[one]);
+					 std::fabs(buffer_dv[one][j] * avg_edge_len / radio2));
+		//                       buffer_dv[one]);
 		continue;}
 
 	  
@@ -514,8 +549,8 @@ namespace meshtk{
 	      { keyBoolean[j] = true; ++ count; 
 		register_vertex_keypoint(j, 
 					 std::sqrt(i+2)* sigma,
-					 std::fabs(buffer_dv[one][j]) * avg_edge_len / radio2,
-					 buffer_dv[one]);
+					 std::fabs(buffer_dv[one][j]) * avg_edge_len / radio2);
+		//					 buffer_dv[one]);
 		continue; }
 
 	  }

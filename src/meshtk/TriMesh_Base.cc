@@ -197,7 +197,7 @@ namespace meshtk {
 
   void TriMesh::update_base(){//base update halfedge, facet, vertex.
 
-    clock_start("Update base ...");
+    clock_start("Update base");
     update_halfedge();
 
     update_facet();

@@ -148,8 +148,8 @@ namespace meshtk {
     //this a private function to register a detection keypoint
     void register_vertex_keypoint(int vertex_index, 
 				  double scale_distance, 
-				  double magnitude, // the extreme value of DoH
-				  ScalarFunction & scale_space_function);
+				  double magnitude);//, // the extreme value of DoH
+				  //ScalarFunction & scale_space_function);
 
     //geodesic::Mesh *geodesic_mesh; // geodesic mesh underlying
     //geodesic::GeodesicAlgorithmExact *geodesic_algorithm;	//exact algorithm for the mesh
@@ -270,7 +270,9 @@ namespace meshtk {
     double update_vertex_neighbor_geodesic(double propagation_distance_coeff); 
 
     // to update keypoints SIFT feature
-    void update_keypoint_SIFT(KeyPoint &keypoint, ScalarFunction &function);
+    void update_keypoint_SIFT(KeyPoint &keypoint);//,
+			      //ScalarFunction &function);
+    void update_all_vertices_SIFT(double coeff =1.);
 
     // The following procedure is SIFT keypoint detection for scalar 
     // function on static manifold mesh domain. The input is scalar

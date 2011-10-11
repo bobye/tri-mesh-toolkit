@@ -27,8 +27,8 @@
 #include <geodesic/geodesic_algorithm_exact.h>
 
 
-namespace mesthtk {
-  double update_vertex_geodesic(int source_vertex_index,
+namespace meshtk {
+  double TriMesh::update_vertex_geodesic(int source_vertex_index,
 				ScalarFunction & geodesic_distance){
     // pre condition with function update_compact_base()
     geodesic::Mesh mesh; 

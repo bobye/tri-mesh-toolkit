@@ -63,6 +63,7 @@ namespace meshtk {
     
     // halfedge vector
     VectorFunction halfedge_vec;    
+    ScalarFunction halfedge_length;
 
     // local chart(coordinate axis) used in tangent projection 
     // to achieve local parametrization 
@@ -187,9 +188,6 @@ namespace meshtk {
     };
 
 
-
-
-
     ///////////////////////////////////////////////////////////////////////
     // Map register number to reference of functions define over mesh domain. 
     // Register number is unsigned integer and have some predefined ones for inherent item
@@ -275,6 +273,14 @@ namespace meshtk {
     double update_vertex_geodesic(int source_vertex_index,
 				  ScalarFunction & geodesic_distance);
 
+    // update biharmonic distance overall from a given source_vertex_index
+    double update_vertex_biharmonic(int source_vertex_index,
+				    ScalarFunction & geodesic_distance);
+
+
+
+
+
 
     // to update keypoints SIFT feature
     void update_keypoint_SIFT(KeyPoint &keypoint);//,
@@ -290,10 +296,12 @@ namespace meshtk {
 			       int pre_iter = 0);
 
     void print_keypoint_SIFT(std::string filename);
+    
 
-
-
-
+    // Initialize PETSc mat and vec
+    void PETSc_init(int argc, char **argv);
+    void PETSc_assemble_cubicFEM_LBmat();
+    void PETSc_assemble_linearFEM_LBmat();
 
 
 

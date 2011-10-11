@@ -110,7 +110,7 @@ namespace meshtk {
       {
 	h = IH[i];
 	halfedge_vec[i] = h->vertex()->point() - h->prev()->vertex()->point();
-	avg_len += CGAL::sqrt(halfedge_vec[i] * halfedge_vec[i]);
+	avg_len += (halfedge_length[i] = CGAL::sqrt(halfedge_vec[i] * halfedge_vec[i]));
       }
     return avg_edge_len = avg_len/halfedge_num;
   }

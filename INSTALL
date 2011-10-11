@@ -13,6 +13,9 @@ by building libraries, and TCLAP is only used for MeshTK.
 * CGAL
  http://www.cgal.org/
 
+* PETSc
+ http://www.mcs.anl.gov/petsc/petsc-as/
+
 * TCLAP
  http://tclap.sourceforge.net/
 ---------------------------------------------------------------------
@@ -27,6 +30,10 @@ generate a binary excutable one in the current directly:
 
  MeshTK
 
+excutable examples in directory
+
+ example/
+
 and dynamic library and header files in directory
 
  include/
@@ -36,7 +43,7 @@ If you are just interested in compiling libmeshtk.so and would like
 to write program with support of libmeshtk, you may compile the 
 library only by typing
 
- make lib 
+ make libmeshtk
 
 ----------------------------------------------------------------------
 

@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
   meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
   mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, atoi(argv[2]));
   */
-
+  mesh.update_curvature();
   mesh.update_all_vertices_SIFT();
   
 

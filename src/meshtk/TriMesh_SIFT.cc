@@ -381,10 +381,11 @@ namespace meshtk{
     }
     */      
 
-    double orientation_histogram[MESHTK_ORIENTATION_BINS_NUMBER] = {};
+    //double orientation_histogram[MESHTK_ORIENTATION_BINS_NUMBER] = {};
 
     for (NeighborIndex::iterator it=keypoint.facet_neighbor.begin();
 	 it!=keypoint.facet_neighbor.end(); ++it) {
+      /*
       double normal[2];
       normal[0] = facet_norm[*it] * vertex_LC[0][keypoint.index];
       normal[1] = facet_norm[*it] * vertex_LC[1][keypoint.index];
@@ -396,7 +397,16 @@ namespace meshtk{
 			     keypoint.vertex_neighbor[tri_index_array[*it]*3+1] +
 			     keypoint.vertex_neighbor[tri_index_array[*it]*3+2])/3.;
       orientation_histogram[n] += magnitude * facet_area[*it]* std::exp(- avg_distance * avg_distance / (2 * keypoint.scale * keypoint.scale));
-      
+      */
+
+      double k0=facet_PC0[*it], k1=facet_PC1[*it];
+      double theta = std::asin((k0+k1)/std::sqrt((k0*k0+k1*k1)*2)) * 360 /MESHTK_PI + 180;
+      //std::cout << k0+k1<<'\t'<<k0-k1<<'\t'<<theta <<std::endl;
+      int n = (int) ((theta+180/MESHTK_SIFT_BINS_NUMBER) * MESHTK_SIFT_BINS_NUMBER / 360) % MESHTK_SIFT_BINS_NUMBER;
+      double avg_distance = (keypoint.vertex_neighbor[tri_index_array[*it]*3] +
+			     keypoint.vertex_neighbor[tri_index_array[*it]*3+1] +
+			     keypoint.vertex_neighbor[tri_index_array[*it]*3+2])/3.;
+      keypoint.histogram[n] += facet_area[*it] * std::exp(- avg_distance * avg_distance / (2 * keypoint.scale * keypoint.scale));
     }
 
 
@@ -420,6 +430,7 @@ namespace meshtk{
 			       0.);
       update_keypoint_SIFT(keypoints.back());
       //std::cout<< i <<std::endl;
+      //break;
     }
 
   }

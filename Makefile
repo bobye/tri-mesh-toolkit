@@ -17,7 +17,7 @@ LIBPATH = -L$(LIBDIR)
 
 OBJDIR =obj
 
-OBJECTS = TriMesh_Base.o TriMesh_Curv.o TriMesh_SIFT.o TriMesh_UI.o DynamicTriMesh.o MeshViewer.o mesh_assist.o ##temp objects
+OBJECTS = TriMesh_Base.o TriMesh_Curv.o TriMesh_SIFT.o TriMesh_Dist.o TriMesh_UI.o DynamicTriMesh.o MeshViewer.o mesh_assist.o ##temp objects
 
 VPATH = src src/meshtk
 

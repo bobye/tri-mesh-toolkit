@@ -268,6 +268,13 @@ namespace meshtk {
 
     // for all sources
     double update_vertex_neighbor_geodesic(double propagation_distance_coeff); 
+    
+
+    // update geodesic distances overall from a given source_vertex_index
+    // return the average distance (area weighted) from source_vertex
+    double update_vertex_geodesic(int source_vertex_index,
+				  ScalarFunction & geodesic_distance);
+
 
     // to update keypoints SIFT feature
     void update_keypoint_SIFT(KeyPoint &keypoint);//,

@@ -2,4 +2,6 @@
 methk/*.cc
 
 # basic demo and toolkit using libmeshtk
+example/*.cc 
 main.cc
+test.cc ## just for debug and test

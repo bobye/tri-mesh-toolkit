@@ -22,7 +22,7 @@
 
 #include "meshtk/TriMesh.hh"
 
-
+#include <fstream>
 
 namespace meshtk{
 
@@ -69,6 +69,35 @@ namespace meshtk{
 
     attribute.erase(indice);
 
+  }
+
+  void TriMesh::attribute_print(unsigned indice, unsigned type, std::string filename) {
+
+    filename.append(".attr");
+    std::ofstream file;
+    file.open(filename.c_str());
+    
+    if (type == MESHTK_SCALAR) {
+      ScalarFunction *v = (ScalarFunction *) attribute[indice];
+      int n = v->size();
+      for (int i = 0; i< n; ++i) 
+	file << (*v)[i] << '\n';
+    }
+    else if (type == MESHTK_VECTOR) {
+      VectorFunction *v = (VectorFunction *) attribute[indice];
+      int n = v->size();
+      for (int i = 0; i< n; ++i) 
+	file << (*v)[i] << '\n';
+    }
+    else if (type == MESHTK_BOOLEAN) {
+      BooleanFunction *v = (BooleanFunction *) attribute[indice];
+      int n = v->size();
+      for (int i = 0; i< n; ++i) 
+	file << (*v)[i] << '\n';
+    }
+    else { std::cerr << "Attribute function: type indice is not correct, use MESHTK_SCALAR, MESHTK_VECTOR, MESHTK_BOOLEAN" << std::endl; exit(1);}
+    
+    file.close();
   }
   
   void * TriMesh::attribute_extract(unsigned indice){

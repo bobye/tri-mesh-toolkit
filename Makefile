@@ -12,35 +12,56 @@ LIBTCLAP = -I/usr/local/include/tclap
 #####################################################################################
 ## DO NOT change anything below here
 
-LIBDIR=lib
+LIBDIR= lib
 LIBPATH = -L$(LIBDIR)
 
-OBJDIR =obj
+OBJDIR = obj
 
 OBJECTS = TriMesh_Base.o TriMesh_Curv.o TriMesh_SIFT.o TriMesh_Dist.o TriMesh_UI.o DynamicTriMesh.o MeshViewer.o mesh_assist.o ##temp objects
 
-VPATH = src src/meshtk
+EXDIR = example
+
+EXAMPLE = ex0
+
+VPATH = src src/meshtk src/example
 
 
 
 default: all
-
+## library
 $(OBJDIR)/%.o: %.cc
 	$(CPP) -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $@ $<
 
 lib: $(addprefix $(OBJDIR)/, $(OBJECTS))
 	$(CPP) -shared -Wl,-soname,$(LIBDIR)/libmeshtk.so -o $(LIBDIR)/libmeshtk.so $^
 
+## toolkits
 MeshTK: main.cc
 	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) $(LIBTCLAP) -lmeshtk -o MeshTK $< 
 
 test: test.cc
 	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) -lmeshtk -o test $<
 
+## examples
+$(EXDIR)/ex0: ex0.cc
+	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) -lmeshtk -o $@ $<
+
+example: $(addprefix $(EXDIR)/, $(EXAMPLE))
+
 all: lib MeshTK test
 
 clean: 
-	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so MeshTK test
+	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so $(EXDIR)/* MeshTK test
+
+
+
+
+
+
+
+
+
+
 
 
 

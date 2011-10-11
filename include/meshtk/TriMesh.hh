@@ -355,7 +355,7 @@ namespace meshtk {
     // return reference of attribute function by register number
     void *attribute_extract(unsigned indice); // Indice of given attribute, see mesh_precompile.hh
     void attribute_delete(unsigned indice, unsigned type);
-
+    void attribute_print(unsigned indice, unsigned type, std::string filename);
 
     /**************************************************************************/
     

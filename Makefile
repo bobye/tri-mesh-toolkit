@@ -59,7 +59,7 @@ example: $(addprefix $(EXDIR)/, $(EXAMPLE))
 all: libmeshtk MeshTK test example
 
 cleanall:	
-	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so $(EXDIR)/* MeshTK test
+	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so $(EXDIR)/ex* MeshTK test
 
 
 

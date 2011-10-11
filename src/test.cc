@@ -78,11 +78,23 @@ int main(int argc, char *argv[])
   meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
   mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, atoi(argv[2]));
   */
+
+
+  // shape index dense descriptor (8-bin histogram)
   mesh.update_curvature();
   mesh.update_all_vertices_SIFT();
   
 
   mesh.print_keypoint_SIFT(argv[1]);
+
+
+  /*
+  // geodesic computation
+  unsigned GEODESIC_DISTANCE = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
+  meshtk::ScalarFunction * geo_dist = (meshtk::ScalarFunction *)mesh.attribute_extract(GEODESIC_DISTANCE);
+  mesh.update_vertex_geodesic(821, *geo_dist);
+  mesh.attribute_delete(GEODESIC_DISTANCE, MESHTK_SCALAR);
+  */
 
   // smooth iteration
   /*

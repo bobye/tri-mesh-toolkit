@@ -1,16 +1,16 @@
 /*
-  FILE: TriMesh_Curv.cc This file is part of MeshTK.
+  FILE: TriMesh_Curv.cc This file is part of tri-mesh-toolkit.
   It is a C++ source file which implements the curvature computation 
   of class TriMesh.
   
   Copyright (C) 2011 Jianbo YE
 
-  MeshTK is free software; you can redistribute it and/or
+  tri-mesh-toolkit is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
-  MeshTK is distributed in the hope that it will be useful,
+  tri-mesh-toolkit is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.

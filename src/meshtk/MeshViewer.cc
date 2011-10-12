@@ -1,15 +1,15 @@
 /*
-  FILE: MeshViewer.cc This file is part of MeshTK.
+  FILE: MeshViewer.cc This file is part of tri-mesh-toolkit.
   It is a C++ source file which implements the classes related to visualization.
   
   Copyright (C) 2011 Jianbo YE
 
-  MeshTK is free software; you can redistribute it and/or
+  tri-mesh-toolkit is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
-  MeshTK is distributed in the hope that it will be useful,
+  tri-mesh-toolkit is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
@@ -279,7 +279,7 @@ namespace meshtk {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowPosition(200.0, 0.0);
     glutInitWindowSize(width, height);
-    glutCreateWindow("MeshTK - Viewer");
+    glutCreateWindow("tri-mesh-toolkit - Viewer");
 
     glShadeModel(GL_SMOOTH);// Enable Smooth Shading
     

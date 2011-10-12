@@ -1,15 +1,15 @@
 /*
-  FILE: meshtk/TriMesh.hh This file is part of MeshTK.
+  FILE: meshtk/TriMesh.hh This file is part of tri-mesh-toolkit.
   It is a C++ header file which defines the interface of class TriMesh. 
   
   Copyright (C) 2011 Jianbo YE
 
-  MeshTK is free software; you can redistribute it and/or
+  tri-mesh-toolkit is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
-  MeshTK is distributed in the hope that it will be useful,
+  tri-mesh-toolkit is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
@@ -33,7 +33,7 @@ namespace meshtk {
 
 
 
-  // class TriMesh is the main part of MeshTK, which manages almost all mesh processing functions
+  // class TriMesh is the main part of tri-mesh-toolkit, which manages almost all mesh processing functions
   // This class may not provide access to individual vertex or facet of mesh. User only manipulate
   // mesh globally, like compute normal, estimate curvature, denoise or smooth mesh, etc. and 
   // manage data by returning a pointer of array.

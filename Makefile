@@ -48,11 +48,11 @@ MeshTK: main.cc
 	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) $(LIBTCLAP) -lmeshtk -o MeshTK $< 
 
 test: test.cc
-	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) -lmeshtk -o test $<
+	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) -lmeshtk -o test $< 
 
 ## examples
 $(EXDIR)/ex0: ex0.cc
-	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) -lmeshtk -o $@ $<
+	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBPATH) -lmeshtk -o $@ $< 
 
 example: $(addprefix $(EXDIR)/, $(EXAMPLE))
 

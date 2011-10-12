@@ -82,13 +82,14 @@ namespace meshtk {
     IV =  ISVertexList(vertex_num);
     IF =  ISFacetList(facet_num);
 
-    halfedge_vec = VectorFunction(halfedge_num);
-    vertex_norm = VectorFunction(vertex_num);
-    facet_norm = VectorFunction(facet_num);
-    vertex_area = ScalarFunction(vertex_num);
-    facet_area = ScalarFunction(facet_num);
+    halfedge_vec.resize(halfedge_num);
+    halfedge_length.resize(halfedge_num);
+    vertex_norm.resize(vertex_num);
+    facet_norm .resize(facet_num);
+    vertex_area.resize(vertex_num);
+    facet_area.resize(facet_num);
 
-    vertex_avg_len = ScalarFunction(vertex_num);
+    vertex_avg_len.resize(vertex_num);
 
     int index_count=0;
     for(Vertex_iterator vitr= P.vertices_begin();vitr!= P.vertices_end();

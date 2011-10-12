@@ -81,18 +81,18 @@ const PetscInt I4[100]
       18,  27,   0, 270,-135, -54,-135,-189, 540, 162,
       36,  36,  36, 162, 162, 162, 162, 162, 162,1944};  
 
-  Mat mass_mat, stiff_mat;
 
 
-  void TriMesh::PETSc_assemble_cubicFEM_LBmat(){
+  void TriMesh::PETSc_assemble_cubicFEM_LBmat(std::string name){
     clock_start("Cubic elements assembly");
+    Mat mass_mat, stiff_mat;
 
     // matrix initialization
     PetscInt n = vertex_num + halfedge_num + facet_num;
 
     PetscInt *nnz=new PetscInt[n];
 
-    for (PetscInt i=0;i<vertex_num;i++)
+    for (PetscInt i=0;i<vertex_num;++i)
       nnz[i]=IV[i]->vertex_degree()*6+1;
 
     for (PetscInt i=0;i<halfedge_num;i++)
@@ -109,11 +109,62 @@ const PetscInt I4[100]
 
     delete nnz;
 
+    for (PetscInt i = 0; i < facet_num; ++i) {
+      Halfedge_handle h = IF[i]->halfedge();
+      
+      double l1 = halfedge_length[h->next()->index],
+	l2 = halfedge_length[h->index],
+	l3 = halfedge_length[h->prev()->index];
+
+      int idx[10];
+      idx[0]=h->vertex()->index;
+      idx[1]=h->next()->vertex()->index;
+      idx[2]=h->prev()->vertex()->index;
+      idx[3]=h->next()->index + vertex_num;
+      idx[4]=h->next()->opposite()->index + vertex_num;
+      idx[5]=h->prev()->index + vertex_num;
+      idx[6]=h->prev()->opposite()->index + vertex_num;
+      idx[7]=h->index + vertex_num;
+      idx[8]=h->opposite()->index + vertex_num;
+      idx[9]=i + vertex_num + halfedge_num;
+
+      double mass[100], stiff[100];
+      for (PetscInt j = 0; j < 100; ++j) {
+	mass[j]=facet_area[i]*I4[j]/6720.;
+	stiff[j]=(l1*l1*I1[j]+l2*l2*I2[j]+l3*l3*I3[j])/(320.* facet_area[i]);
+      }
+
+      MatSetValues(stiff_mat, 10, idx, 10, idx, stiff, ADD_VALUES);
+      MatSetValues(mass_mat, 10, idx, 10, idx, mass, ADD_VALUES);	       
+      
+    }
+
+
+    MatAssemblyBegin(stiff_mat, MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(stiff_mat, MAT_FINAL_ASSEMBLY);
+    MatAssemblyBegin(mass_mat, MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(mass_mat, MAT_FINAL_ASSEMBLY);
+
+    PetscViewer fmass, fstiff;
+    std::string filename_stiff = name, filename_mass = name;
+    filename_stiff += ".stiff"; filename_mass += ".mass";
+
+    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_mass.c_str() , FILE_MODE_WRITE, &fmass);
+    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_stiff.c_str(), FILE_MODE_WRITE, &fstiff);
+      
+    MatView(mass_mat, fmass);
+    MatView(stiff_mat, fstiff);
+
+    PetscViewerDestroy(&fmass); PetscViewerDestroy(&fstiff);
+    MatDestroy(&mass_mat); MatDestroy(&stiff_mat);
+
 
     clock_end();
   }
 
-  void TriMesh::PETSc_assemble_linearFEM_LBmat(){
+  void TriMesh::PETSc_assemble_linearFEM_LBmat( std::string name){
+
+
   }
 
 

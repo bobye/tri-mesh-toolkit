@@ -41,6 +41,10 @@ int main(int argc, char *argv[])
   mesh.init_index();
   mesh.update_base();
   mesh.update_compact_base();
+  
+  mesh.PETSc_init(argc, argv);
+  mesh.PETSc_assemble_cubicFEM_LBmat(argv[1]);
+
   //  mesh.load_coord();
   /*
   meshtk::DynamicTriMesh mesh_base;
@@ -81,12 +85,13 @@ int main(int argc, char *argv[])
 
 
   // shape index dense descriptor (8-bin histogram)
+  /*
   mesh.update_curvature();
   mesh.update_all_vertices_SIFT();
   
 
   mesh.print_keypoint_SIFT(argv[1]);
-
+  */
 
   /*
   // geodesic computation

@@ -300,8 +300,9 @@ namespace meshtk {
 
     // Initialize PETSc mat and vec
     void PETSc_init(int argc, char **argv);
-    void PETSc_assemble_cubicFEM_LBmat();
-    void PETSc_assemble_linearFEM_LBmat();
+    // assemble cubic FEM matrices of Laplace Beltrami operator, export to name.mass and name.stiff
+    void PETSc_assemble_cubicFEM_LBmat(std::string name);
+    void PETSc_assemble_linearFEM_LBmat(std::string name);
 
 
 

@@ -45,8 +45,13 @@ library only by typing
 
  make libmeshtk
 
+
+If you want to recompile the project, make sure you get cleaned
+
+ make cleanall
+
 ----------------------------------------------------------------------
 
 Author: Bobby, Jianbo YE<yelpoo@gmail.com>
-Date  : Sep 24, 2011
+Date  : OCT 12, 2011
 

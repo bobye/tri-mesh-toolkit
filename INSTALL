@@ -43,12 +43,12 @@ If you are just interested in compiling libmeshtk.so and would like
 to write program with support of libmeshtk, you may compile the 
 library only by typing
 
- make libmeshtk
+ make lib
 
 
 If you want to recompile the project, make sure you get cleaned
 
- make cleanall
+ make clean
 
 ----------------------------------------------------------------------
 

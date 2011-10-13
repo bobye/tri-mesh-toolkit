@@ -3,7 +3,6 @@
 ## make sure your environment variable PETSC_DIR are correctly given
 PETSC_DIR := /home/bobye/pub/petsc/petsc-3.2-p3
 include ${PETSC_DIR}/conf/variables
-include ${PETSC_DIR}/conf/rules
 
 CC = gcc
 CPP = g++
@@ -32,16 +31,16 @@ EXAMPLE = ex0
 
 VPATH = src src/meshtk src/example
 
-
+default: all
 ## library
 $(OBJDIR)/%.o: %.cc
 	$(CPP) -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $@ $<
 
 $(OBJDIR)/TriMesh_PETSc.o: TriMesh_PETSc.cc
-	-${CLINKER} -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $(OBJDIR)/TriMesh_PETSc.o src/meshtk/TriMesh_PETSc.cc ${PETSC_CCPPFLAGS}
+	$(CPP) -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $(OBJDIR)/TriMesh_PETSc.o src/meshtk/TriMesh_PETSc.cc ${PETSC_CCPPFLAGS}
 
-libmeshtk: $(addprefix $(OBJDIR)/, $(OBJECTS)) 
-	-${CLINKER} -shared -Wl,-soname,$(LIBDIR)/libmeshtk.so -o $(LIBDIR)/libmeshtk.so $^ ${PETSC_MAT_LIB}
+lib: $(addprefix $(OBJDIR)/, $(OBJECTS)) 
+	$(CPP) -shared -Wl,-soname,$(LIBDIR)/libmeshtk.so -o $(LIBDIR)/libmeshtk.so $^ ${PETSC_MAT_LIB}
 
 ## toolkits
 MeshTK: main.cc
@@ -56,9 +55,9 @@ $(EXDIR)/ex0: ex0.cc
 
 example: $(addprefix $(EXDIR)/, $(EXAMPLE))
 
-all: libmeshtk MeshTK test example
+all: lib MeshTK test example
 
-cleanall:	
+clean:	
 	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so $(EXDIR)/ex* MeshTK test
 
 

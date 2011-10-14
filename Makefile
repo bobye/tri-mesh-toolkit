@@ -2,7 +2,6 @@
 
 ## make sure your environment variable PETSC_DIR are correctly given
 PETSC_DIR := /home/bobye/pub/petsc/petsc-3.2-p3
-include ${PETSC_DIR}/conf/variables
 
 ## options for CGAL, OpenGL and freeglut 
 LIBOPT = -lCGAL -lglut -lGL -lGLU 
@@ -23,6 +22,8 @@ AR = ar
 
 #####################################################################################
 ## DO NOT change anything below here
+include ${PETSC_DIR}/conf/variables
+
 CPPFLAGS = -Wall -I include
 
 TOPDIR = $(shell pwd)

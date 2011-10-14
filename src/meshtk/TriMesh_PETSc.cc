@@ -24,7 +24,22 @@
 #include <petscmat.h>
 
 
+#include <iostream>
+#include <fstream>
+
 namespace meshtk {
+
+  // mass matrix and stiff matrix of Laplace Beltrami operator
+  Mat mass_mat, stiff_mat;
+
+  // eigenvalues and eigenvectors of generalized eigen problem defined by FEM_LBmat
+  std::vector<double> eig_value;
+  std::vector<Vec> eig_vector;
+  std::vector<double> eig_vector_norm;
+  // number of eigenvalues computed
+  PetscInt eig_num;
+
+
 
   static char help[] = "";
 
@@ -32,6 +47,9 @@ namespace meshtk {
     PetscInitialize(&argc,&argv,(char *)0,help);
   }
 
+  void TriMesh::PETSc_destroy() {
+    MatDestroy(&mass_mat); MatDestroy(&stiff_mat);    
+  }
 const PetscInt I1[100]={
 	0,	7,	-7,	57,	-24,	0,	0,	24,	-57,	0,
 	7,	0,	-7,	-24,	57,	-57,	24,	0,	0,	0,
@@ -83,9 +101,8 @@ const PetscInt I4[100]
 
 
 
-  void TriMesh::PETSc_assemble_cubicFEM_LBmat(std::string name){
-    clock_start("Cubic elements assembly");
-    Mat mass_mat, stiff_mat;
+  void TriMesh::PETSc_assemble_cubicFEM_LBmat(){
+    clock_start("Assemble cubic FE");
 
     // matrix initialization
     PetscInt n = vertex_num + halfedge_num + facet_num;
@@ -145,6 +162,32 @@ const PetscInt I4[100]
     MatAssemblyBegin(mass_mat, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mass_mat, MAT_FINAL_ASSEMBLY);
 
+
+
+    clock_end();
+  }
+
+  void TriMesh::PETSc_assemble_linearFEM_LBmat(){
+
+  }
+
+  void TriMesh::PETSc_load_FEM_LBmat(std::string name) {
+    PetscViewer fmass, fstiff;
+    std::string filename_stiff = name, filename_mass = name;
+    filename_stiff += ".stiff"; filename_mass += ".mass";
+
+    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_mass.c_str() , FILE_MODE_READ, &fmass);
+    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_stiff.c_str(), FILE_MODE_READ, &fstiff);
+
+    MatLoad(mass_mat,  fmass);
+    MatLoad(stiff_mat, fstiff);
+      
+    PetscViewerDestroy(&fmass); PetscViewerDestroy(&fstiff);
+
+
+  }
+
+  void TriMesh::PETSc_export_FEM_LBmat( std::string name) {
     PetscViewer fmass, fstiff;
     std::string filename_stiff = name, filename_mass = name;
     filename_stiff += ".stiff"; filename_mass += ".mass";
@@ -156,19 +199,56 @@ const PetscInt I4[100]
     MatView(stiff_mat, fstiff);
 
     PetscViewerDestroy(&fmass); PetscViewerDestroy(&fstiff);
-    MatDestroy(&mass_mat); MatDestroy(&stiff_mat);
 
+  }
+
+  
+
+  PetscScalar vec_inner_prod(Vec &v1, Vec &v2) {
+    Vec tmp;
+    PetscScalar inner_prod;
+    VecDuplicate(v1, &tmp);
+
+    MatMult(mass_mat, v2, tmp);
+    VecDot(v1, tmp, &inner_prod);
+    return inner_prod;
+  }
+
+  void TriMesh::PETSc_load_FEM_LBeigen(std::string name) {
+
+    clock_start("Load eigen");
+
+    std::ifstream f_eigvalue;
+    double eig;
+    std::string eigvalue_filename = name;
+    eigvalue_filename.append("/_ev.ascii");
+
+    f_eigvalue.open(eigvalue_filename.c_str());
+    
+    if (!f_eigvalue.is_open()) {
+      std::cerr << "Error: Cannot open file " << eigvalue_filename << std::endl;
+      exit(1);
+    }
+    
+    while (!f_eigvalue.eof()) { f_eigvalue >> eig; eig_value.push_back(eig); } 
+    f_eigvalue.close();
+    eig_num = eig_value.size();
+    
+    eig_vector.resize(eig_num);
+    for (int i =0; i< eig_num; ++i) {
+      char ffile[PETSC_MAX_PATH_LEN];
+      PetscViewer fd;
+  
+      sprintf(ffile,"%s/_%d.petsc",name.c_str(),i);
+      PetscViewerBinaryOpen(PETSC_COMM_SELF, ffile, FILE_MODE_READ, &fd);
+      VecLoad(eig_vector[i], fd);
+      PetscViewerDestroy(&fd);
+          
+    }
 
     clock_end();
-  }
-
-  void TriMesh::PETSc_assemble_linearFEM_LBmat( std::string name){
-
 
   }
-
-
-
 
 }
 

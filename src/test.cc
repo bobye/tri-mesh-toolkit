@@ -43,8 +43,9 @@ int main(int argc, char *argv[])
   mesh.update_compact_base();
   
   mesh.PETSc_init(argc, argv);
-  mesh.PETSc_assemble_cubicFEM_LBmat(argv[1]);
-
+  mesh.PETSc_assemble_cubicFEM_LBmat();
+  mesh.PETSc_export_FEM_LBmat(argv[1]);
+  mesh.PETSc_destroy();
   //  mesh.load_coord();
   /*
   meshtk::DynamicTriMesh mesh_base;

@@ -29,6 +29,9 @@
 #include "MeshAttributeType.hh"
 #include "KeyPoint.hh"
 
+
+
+
 namespace meshtk {
 
 
@@ -122,6 +125,8 @@ namespace meshtk {
     double avg_edge_len;//average edge length globally
 
 
+
+
     /////////////////////////////////////////////////////////////////////
     // private routines to update item attributes starts here
 
@@ -186,6 +191,21 @@ namespace meshtk {
       gradient[0] = (v2[1]*f1 - v1[1]*f2)/det;
       gradient[1] = (-v2[0]*f1 +v1[0]*f2)/det;
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     ///////////////////////////////////////////////////////////////////////
@@ -298,11 +318,26 @@ namespace meshtk {
     void print_keypoint_SIFT(std::string filename);
     
 
-    // Initialize PETSc mat and vec
+    // Initialize PETSc mat and vec, call before using PETSc routine
     void PETSc_init(int argc, char **argv);
-    // assemble cubic FEM matrices of Laplace Beltrami operator, export to name.mass and name.stiff
-    void PETSc_assemble_cubicFEM_LBmat(std::string name);
-    void PETSc_assemble_linearFEM_LBmat(std::string name);
+    void PETSc_destroy();
+    // assemble cubic FEM matrices of Laplace Beltrami operator
+    void PETSc_assemble_cubicFEM_LBmat();
+    void PETSc_assemble_linearFEM_LBmat();
+    // load and export FEM matrices of Laplace Beltrami operator
+    void PETSc_load_FEM_LBmat(std::string name);
+    void PETSc_export_FEM_LBmat(std::string name);
+    // load Eigen pairs of Laplace Beltrami operator
+    void PETSc_load_FEM_LBeigen(std::string name);
+
+
+
+
+
+
+
+
+
 
 
 

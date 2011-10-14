@@ -56,7 +56,7 @@ int main(int argc, char** argv){
     OptBool outputMeshSwitch("o", "output_mesh_enable", "Enable mesh Output before program exits", cmd, false) ;
     OptBool viewMeshOnly("v", "view_mesh_only", "View mesh without other rending", cmd, false);
     OptBool viewMeshCurvature("", "view_mesh_curv", "View mesh with color ramping of mean curvature", cmd, false);
-
+    OptBool exportMeshCubicLBmat("", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
 
     // process input argument
     cmd.parse( argc, argv );
@@ -95,6 +95,13 @@ int main(int argc, char** argv){
     // output and display
     if (outputMeshSwitch.getValue())
       mesh.write(outputMeshName.getValue(), outputMeshType.getValue());
+
+    if (exportMeshCubicLBmat.getValue()) {
+      mesh.PETSc_init(argc, argv);
+      mesh.PETSc_assemble_cubicFEM_LBmat();
+      mesh.PETSc_export_FEM_LBmat(outputMeshName.getValue());
+      mesh.PETSc_destroy();
+    }
 
     if (viewMeshOnly.getValue()) {
       mesh.update_compact_base();

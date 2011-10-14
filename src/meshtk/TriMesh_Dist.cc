@@ -22,7 +22,7 @@
 
 
 #include "meshtk/TriMesh.hh"
-
+#include "meshtk/mesh_assist.hh"
 // include header file for geodesic computation
 #include <geodesic/geodesic_algorithm_exact.h>
 
@@ -30,6 +30,10 @@
 namespace meshtk {
   double TriMesh::update_vertex_geodesic(int source_vertex_index,
 				ScalarFunction & geodesic_distance){
+
+    clock_start("Compute vertex-source geodesic distance");
+
+
     // pre condition with function update_compact_base()
     geodesic::Mesh mesh; 
     mesh.initialize_mesh_data(vertex_array, tri_index_array);
@@ -49,7 +53,8 @@ namespace meshtk {
       algorithm.best_source(p,geodesic_distance[i]);		
       avg_geodesic_distance += vertex_area[i] * geodesic_distance[i];
     }
-    
+
+    clock_end();
     return avg_geodesic_distance / total_area;
   }
 
@@ -59,4 +64,6 @@ namespace meshtk {
     return 0;
   }
 }
+
+
 

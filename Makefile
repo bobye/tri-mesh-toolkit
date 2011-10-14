@@ -18,7 +18,7 @@ MESHTKPATH = ~/data/meshtk_workshop
 
 CC = gcc
 CPP = g++
-
+AR = ar
 
 
 #####################################################################################
@@ -56,11 +56,11 @@ $(OBJDIR)/%.o: %.cc
 	$(CPP) -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $@ $< 
 
 $(OBJDIR)/TriMesh_PETSc.o: src/meshtk/TriMesh_PETSc.cc
-	$(CPP) -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $@ $< ${PETSC_CCPPFLAGS}
+	$(CPP) -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $@ $< ${PETSC_CCPPFLAGS} 
 
 lib: $(addprefix $(OBJDIR)/, $(OBJECTS)) 
 	$(CPP) -shared -Wl,-soname,libmeshtk.so.1 -o $(LIBDIR)/libmeshtk.so.1.0 $^ ${PETSC_MAT_LIB}
-
+	$(AR) -cvq $(LIBDIR)/libmeshtk.a $^
 ## install by root
 install: lib
 	mv $(LIBDIR)/*.so* $(MESHTKLIBPATH)
@@ -68,11 +68,22 @@ install: lib
 	ln -sf $(MESHTKLIBPATH)/libmeshtk.so.1.0 $(MESHTKLIBPATH)/libmeshtk.so 
 
 ## toolkits
-MeshTK: main.cc 
-	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBTCLAP) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/MeshTK $< 
+MeshTK-dynamic: main.cc
+	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBTCLAP) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/MeshTK $<
+test-dynamic: main.cc
+	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/test $<
 
-test: test.cc  
-	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/test $< 
+MeshTK-static: main.cc
+	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBTCLAP) -o $(MESHTKPATH)/MeshTK $< $(LIBDIR)/libmeshtk.a ${PETSC_MAT_LIB}
+
+test-static: test.cc
+	$(CPP) $(CPPFLAGS) $(LIBOPT)  -o $(MESHTKPATH)/test $< $(LIBDIR)/libmeshtk.a ${PETSC_MAT_LIB}
+
+
+toolkit-dynamic: MeshTK-dynamic test-dynamic
+
+toolkit-static: MeshTK-static test-static
+
 
 ## examples
 $(EXDIR)/ex0: ex0.cc 
@@ -81,10 +92,12 @@ $(EXDIR)/ex0: ex0.cc
 example: $(addprefix $(EXDIR)/, $(EXAMPLE))
 
 ## 
-all: lib MeshTK test example
+## debug
+debug: lib example toolkit-static
+
 
 clean:	
-	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so* $(EXDIR)/ex* MeshTK test
+	$(RM) $(OBJDIR)/*.o $(LIBDIR)/*.so* $(LIBDIRS)/*.a $(EXDIR)/ex* $(MESHTKPATH)/MeshTK $(MESHTKPATH)/test
 
 
 

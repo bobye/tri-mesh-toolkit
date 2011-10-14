@@ -135,24 +135,25 @@ namespace meshtk {
 
 
 
-  void color_ramping(GLfloat *color, ScalarFunction* psfun){
+  void color_ramping(GLfloat *color, ScalarFunction* psfun, bool equalhist = false){
     ScalarFunction s = *psfun;
     GLuint size = s.size();
 
+    if (equalhist) {
+      std::vector<size_t> index(size);
+      for (unsigned i=0; i<size; ++i) index[i]=i;
 
-    std::vector<size_t> index(size);
-    for (unsigned i=0; i<size; ++i) index[i]=i;
-    std::sort(index.begin(), index.end(), index_cmp<std::vector<double>&>(s));
-    double sum=0;
-    for (unsigned i=0; i<size; ++i) 
-      {
-	s[index[i]] = sum++;
-      }
+      std::sort(index.begin(), index.end(), index_cmp<std::vector<double>&>(s));
+      double sum=0;
+      for (unsigned i=0; i<size; ++i) 
+	{
+	  s[index[i]] = sum++;
+	}
+    }
 
-
-    //double vmax= *std::max_element(s.begin(), s.end());
-    //double vmin= *std::min_element(s.begin(), s.end());
-    double vmax= sum-1; double vmin =0;
+    double vmax= *std::max_element(s.begin(), s.end());
+    double vmin= *std::min_element(s.begin(), s.end());
+    //double vmax= sum-1; double vmin =0;
     double dv = vmax - vmin;
 
     //  std::cout<<vmax <<"\t"<< vmin <<"\t" << size <<std::endl;
@@ -183,7 +184,16 @@ namespace meshtk {
     :MeshPainter(pmesh){
     color_array = new GLfloat[3*vn];
     color_ramping(color_array, psfun);  
-  }
+  };
+
+  /*
+  MeshRamper::MeshRamper(TriMesh *pmesh, ScalarFunction* psfun, bool equalhist)
+    :MeshPainter(pmesh){
+    color_array = new GLfloat[3*vn];
+    color_ramping(color_array, psfun, equalhist);  
+  };
+  */
+
 
   void MeshRamper::prepare(){
     glEnableClientState(GL_NORMAL_ARRAY);

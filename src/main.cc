@@ -48,13 +48,15 @@ int main(int argc, char** argv){
     
     OptInt smoothMeshIteration("s", "smooth_mesh_iter", "Number of Guassian smoothing iterations", false, 0, "unsigned int", cmd);
 
+    OptInt viewMeshGeodesicDist("", "view_geodesic_source", "View geodesic distance from a source vertex on mesh", false, -1, "index", cmd);
 
     OptScalar smoothMeshCoefficient("", "smooth_mesh_coeff", "Coefficient specified for Guassian smoothing", false, 1., "float", cmd);
-    OptScalar addNoiseMesh("", "noise_mesh", "Coefficient specified for uniform mesh noise added", false, 0., "float", cmd);
+    OptScalar addMeshNoise("", "noise_mesh", "Coefficient specified for uniform mesh noise added", false, 0., "float", cmd);
 
     OptBool outputMeshSwitch("o", "output_mesh_enable", "Enable mesh Output before program exits", cmd, false) ;
     OptBool viewMeshOnly("v", "view_mesh_only", "View mesh without other rending", cmd, false);
     OptBool viewMeshCurvature("", "view_mesh_curv", "View mesh with color ramping of mean curvature", cmd, false);
+
 
     // process input argument
     cmd.parse( argc, argv );
@@ -71,8 +73,8 @@ int main(int argc, char** argv){
     /////////////////////////////////////////////////////////////////////////////////
     // dynamic mesh processing starts here
     // add mesh noise
-    if (addNoiseMesh.getValue() > 0) {
-      mesh.add_mesh_noise(addNoiseMesh.getValue());
+    if (addMeshNoise.getValue() > 0) {
+      mesh.add_mesh_noise(addMeshNoise.getValue());
       mesh.update_base();
     }
 
@@ -116,22 +118,24 @@ int main(int argc, char** argv){
       viewer.init();// call this func last before loop
       viewer.view();
     }
+    else if (viewMeshGeodesicDist.getValue()>=0) {
+      unsigned GEODESIC_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
+      meshtk::ScalarFunction *geodesic_distance = (meshtk::ScalarFunction *) mesh.attribute_extract(GEODESIC_DIST_REG);
+      mesh.update_compact_base();
+      mesh.update_vertex_geodesic(viewMeshGeodesicDist.getValue(), *geodesic_distance);
+      
+      meshtk::MeshViewer viewer(argc, argv);
+      meshtk::MeshRamper painter(&mesh, geodesic_distance);
+      viewer.add_painter(&painter);
 
+      viewer.init();
+      viewer.view();
+    }
 
 
     /***************************************************************************/
     // region to test
-    /*
-    meshtk::MeshViewer viewer(argc, argv);
-    meshtk::BooleanFunction *salient_points = (meshtk::BooleanFunction *) mesh.attribute_extract(MESHTK_VERTEX_SALIENT);
-    meshtk::MeshMarker painter(&mesh, salient_points);
-    viewer.add_painter(&painter);
-      
-    viewer.init();// call this func last before loop
-    viewer.view();
-    */
 
-    //std::cout<<mesh.update_vertex_neighbor(3.)<<std::endl;
 
 
 

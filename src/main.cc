@@ -39,7 +39,7 @@ typedef TCLAP::SwitchArg                             OptBool;
 int main(int argc, char** argv){
 
   try {
-    TCLAP::CmdLine cmd("3D Mesh Toolkit, Supporting mesh (pre-)processing, visualization, ... \nContributor: Jianbo YE<yelpoo@gmail.com>", ' ', "0.1");
+    TCLAP::CmdLine cmd("3D Mesh Toolkit, Supporting mesh (pre-)processing, shape analysis, visualization, ... \nContributor: Jianbo YE<yelpoo@gmail.com>", ' ', "0.1");
 
     OptString inputMeshName("i", "input_mesh_name", "File name of input mesh without file extension", true, "", "string", cmd); 
     OptString outputMeshName("", "output_mesh_name", "File name of output mesh without file extension", false, "out", "string", cmd);
@@ -86,6 +86,15 @@ int main(int argc, char** argv){
       mesh.update_base();
     }
 
+    /////////////////////////////////////////////////////////////////////////////////
+    // shape analysis starts here
+    
+    if (exportMeshCubicLBmat.getValue()) {
+      mesh.PETSc_init(argc, argv);
+      mesh.PETSc_assemble_cubicFEM_LBmat();
+      mesh.PETSc_export_FEM_LBmat(outputMeshName.getValue());
+      mesh.PETSc_destroy();
+    }
 
     /***************************************************************************/    
     // region to test
@@ -93,15 +102,9 @@ int main(int argc, char** argv){
 
     /***************************************************************************/    
     // output and display
+
     if (outputMeshSwitch.getValue())
       mesh.write(outputMeshName.getValue(), outputMeshType.getValue());
-
-    if (exportMeshCubicLBmat.getValue()) {
-      mesh.PETSc_init(argc, argv);
-      mesh.PETSc_assemble_cubicFEM_LBmat();
-      mesh.PETSc_export_FEM_LBmat(outputMeshName.getValue());
-      mesh.PETSc_destroy();
-    }
 
     if (viewMeshOnly.getValue()) {
       mesh.update_compact_base();

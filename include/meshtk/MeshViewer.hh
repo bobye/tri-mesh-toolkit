@@ -63,7 +63,7 @@ namespace meshtk {
     GLfloat *color_array;
   public:
     MeshRamper(TriMesh *, ScalarFunction *);
-    //MeshRamper(TriMesh *, ScalarFunction *, bool);
+    MeshRamper(TriMesh *, ScalarFunction *, bool);
     void prepare();
 
     ~MeshRamper();

@@ -58,11 +58,6 @@ namespace meshtk {
     return avg_geodesic_distance / total_area;
   }
 
-  double TriMesh::update_vertex_biharmonic(int source_vertex_index,
-					   ScalarFunction & biharmonic_distance) {
-    
-    return 0;
-  }
 }
 
 

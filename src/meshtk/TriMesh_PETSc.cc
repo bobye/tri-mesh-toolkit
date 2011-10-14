@@ -30,14 +30,16 @@
 namespace meshtk {
 
   // mass matrix and stiff matrix of Laplace Beltrami operator
-  Mat mass_mat, stiff_mat;
+  static Mat mass_mat, stiff_mat;
+
+  static PetscInt mat_size;
 
   // eigenvalues and eigenvectors of generalized eigen problem defined by FEM_LBmat
-  std::vector<double> eig_value;
-  std::vector<Vec> eig_vector;
-  std::vector<double> eig_vector_norm;
+  static std::vector<double> eig_value;
+  static std::vector<Vec> eig_vector;
+  static std::vector<double> eig_vector_sqr_norm;
   // number of eigenvalues computed
-  PetscInt eig_num;
+  static PetscInt eig_num;
 
 
 
@@ -48,8 +50,15 @@ namespace meshtk {
   }
 
   void TriMesh::PETSc_destroy() {
+    
     MatDestroy(&mass_mat); MatDestroy(&stiff_mat);    
+    
+    for (int i = 0; i < eig_num; ++i) VecDestroy(&eig_vector[i]);
+    
   }
+
+
+
 const PetscInt I1[100]={
 	0,	7,	-7,	57,	-24,	0,	0,	24,	-57,	0,
 	7,	0,	-7,	-24,	57,	-57,	24,	0,	0,	0,
@@ -101,13 +110,13 @@ const PetscInt I4[100]
 
 
 
+
   void TriMesh::PETSc_assemble_cubicFEM_LBmat(){
     clock_start("Assemble cubic FE");
 
-    // matrix initialization
-    PetscInt n = vertex_num + halfedge_num + facet_num;
+    mat_size = vertex_num + halfedge_num + facet_num;
 
-    PetscInt *nnz=new PetscInt[n];
+    PetscInt *nnz =new PetscInt[mat_size];
 
     for (PetscInt i=0;i<vertex_num;++i)
       nnz[i]=IV[i]->vertex_degree()*6+1;
@@ -118,13 +127,15 @@ const PetscInt I4[100]
     for (PetscInt i=0;i<facet_num;i++)
       nnz[i+vertex_num+halfedge_num]=1;
 
-    MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, n, n, 0, nnz, &mass_mat);
-    MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, n, n, 0, nnz, &stiff_mat);
+
+    MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, mat_size, mat_size, 0, nnz, &mass_mat);
+    MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, mat_size, mat_size, 0, nnz, &stiff_mat);
+
+    delete [] nnz;
 
     MatSetOption(mass_mat, MAT_IGNORE_LOWER_TRIANGULAR, PETSC_TRUE);
     MatSetOption(stiff_mat, MAT_IGNORE_LOWER_TRIANGULAR, PETSC_TRUE);
 
-    delete nnz;
 
     for (PetscInt i = 0; i < facet_num; ++i) {
       Halfedge_handle h = IF[i]->halfedge();
@@ -170,35 +181,42 @@ const PetscInt I4[100]
   void TriMesh::PETSc_assemble_linearFEM_LBmat(){
 
   }
+  
+  void PETSc_export_mat(const char *filename, Mat mat) {
+    PetscViewer fviewer;
+    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename, FILE_MODE_WRITE, &fviewer);
+    MatView(mat, fviewer);
+    PetscViewerDestroy(&fviewer);
+  }
 
-  void TriMesh::PETSc_load_FEM_LBmat(std::string name) {
+  void TriMesh::PETSc_load_LBmat(std::string name) {
+    
     PetscViewer fmass, fstiff;
+
     std::string filename_stiff = name, filename_mass = name;
     filename_stiff += ".stiff"; filename_mass += ".mass";
 
     PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_mass.c_str() , FILE_MODE_READ, &fmass);
     PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_stiff.c_str(), FILE_MODE_READ, &fstiff);
 
+    MatCreate(PETSC_COMM_SELF, &mass_mat);
+    MatCreate(PETSC_COMM_SELF, &stiff_mat);
+    MatSetType(mass_mat, MATSEQSBAIJ);
+    MatSetType(stiff_mat, MATSEQSBAIJ);
+
     MatLoad(mass_mat,  fmass);
     MatLoad(stiff_mat, fstiff);
       
     PetscViewerDestroy(&fmass); PetscViewerDestroy(&fstiff);
-
-
+    
   }
 
-  void TriMesh::PETSc_export_FEM_LBmat( std::string name) {
-    PetscViewer fmass, fstiff;
+  void TriMesh::PETSc_export_LBmat( std::string name) {
+
     std::string filename_stiff = name, filename_mass = name;
     filename_stiff += ".stiff"; filename_mass += ".mass";
-
-    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_mass.c_str() , FILE_MODE_WRITE, &fmass);
-    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_stiff.c_str(), FILE_MODE_WRITE, &fstiff);
-      
-    MatView(mass_mat, fmass);
-    MatView(stiff_mat, fstiff);
-
-    PetscViewerDestroy(&fmass); PetscViewerDestroy(&fstiff);
+    PETSc_export_mat(filename_mass.c_str(), mass_mat);
+    PETSc_export_mat(filename_stiff.c_str(), stiff_mat);
 
   }
 
@@ -214,7 +232,7 @@ const PetscInt I4[100]
     return inner_prod;
   }
 
-  void TriMesh::PETSc_load_FEM_LBeigen(std::string name) {
+  void TriMesh::PETSc_load_LBeigen(std::string name) {
 
     clock_start("Load eigen");
 
@@ -230,25 +248,71 @@ const PetscInt I4[100]
       exit(1);
     }
     
-    while (!f_eigvalue.eof()) { f_eigvalue >> eig; eig_value.push_back(eig); } 
+    eig_value.clear();
+    while (!(f_eigvalue >> eig).eof()) { eig_value.push_back(eig); } 
     f_eigvalue.close();
     eig_num = eig_value.size();
     
     eig_vector.resize(eig_num);
+    eig_vector_sqr_norm.resize(eig_num);
+
     for (int i =0; i< eig_num; ++i) {
       char ffile[PETSC_MAX_PATH_LEN];
       PetscViewer fd;
   
       sprintf(ffile,"%s/_%d.petsc",name.c_str(),i);
       PetscViewerBinaryOpen(PETSC_COMM_SELF, ffile, FILE_MODE_READ, &fd);
+      VecCreate(PETSC_COMM_SELF, &eig_vector[i]);
+      VecSetType(eig_vector[i], VECSEQ);
       VecLoad(eig_vector[i], fd);
       PetscViewerDestroy(&fd);
-          
+      
+      eig_vector_sqr_norm[i] = vec_inner_prod(eig_vector[i], eig_vector[i]);
     }
 
     clock_end();
 
   }
 
+  double TriMesh::update_vertex_biharmonic(int source_vertex_index,
+					   ScalarFunction & biharmonic_distance) {
+ 
+    for (int j=0; j < vertex_num; ++j) biharmonic_distance[j] =0;
+
+    for (int i=eig_num-1; i> 0; --i) {
+      PetscScalar *vector;
+      VecGetArray(eig_vector[i], &vector);
+      
+      PetscScalar target = vector[source_vertex_index], sqr_eigenvalue = eig_value[i] * eig_value[i]; 
+      for (int j=0; j < vertex_num; ++j) {
+	double tmp = vector[j] -target;
+	biharmonic_distance[j] += tmp * tmp / eig_vector_sqr_norm[i] / sqr_eigenvalue;
+      }
+    }
+
+    double total_area_distance=0;
+    for (int j=0; j < vertex_num; ++j) {
+
+      biharmonic_distance[j] = std::sqrt(biharmonic_distance[j]);
+      total_area_distance += biharmonic_distance[j] * vertex_area[j];
+    }
+    return total_area_distance / total_area;
+  }
+
+
+  void TriMesh::PETSc_assemble_Nystrom_BiHDM() {
+  }
+
+  void TriMesh::PETSc_assemble_Fourier_BiHDM() {
+  }
+
+  void TriMesh::PETSc_export_Nystrom_BiHDM() {
+  }
+
+  void TriMesh::PETSc_export_Fourier_BiHDM() {
+  }
+
+
 }
+
 

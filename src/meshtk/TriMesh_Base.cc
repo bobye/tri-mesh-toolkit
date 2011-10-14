@@ -125,8 +125,8 @@ namespace meshtk {
     for (int i=0;i<facet_num;i++){
       h=IF[i]->halfedge();
       normal = CGAL::cross_product(halfedge_vec[h->index], halfedge_vec[h->next()->index]);
-      total_area += (facet_area[i] = normal * normal) /2. ;
-      facet_norm[i] = normal / CGAL::sqrt(facet_area[i]); 
+      total_area += (facet_area[i] = CGAL::sqrt(normal * normal)) /2. ;
+      facet_norm[i] = normal / facet_area[i]; 
       facet_area[i] /= 2.;
     }
     

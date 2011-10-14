@@ -186,13 +186,13 @@ namespace meshtk {
     color_ramping(color_array, psfun);  
   };
 
-  /*
+
   MeshRamper::MeshRamper(TriMesh *pmesh, ScalarFunction* psfun, bool equalhist)
     :MeshPainter(pmesh){
     color_array = new GLfloat[3*vn];
     color_ramping(color_array, psfun, equalhist);  
   };
-  */
+
 
 
   void MeshRamper::prepare(){

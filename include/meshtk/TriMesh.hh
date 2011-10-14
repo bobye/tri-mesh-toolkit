@@ -325,11 +325,19 @@ namespace meshtk {
     void PETSc_assemble_cubicFEM_LBmat();
     void PETSc_assemble_linearFEM_LBmat();
     // load and export FEM matrices of Laplace Beltrami operator
-    void PETSc_load_FEM_LBmat(std::string name);
-    void PETSc_export_FEM_LBmat(std::string name);
+    void PETSc_load_LBmat(std::string name);
+    void PETSc_export_LBmat(std::string name);
     // load Eigen pairs of Laplace Beltrami operator
-    void PETSc_load_FEM_LBeigen(std::string name);
+    void PETSc_load_LBeigen(std::string name);
 
+
+    void PETSc_assemble_Nystrom_BiHDM();
+
+    void PETSc_assemble_Fourier_BiHDM();
+
+    void PETSc_export_Nystrom_BiHDM();
+
+    void PETSc_export_Fourier_BiHDM();
 
 
 

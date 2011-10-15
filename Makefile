@@ -60,6 +60,8 @@ $(OBJDIR)/TriMesh_PETSc.o: src/meshtk/TriMesh_PETSc.cc
 
 lib: $(addprefix $(OBJDIR)/, $(OBJECTS)) 
 	$(CPP) -shared -Wl,-soname,libmeshtk.so.1 -o $(LIBDIR)/libmeshtk.so.1.0 $^ ${PETSC_MAT_LIB}
+
+install: lib
 	cp $(LIBDIR)/*.so* $(MESHTKLIBPATH)
 	ln -sf $(MESHTKLIBPATH)/libmeshtk.so.1.0 $(MESHTKLIBPATH)/libmeshtk.so.1 
 	ln -sf $(MESHTKLIBPATH)/libmeshtk.so.1.0 $(MESHTKLIBPATH)/libmeshtk.so 

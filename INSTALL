@@ -6,23 +6,32 @@ Please follow the instructions provided by the offical sites to
 install following libraries. OpenGL and CGAL are compulsory to link
 by building libraries, and TCLAP is only used for MeshTK.
  
-* OpenGL
+* OpenGL 
  http://www.opengl.org/
+
+* freeglut (GLUT alternative, X-Consortium License)
  http://freeglut.sourceforge.net/
 
-* CGAL
+* CGAL (mainly LGPL v2.1)
  http://www.cgal.org/
 
-* PETSc
+* PETSc (Own, GPL v2 compatible)
  http://www.mcs.anl.gov/petsc/petsc-as/
+---------------------------------------------------------------------
+The folowing libraries are provided along package.
 
-* TCLAP
+* geodesic (MIT License)
+ http://code.google.com/p/geodesic/
+
+* TCLAP (MIT License)
  http://tclap.sourceforge.net/
 ---------------------------------------------------------------------
 
 Edit *Makefile* in root directory properly, to make sure the 
-compile option is correct, and type
+compile options in first section are correct, and type
 
+ make
+ make install
  make all
 
 to build library and compile the command-line software, this will 

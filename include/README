@@ -4,3 +4,6 @@ meshtk/*.hh
 # the directory contains a modified geodesic library for use, under MIT License
 # Please refer to its content for detail
 geodesic/
+
+# the directory contains TCLAP, under MIT license
+tclap/

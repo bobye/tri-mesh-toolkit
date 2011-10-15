@@ -2,14 +2,13 @@
 
 ## make sure your environment variable PETSC_DIR are correctly given
 PETSC_DIR := /home/bobye/pub/petsc/petsc-3.2-p3
+include ${PETSC_DIR}/conf/variables
 
 ## options for CGAL, OpenGL and freeglut 
 LIBOPT = -lCGAL -lglut -lGL -lGLU 
-## option for TCLAP 
-LIBTCLAP = -I/usr/local/include/tclap 
 
-## add this directory to configuration file of ld
-## it may be /etc/ld.so.conf, and run ldconfig -v to update cache as root.
+## add this directory(with writing access) to configuration file of ld
+## it may be /etc/ld.so.conf, and run ldconfig -v to update cache as root. 
 MESHTKLIBPATH = /opt/lib
 
 ## executable toolkit directory, where you do the benchworks
@@ -22,7 +21,6 @@ AR = ar
 
 #####################################################################################
 ## DO NOT change anything below here
-include ${PETSC_DIR}/conf/variables
 
 CPPFLAGS = -Wall -I include
 
@@ -68,7 +66,7 @@ lib: $(addprefix $(OBJDIR)/, $(OBJECTS))
 
 ## toolkits
 MeshTK: main.cc
-	$(CPP) $(CPPFLAGS) $(LIBOPT) $(LIBTCLAP) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/MeshTK $<
+	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/MeshTK $<
 test: main.cc
 	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/test $<
 

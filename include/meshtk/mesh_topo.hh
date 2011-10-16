@@ -23,12 +23,13 @@
 #ifndef _MESH_TOPO_HH_
 #define _MESH_TOPO_HH_
 
+#include "mesh_precompile.hh"
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
 
 
 
-typedef CGAL::Simple_cartesian<double>                       Kernel;
+typedef CGAL::Simple_cartesian<MESHTK_SCALAR_TYPE>                       Kernel;
 //typedef CGAL::Cartesian<double>                              Kernel;
 typedef Kernel::Vector_3                                     Vector;
 //typedef Kerenl::Vector_2                                     Vector2D;

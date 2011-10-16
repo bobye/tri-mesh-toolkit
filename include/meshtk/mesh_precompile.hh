@@ -67,6 +67,6 @@
 
 
 #define MESHTK_PI                       (3.1415926535898)
-
+#define MESHTK_SCALAR_TYPE              double
 
 #endif /* _MESH_PRECOMPILE_HH_ */

@@ -24,10 +24,11 @@
 #ifndef _MESHATTRIBUTETYPE_HH_
 #define _MESHATTRIBUTETYPE_HH_
 
+#include "mesh_precompile.hh"
 
 namespace meshtk {
 
-
+  
 
   // ISHalfedge_list represents Index System of Halfedges by std::vector. 
   // After initialization of class TriMesh by
@@ -46,8 +47,8 @@ namespace meshtk {
   // ScalarFunction and BooleanFunction correspond to scalar and boolean
   // function defined over mesh domain.
   typedef std::vector<Vector> VectorFunction; // 
-  typedef std::vector<double> ScalarFunction; // displayed by color ramper
-  typedef std::vector<double> BooleanFunction;// displayed by point marker.
+  typedef std::vector<MESHTK_SCALAR_TYPE> ScalarFunction; // displayed by color ramper
+  typedef std::vector<bool> BooleanFunction;// displayed by point marker.
 
   // neighbor faces and vertices
   typedef std::map<int, double> ScalarNeighborFunction;

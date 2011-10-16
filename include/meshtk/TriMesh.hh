@@ -336,7 +336,7 @@ namespace meshtk {
     // assemble (square) biharmonic distance matric m X N matrix, m is the samping size, N is the vertices size, dense matrix, return the final size m
     int PETSc_assemble_export_BiHDM(std::vector<int> & sampling, //init sampling provided, keypoint based
 				    int addition_size, // expect additional sampling size
-				    double stop_criterion = 2.);//numerical stop criterion before reaching addition sampling size
+				    std::string name);
 
 
     // assemble (square) biharmonic distance matrix by harmonic analysis, sparse

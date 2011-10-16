@@ -305,8 +305,8 @@ const PetscInt I4[100]
   
 
   int TriMesh::PETSc_assemble_export_BiHDM(std::vector<int> & sampling, //init sampling provided, keypoint based
-				     int addition_size, // expect additional sampling size
-				     double stop_criterion) {    
+					   int addition_size, // expect additional sampling size
+					   std::string name) {    
     clock_start("Assemble Nystrom sampling of BiHDM");
 
 
@@ -326,12 +326,21 @@ const PetscInt I4[100]
 
     for (int i =0;i<vertex_num; ++i) distance[i] =-1;
 
+    std::string matdata_name = name; matdata_name.append(".bihdmat");
+    std::ofstream mat_data(matdata_name.c_str(), std::ios::out|std::ios::binary);
+    std::string matinfo_name = name; matinfo_name.append(".bihdmat.info");
+    std::ofstream mat_info(matinfo_name.c_str());
+
+    mat_info << "#size " << vertex_num << "\n";
 
     for (int i = 0; i < init_size; ++i ){
       new_distance.clear();
       new_distance.resize(vertex_num);
       update_vertex_biharmonic(sampling[i], new_distance);
-      
+
+      mat_info << sampling[i] <<"\n";
+      mat_data.write((char *) &new_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
+
       for (int j=0; j< vertex_num; ++j) 
 	if (new_distance[j] < distance[j] || distance[j] <0) {
 	  distance[j] = new_distance[j];
@@ -353,6 +362,9 @@ const PetscInt I4[100]
       sampling.push_back(max_B_distance_index);
       update_vertex_biharmonic(max_B_distance_index, new_distance);
 
+      mat_info << max_B_distance_index <<"\n";
+      mat_data.write((char *) &new_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
+
       for (int j=0; j< vertex_num; ++j) 
 	if (new_distance[j] < distance[j] || distance[j] <0) {
 	  distance[j] = new_distance[j];
@@ -369,6 +381,8 @@ const PetscInt I4[100]
 
     }
 
+    mat_info.close();
+    mat_data.close();
     clock_end();
 
 

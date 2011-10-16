@@ -43,12 +43,13 @@ namespace meshtk {
 
     double histogram[MESHTK_SIFT_BINS_NUMBER];// descriptor, 36 bins [10*i-5, 10*i+5), i=0,...,35
 
-
+    KeyPoint() {}
     KeyPoint(int i, double s, double m) :
       index(i), scale(s), magnitude(m) {
     }
     
-  
+    bool operator< (const KeyPoint & second) const {return magnitude < second.magnitude; }
+    
   };
 
 

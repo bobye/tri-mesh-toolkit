@@ -277,6 +277,7 @@ const PetscInt I4[100]
   double TriMesh::update_vertex_biharmonic(int source_vertex_index,
 					   ScalarFunction & biharmonic_distance) {
  
+
     for (int j=0; j < vertex_num; ++j) biharmonic_distance[j] =0;
 
     for (int i=eig_num-1; i> 0; --i) {
@@ -296,23 +297,92 @@ const PetscInt I4[100]
       biharmonic_distance[j] = std::sqrt(biharmonic_distance[j]);
       total_area_distance += biharmonic_distance[j] * vertex_area[j];
     }
+
+    
     return total_area_distance / total_area;
   }
 
+  
 
-  void TriMesh::PETSc_assemble_Nystrom_BiHDM() {
+  int TriMesh::PETSc_assemble_export_BiHDM(std::vector<int> & sampling, //init sampling provided, keypoint based
+				     int addition_size, // expect additional sampling size
+				     double stop_criterion) {    
+    clock_start("Assemble Nystrom sampling of BiHDM");
+
+
+    int init_size = sampling.size();
+    int total_size = init_size;
+    
+    //double max_A_distance;
+    double max_B_distance = 0;
+    int max_B_distance_index =  vertex_num * rand()/ RAND_MAX;
+
+    ScalarFunction distance;
+    ScalarFunction new_distance;
+    
+    distance.resize(vertex_num);
+
+
+
+    for (int i =0;i<vertex_num; ++i) distance[i] =-1;
+
+
+    for (int i = 0; i < init_size; ++i ){
+      new_distance.clear();
+      new_distance.resize(vertex_num);
+      update_vertex_biharmonic(sampling[i], new_distance);
+      
+      for (int j=0; j< vertex_num; ++j) 
+	if (new_distance[j] < distance[j] || distance[j] <0) {
+	  distance[j] = new_distance[j];
+	}
+      //export  sampling[i] and new_distance here
+    }
+
+    for (int j=0; j<vertex_num; ++j) 
+      if (distance[j] > max_B_distance) {
+	max_B_distance = distance[j];
+	max_B_distance_index = j;
+      }
+
+    
+
+    while (total_size < (init_size + addition_size)){
+      new_distance.clear();
+      new_distance.resize(vertex_num); 
+      sampling.push_back(max_B_distance_index);
+      update_vertex_biharmonic(max_B_distance_index, new_distance);
+
+      for (int j=0; j< vertex_num; ++j) 
+	if (new_distance[j] < distance[j] || distance[j] <0) {
+	  distance[j] = new_distance[j];
+	}
+      //export max_B_distance_index and new_distance here
+
+      max_B_distance = 0;
+      for (int j=0; j<vertex_num; ++j) 
+	if (distance[j] > max_B_distance) {
+	  max_B_distance = distance[j];
+	  max_B_distance_index = j;
+	}
+      ++ total_size;
+
+    }
+
+    clock_end();
+
+
+    return total_size;
   }
 
   void TriMesh::PETSc_assemble_Fourier_BiHDM() {
   }
-
-  void TriMesh::PETSc_export_Nystrom_BiHDM() {
-  }
-
   void TriMesh::PETSc_export_Fourier_BiHDM() {
   }
 
 
 }
+
+
 
 

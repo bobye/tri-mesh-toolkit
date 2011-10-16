@@ -329,13 +329,45 @@ namespace meshtk{
     return (double) count / (double) vertex_num;
   }
 
+  void TriMesh::export_keypoint_index(std::vector<int> & index_array) {
+    for (unsigned i=0; i < keypoints.size(); ++i)
+      index_array.push_back(keypoints[i].index);
+  }
+
+  void TriMesh::threshold_keypoint(double percentage,
+				   bool multiple_vertex_keypoint) {
+    int n = (int) (keypoints.size() * percentage);
+    std::sort(keypoints.begin(), keypoints.end());
+    std::reverse(keypoints.begin(), keypoints.end());
+
+    std::set<int> set_index;
+
+    if (!multiple_vertex_keypoint) {
+      int j=0;
+      while (j < n) {
+	if (set_index.find(keypoints[j].index) == set_index.end()) {
+	  set_index.insert(keypoints[j].index);
+	  ++j;
+	}
+	else {
+	  keypoints.erase(keypoints.begin()+j);
+	}
+      }
+    }
+    
+    keypoints.resize(n);
+    
+  }
+
   void TriMesh::register_vertex_keypoint(int vertex_index, 
 					 double scale_distance,
 					 double magnitude) {
-    //				ScalarFunction& scale_space_function) {
+    //				ScalarFunction& scale_space_function) {    
+
     ScalarNeighborFunction buffer_vertex_neighbor_euclidean;
     NeighborIndex buffer_facet_neighbor_euclidean;
     double circular_window_size = 1.5;
+
     
     keypoints.push_back(KeyPoint(vertex_index, scale_distance, magnitude));
 
@@ -453,7 +485,9 @@ namespace meshtk{
 
     clock_start("Start keypoint detection");
     keypoints.clear();
-    
+
+
+
     // update static coefficient for smooth
     double sigma = coeff * avg_edge_len;
     std::vector<ScalarNeighborFunction > coeff_list(vertex_num);
@@ -508,7 +542,7 @@ namespace meshtk{
     for (int i=0; i< iter; ++i) {
       
       //      double radio = 0,// (0.001 / std::sqrt(total_area)) * coeff * coeff, 
-      double radio2 = 0;//0.05 * coeff * coeff;
+      double radio2 = 0.;//0.05 * coeff * coeff;
 
       int zero = buffer_curr, one=(buffer_curr +1)%4, 
 	two=(buffer_curr +2)%4, three=(buffer_curr +3)%4;
@@ -541,7 +575,7 @@ namespace meshtk{
 	      { keyBoolean[j] = true; ++ count; 
 		register_vertex_keypoint(j, 
 					 std::sqrt(i+2)* sigma,
-					 std::fabs(buffer_dv[one][j] * avg_edge_len / radio2));
+					 std::fabs(buffer_dv[one][j] * avg_edge_len));
 		//                       buffer_dv[one]);
 		continue;}
 
@@ -560,8 +594,8 @@ namespace meshtk{
 	      { keyBoolean[j] = true; ++ count; 
 		register_vertex_keypoint(j, 
 					 std::sqrt(i+2)* sigma,
-					 std::fabs(buffer_dv[one][j]) * avg_edge_len / radio2);
-		//					 buffer_dv[one]);
+					 std::fabs(buffer_dv[one][j]) * avg_edge_len);
+		//					 buffer_dv[one]);		
 		continue; }
 
 	  }

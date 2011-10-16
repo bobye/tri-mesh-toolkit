@@ -69,7 +69,7 @@ install: lib
 ## toolkits
 MeshTK: main.cc
 	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/MeshTK $<
-test: main.cc
+test: test.cc
 	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/test $<
 
 

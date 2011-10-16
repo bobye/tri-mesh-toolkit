@@ -119,8 +119,7 @@ namespace meshtk {
     //std::vector<ScalarNeighborFunction > keypoint_neighbor;
     //std::vector<int> keypoint_index;
     std::vector<KeyPoint> keypoints;
-
-
+    
 
     double avg_edge_len;//average edge length globally
 
@@ -315,6 +314,10 @@ namespace meshtk {
 			       int iter, //total iteration including preprocessing smooth
 			       int pre_iter = 0);
 
+    void threshold_keypoint(double percentage, // percentage of magnitude thresholding
+			    bool multiple_vertex_keypoint = false); //allow mulitiple keypoints for a single vertex
+    void export_keypoint_index(std::vector<int> & index_array);
+
     void print_keypoint_SIFT(std::string filename);
     
 
@@ -330,13 +333,14 @@ namespace meshtk {
     // load Eigen pairs of Laplace Beltrami operator
     void PETSc_load_LBeigen(std::string name);
 
+    // assemble (square) biharmonic distance matric m X N matrix, m is the samping size, N is the vertices size, dense matrix, return the final size m
+    int PETSc_assemble_export_BiHDM(std::vector<int> & sampling, //init sampling provided, keypoint based
+				    int addition_size, // expect additional sampling size
+				    double stop_criterion = 2.);//numerical stop criterion before reaching addition sampling size
 
-    void PETSc_assemble_Nystrom_BiHDM();
 
+    // assemble (square) biharmonic distance matrix by harmonic analysis, sparse
     void PETSc_assemble_Fourier_BiHDM();
-
-    void PETSc_export_Nystrom_BiHDM();
-
     void PETSc_export_Fourier_BiHDM();
 
 

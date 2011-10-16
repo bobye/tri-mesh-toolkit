@@ -99,7 +99,7 @@ int main(int argc, char** argv){
 
     if (exportMeshCubicLBmat.getValue()) {
       mesh.PETSc_assemble_cubicFEM_LBmat();
-      mesh.PETSc_export_LBmat(outputMeshName.getValue());
+      mesh.PETSc_export_LBmat(inputMeshType.getValue());
     }
     else if (loadMeshLBmat.getValue()) {
       mesh.PETSc_load_LBmat(inputMeshName.getValue());

@@ -42,10 +42,14 @@ int main(int argc, char *argv[])
   mesh.update_base();
   mesh.update_compact_base();
   
+  /*
   mesh.PETSc_init(argc, argv);
   mesh.PETSc_assemble_cubicFEM_LBmat();
   mesh.PETSc_export_FEM_LBmat(argv[1]);
   mesh.PETSc_destroy();
+  */
+
+
   //  mesh.load_coord();
   /*
   meshtk::DynamicTriMesh mesh_base;
@@ -73,8 +77,8 @@ int main(int argc, char *argv[])
     //(*mesh_base_coord)[i] = (*mesh_base_coord)[i] + (*mesh_offset_proj)[i] * (*mesh_base_norm)[i];
   }
   */
-  // keypoint detection
-  /*
+  // keypoint sampling and export bihdm
+
   unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
   meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);
   
@@ -82,8 +86,17 @@ int main(int argc, char *argv[])
   mesh.update_curvature();
   meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
   mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, atoi(argv[2]));
-  */
+  mesh.threshold_keypoint(.618);
 
+  std::vector<int> keypoint_threshold_index;
+  mesh.export_keypoint_index(keypoint_threshold_index);
+
+  mesh.PETSc_init(argc, argv);
+  mesh.PETSc_load_LBmat(argv[1]);
+  mesh.PETSc_load_LBeigen(argv[3]);
+
+  mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, 0);
+  mesh.PETSc_destroy();
 
   // shape index dense descriptor (8-bin histogram)
   /*
@@ -126,17 +139,16 @@ int main(int argc, char *argv[])
   mesh_base.write("out","off");
   */
 
-  /*
+
   meshtk::MeshViewer viewer(argc, argv);
   //  meshtk::MeshRamper ramper(&mesh, mesh_hcurv);
-  meshtk::MeshMarker marker(&mesh, mesh_keypoint);
+  meshtk::MeshMarker marker(&mesh, keypoint_threshold_index);
   //meshtk::MeshPainter painter(&mesh_base);
   //  viewer.add_painter(&ramper);
   viewer.add_painter(&marker);
 
   viewer.init();// call this func last before loop
   viewer.view();
-  */    
 
 
 

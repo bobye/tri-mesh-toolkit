@@ -39,7 +39,7 @@ typedef TCLAP::SwitchArg                             OptBool;
 int main(int argc, char** argv){
 
   try {
-    TCLAP::CmdLine cmd("3D Mesh Toolkit, Supporting mesh (pre-)processing, shape analysis, visualization, ... \nContributor: Jianbo YE<yelpoo@gmail.com>", ' ', MESHTK_VERSION);
+    TCLAP::CmdLine cmd("3D Mesh Toolkit, supporting mesh (pre-)processing, shape analysis, visualization, ... \nContributor: Jianbo YE<yelpoo@gmail.com> \nhttp://code.google.com/p/tri-mesh-toolkit/", ' ', MESHTK_VERSION);
 
     OptString inputMeshName("i", "input_mesh_name", "File name of input mesh without file extension", true, "", "string", cmd); 
     OptString outputMeshName("", "output_mesh_name", "File name of output mesh without file extension", false, "out", "string", cmd);
@@ -181,7 +181,7 @@ int main(int argc, char** argv){
       mesh.update_vertex_SIFT_distance(viewMeshSIFTDist.getValue(), *SIFT_distance);
 
       meshtk::MeshViewer viewer(argc, argv);
-      meshtk::MeshRamper painter(&mesh, SIFT_distance);
+      meshtk::MeshRamper painter(&mesh, SIFT_distance, true);
       viewer.add_painter(&painter);
 
       viewer.init();

@@ -233,7 +233,7 @@ const PetscInt I4[100]
   }
 
   void TriMesh::PETSc_load_LBeigen(std::string name) {
-
+    name.append(".ev");
     clock_start("Load eigen");
 
     std::ifstream f_eigvalue;
@@ -339,8 +339,8 @@ const PetscInt I4[100]
       new_biharmonic_distance.resize(vertex_num); 
       new_SIFT_distance.resize(vertex_num);
       double biharmonic_distance_avg = update_vertex_biharmonic_distance(sampling[i], new_biharmonic_distance);
-      update_vertex_SIFT_distance(sampling[i], new_SIFT_distance);
-      for (int j=0; j <vertex_num; ++j) new_biharmonic_distance[j] += mix_radio * biharmonic_distance_avg * new_SIFT_distance[j];
+      double SIFT_distance_avg = update_vertex_SIFT_distance(sampling[i], new_SIFT_distance);
+      for (int j=0; j <vertex_num; ++j) new_biharmonic_distance[j] += mix_radio * biharmonic_distance_avg * new_SIFT_distance[j] / SIFT_distance_avg;
 
       mat_info << sampling[i] <<"\n";
 
@@ -371,8 +371,8 @@ const PetscInt I4[100]
       sampling.push_back(max_B_distance_index);
 
       double biharmonic_distance_avg = update_vertex_biharmonic_distance(max_B_distance_index, new_biharmonic_distance);
-      update_vertex_SIFT_distance(max_B_distance_index, new_SIFT_distance);
-      for (int j=0; j <vertex_num; ++j) new_biharmonic_distance[j] += mix_radio * biharmonic_distance_avg * new_SIFT_distance[j];
+      double SIFT_distance_avg = update_vertex_SIFT_distance(max_B_distance_index, new_SIFT_distance);
+      for (int j=0; j <vertex_num; ++j) new_biharmonic_distance[j] += mix_radio * biharmonic_distance_avg * new_SIFT_distance[j] / SIFT_distance_avg;
 
       mat_info << max_B_distance_index <<"\n";
 

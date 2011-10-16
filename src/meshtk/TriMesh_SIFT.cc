@@ -467,6 +467,20 @@ namespace meshtk{
     clock_end();
   }
 
+  void TriMesh::export_keypoint_SIFT(std::string filename) {
+    
+    std::ofstream SIFT_Fout;
+    filename.append(".sift");
+    SIFT_Fout.open(filename.c_str());
+    for (unsigned i = 0; i < keypoints.size(); ++i){
+      for (unsigned j =0; j <MESHTK_SIFT_BINS_NUMBER; ++j) 
+	SIFT_Fout << keypoints[i].histogram[j] << "\t";
+      SIFT_Fout << "\n";
+    }
+    SIFT_Fout.close();
+  }
+
+
   void TriMesh::load_all_vertices_SIFT(std::string name) {
     keypoints.clear();
     keypoints.resize(vertex_num);
@@ -648,18 +662,6 @@ namespace meshtk{
     return count;
   }
 
-  void TriMesh::export_keypoint_SIFT(std::string filename) {
-    
-    std::ofstream SIFT_Fout;
-    filename.append(".sift");
-    SIFT_Fout.open(filename.c_str());
-    for (unsigned i = 0; i < keypoints.size(); ++i){
-      for (unsigned j =0; j <MESHTK_SIFT_BINS_NUMBER; ++j) 
-	SIFT_Fout << keypoints[i].histogram[j] << "\t";
-      SIFT_Fout << "\n";
-    }
-    SIFT_Fout.close();
-  }
 
 }
 

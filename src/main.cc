@@ -45,13 +45,12 @@ int main(int argc, char** argv){
     OptString outputMeshName("", "output_mesh_name", "File name of output mesh without file extension", false, "out", "string", cmd);
     OptString inputMeshType("", "input_mesh_type", "Input mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
     OptString outputMeshType("", "output_mesh_type", "output mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
-    OptString loadMeshLBeigen("", "load_FEM_LBeigen", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator", false, "", "string", cmd);
 
 
     OptInt smoothMeshIteration("s", "smooth_mesh_iter", "Number of Guassian smoothing iterations", false, 0, "unsigned int", cmd);
     OptInt viewMeshGeodesicDist("", "view_geodesic_source", "View geodesic distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshBiharmonicDist("", "view_biharmonic_source", "View biharmonic distance from a source vertex on mesh", false, -1, "index", cmd);
-
+    OptInt viewMeshSIFTDist("", "view_SIFT_source", "View SIFT distance from a source vertex on mesh", false, -1, "index", cmd);
 
 
     OptScalar smoothMeshCoefficient("", "smooth_mesh_coeff", "Coefficient specified for Guassian smoothing", false, 1., "float", cmd);
@@ -64,6 +63,9 @@ int main(int argc, char** argv){
     OptBool viewMeshCurvature("", "view_mesh_curv", "View mesh with color ramping of mean curvature", cmd, false);
     OptBool exportMeshCubicLBmat("", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
     OptBool loadMeshLBmat("", "load_FEM_LBmat", "Load FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
+    OptBool loadMeshLBeigen("", "load_FEM_LBeigen", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator", cmd, false);
+    OptBool loadMeshSIFT("", "load_mesh_SIFT", "Load mesh local descriptors for all vertices", cmd, false);
+    OptBool exportMeshSIFT("", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
 
     // process input argument
     cmd.parse( argc, argv );
@@ -101,15 +103,17 @@ int main(int argc, char** argv){
       mesh.PETSc_assemble_cubicFEM_LBmat();
       mesh.PETSc_export_LBmat(inputMeshType.getValue());
     }
-    else if (loadMeshLBmat.getValue()) {
-      mesh.PETSc_load_LBmat(inputMeshName.getValue());
-    }
+    else if (loadMeshLBmat.getValue()) mesh.PETSc_load_LBmat(inputMeshName.getValue());
 
-    if (loadMeshLBeigen.getValue().compare("") !=0) {
-      mesh.PETSc_load_LBeigen(loadMeshLBeigen.getValue());
-    }
+    if (loadMeshLBeigen.getValue()) mesh.PETSc_load_LBeigen(inputMeshName.getValue());
     
-
+    if (exportMeshSIFT.getValue()) {
+      mesh.update_compact_base();
+      mesh.update_curvature();
+      mesh.update_all_vertices_SIFT();
+      mesh.export_keypoint_SIFT(inputMeshName.getValue());      
+    }
+    else if (loadMeshSIFT.getValue()) mesh.load_all_vertices_SIFT(inputMeshName.getValue());
 
     /***************************************************************************/    
     // region to test
@@ -147,7 +151,7 @@ int main(int argc, char** argv){
       unsigned GEODESIC_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
       meshtk::ScalarFunction *geodesic_distance = (meshtk::ScalarFunction *) mesh.attribute_extract(GEODESIC_DIST_REG);
       mesh.update_compact_base();
-      mesh.update_vertex_geodesic(viewMeshGeodesicDist.getValue(), *geodesic_distance);
+      mesh.update_vertex_geodesic_distance(viewMeshGeodesicDist.getValue(), *geodesic_distance);
       
       meshtk::MeshViewer viewer(argc, argv);
       meshtk::MeshRamper painter(&mesh, geodesic_distance);
@@ -156,14 +160,28 @@ int main(int argc, char** argv){
       viewer.init();
       viewer.view();
     }
-    else if (viewMeshBiharmonicDist.getValue() >=0 && loadMeshLBeigen.getValue().compare("") !=0) {
+    else if (viewMeshBiharmonicDist.getValue() >=0 && loadMeshLBeigen.getValue()) {
       unsigned BIHARMONIC_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
       meshtk::ScalarFunction *biharmonic_distance = (meshtk::ScalarFunction *) mesh.attribute_extract(BIHARMONIC_DIST_REG);
       mesh.update_compact_base();
-      mesh.update_vertex_biharmonic(viewMeshBiharmonicDist.getValue(), *biharmonic_distance);
+      mesh.update_vertex_biharmonic_distance(viewMeshBiharmonicDist.getValue(), *biharmonic_distance);
 
       meshtk::MeshViewer viewer(argc, argv);
       meshtk::MeshRamper painter(&mesh, biharmonic_distance);
+      viewer.add_painter(&painter);
+
+      viewer.init();
+      viewer.view();
+
+    }
+    else if (viewMeshSIFTDist.getValue() >=0 && loadMeshSIFT.getValue()) {
+      unsigned SIFT_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
+      meshtk::ScalarFunction *SIFT_distance = (meshtk::ScalarFunction *) mesh.attribute_extract(SIFT_DIST_REG);
+      mesh.update_compact_base();
+      mesh.update_vertex_SIFT_distance(viewMeshSIFTDist.getValue(), *SIFT_distance);
+
+      meshtk::MeshViewer viewer(argc, argv);
+      meshtk::MeshRamper painter(&mesh, SIFT_distance);
       viewer.add_painter(&painter);
 
       viewer.init();

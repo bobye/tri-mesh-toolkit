@@ -339,13 +339,16 @@ const PetscInt I4[100]
       update_vertex_biharmonic(sampling[i], new_distance);
 
       mat_info << sampling[i] <<"\n";
-      mat_data.write((char *) &new_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
 
       for (int j=0; j< vertex_num; ++j) 
 	if (new_distance[j] < distance[j] || distance[j] <0) {
 	  distance[j] = new_distance[j];
 	}
-      //export  sampling[i] and new_distance here
+
+      for (int j=0; j< vertex_num; ++j) new_distance[j] *= std::sqrt( facet_area[j] * facet_area[sampling[i]]);
+      mat_data.write((char *) &new_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
+
+
     }
 
     for (int j=0; j<vertex_num; ++j) 
@@ -363,13 +366,14 @@ const PetscInt I4[100]
       update_vertex_biharmonic(max_B_distance_index, new_distance);
 
       mat_info << max_B_distance_index <<"\n";
-      mat_data.write((char *) &new_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
 
       for (int j=0; j< vertex_num; ++j) 
 	if (new_distance[j] < distance[j] || distance[j] <0) {
 	  distance[j] = new_distance[j];
 	}
-      //export max_B_distance_index and new_distance here
+      
+      for (int j=0; j< vertex_num; ++j) new_distance[j] *= std::sqrt( facet_area[j] * facet_area[max_B_distance_index]);
+      mat_data.write((char *) &new_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
 
       max_B_distance = 0;
       for (int j=0; j<vertex_num; ++j) 

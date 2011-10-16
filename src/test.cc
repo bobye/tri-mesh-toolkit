@@ -95,6 +95,8 @@ int main(int argc, char *argv[])
   mesh.PETSc_load_LBmat(argv[1]);
   mesh.PETSc_load_LBeigen(argv[3]);
 
+  mesh.load_all_vertices_SIFT(argv[1]);
+
   mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, argv[1]);
   mesh.PETSc_destroy();
 

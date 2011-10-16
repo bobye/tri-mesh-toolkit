@@ -451,8 +451,8 @@ namespace meshtk{
   }
   
   void TriMesh::update_all_vertices_SIFT(double coeff) {
-    double neighbor_size = 3*coeff > 3.? 3*coeff: 3.;
-
+    clock_start("Update descriptors for all vertices");
+    double neighbor_size = 3*coeff > 3.? 3*coeff: 3.;    
     keypoints.clear();
     update_vertex_localchart();
 
@@ -464,8 +464,40 @@ namespace meshtk{
       //std::cout<< i <<std::endl;
       //break;
     }
-
+    clock_end();
   }
+
+  void TriMesh::load_all_vertices_SIFT(std::string name) {
+    keypoints.clear();
+    keypoints.resize(vertex_num);
+    name.append(".sift");
+    std::ifstream fin(name.c_str());
+    
+    for (int i=0; i<vertex_num; ++i) {      
+      for (int j=0; j< MESHTK_SIFT_BINS_NUMBER; ++j)
+	fin >> keypoints[i].histogram[j];
+    }
+
+    fin.close();
+  }
+  
+
+  double TriMesh::update_vertex_SIFT_distance(int source_vertex_index,
+					      ScalarFunction & feature_distance) {
+    double total_area_distance = 0.;
+    for (int i=0; i <vertex_num; ++i) {
+      feature_distance[i] = 0;
+      for (int j=0; j<MESHTK_SIFT_BINS_NUMBER; ++j) {
+	double diff = keypoints[i].histogram[j] - keypoints[source_vertex_index].histogram[j];
+	feature_distance[i] += diff * diff;
+      }
+      total_area_distance += facet_area[i] * (feature_distance[i] = std::sqrt(feature_distance[i]));
+    }
+    return total_area_distance / total_area;
+  }
+
+
+
 
   int TriMesh::detect_vertex_keypoint(ScalarFunction &valueScalar, 
 				      BooleanFunction &keyBoolean, 
@@ -616,7 +648,7 @@ namespace meshtk{
     return count;
   }
 
-  void TriMesh::print_keypoint_SIFT(std::string filename) {
+  void TriMesh::export_keypoint_SIFT(std::string filename) {
     
     std::ofstream SIFT_Fout;
     filename.append(".sift");

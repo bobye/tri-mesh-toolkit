@@ -28,8 +28,8 @@
 
 
 namespace meshtk {
-  double TriMesh::update_vertex_geodesic(int source_vertex_index,
-				ScalarFunction & geodesic_distance){
+  double TriMesh::update_vertex_geodesic_distance(int source_vertex_index,
+						  ScalarFunction & geodesic_distance){
 
     clock_start("Compute vertex-source geodesic distance");
 

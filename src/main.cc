@@ -45,7 +45,13 @@ int main(int argc, char** argv){
     OptString outputMeshName("", "output_mesh_name", "File name of output mesh without file extension", false, "out", "string", cmd);
     OptString inputMeshType("", "input_mesh_type", "Input mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
     OptString outputMeshType("", "output_mesh_type", "output mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
-
+    OptString exportMeshCubicLBmatName("", "export_cubic_FEM_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptString loadMeshLBmatName("", "load_FEM_LBmat_name", "Load FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptString loadMeshLBeigenName("", "load_FEM_LBeigen_name", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptString loadMeshSIFTName("", "load_mesh_SIFT_name", "Load mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
+    OptString exportMeshSIFTName("", "export_mesh_SIFT_name", "Export mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
+    OptString exportMeshBiHSIFTmixDMName("", "export_BiH_SIFT_mixDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
+    
 
     OptInt smoothMeshIteration("s", "smooth_mesh_iter", "Number of Guassian smoothing iterations", false, 0, "unsigned int", cmd);
     OptInt viewMeshGeodesicDist("", "view_geodesic_source", "View geodesic distance from a source vertex on mesh", false, -1, "index", cmd);
@@ -61,12 +67,12 @@ int main(int argc, char** argv){
     OptBool outputMeshSwitch("o", "output_mesh_enable", "Enable mesh Output before program exits", cmd, false) ;
     OptBool viewMeshOnly("v", "view_mesh_only", "View mesh without other rending", cmd, false);
     OptBool viewMeshCurvature("", "view_mesh_curv", "View mesh with color ramping of mean curvature", cmd, false);
-    OptBool exportMeshCubicLBmat("", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
+    OptBool exportMeshCubicLBmat("l", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
     OptBool loadMeshLBmat("", "load_FEM_LBmat", "Load FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
     OptBool loadMeshLBeigen("", "load_FEM_LBeigen", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator", cmd, false);
     OptBool loadMeshSIFT("", "load_mesh_SIFT", "Load mesh local descriptors for all vertices", cmd, false);
     OptBool exportMeshSIFT("", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
-
+    OptBool exportMeshBiHSIFTmixDM("", "export_BiH_SIFT_mixDM", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix", cmd, false);
     // process input argument
     cmd.parse( argc, argv );
 
@@ -78,7 +84,6 @@ int main(int argc, char** argv){
     mesh.init_index();// initialize mesh    
     // Update mesh infomation, prompt after init_index()
     mesh.update_base();
-
     /////////////////////////////////////////////////////////////////////////////////
     // dynamic mesh processing starts here
     // add mesh noise
@@ -101,19 +106,62 @@ int main(int argc, char** argv){
 
     if (exportMeshCubicLBmat.getValue()) {
       mesh.PETSc_assemble_cubicFEM_LBmat();
-      mesh.PETSc_export_LBmat(inputMeshName.getValue());
+      if (exportMeshCubicLBmatName.getValue().compare("") == 0) 
+	mesh.PETSc_export_LBmat(inputMeshName.getValue());
+      else mesh.PETSc_export_LBmat(exportMeshCubicLBmatName.getValue());
     }
-    else if (loadMeshLBmat.getValue()) mesh.PETSc_load_LBmat(inputMeshName.getValue());
-
-    if (loadMeshLBeigen.getValue()) mesh.PETSc_load_LBeigen(inputMeshName.getValue());
+    else if (loadMeshLBmat.getValue()) {
+      if (loadMeshLBmatName.getValue().compare("") == 0) 
+	mesh.PETSc_load_LBmat(inputMeshName.getValue());
+      else mesh.PETSc_load_LBmat(loadMeshLBmatName.getValue());
+    }
+    
+    if (loadMeshLBeigen.getValue()) {
+      if (loadMeshLBeigenName.getValue().compare("") == 0)
+	mesh.PETSc_load_LBeigen(inputMeshName.getValue());
+      else mesh.PETSc_load_LBeigen(loadMeshLBeigenName.getValue());      
+    }
     
     if (exportMeshSIFT.getValue()) {
       mesh.update_compact_base();
       mesh.update_curvature();
       mesh.update_all_vertices_SIFT();
-      mesh.export_keypoint_SIFT(inputMeshName.getValue());      
+      if (exportMeshSIFTName.getValue().compare("") == 0) 
+	mesh.export_keypoint_SIFT(inputMeshName.getValue());      
+      else mesh.export_keypoint_SIFT(exportMeshSIFTName.getValue());
     }
-    else if (loadMeshSIFT.getValue()) mesh.load_all_vertices_SIFT(inputMeshName.getValue());
+    else if (loadMeshSIFT.getValue()) {
+      if (loadMeshSIFTName.getValue().compare("") == 0)
+	mesh.load_all_vertices_SIFT(inputMeshName.getValue());
+      else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
+    }
+
+
+    if (exportMeshBiHSIFTmixDM.getValue()) {
+      mesh.update_compact_base();
+      unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
+      meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);
+  
+      mesh.update_curvature();
+      meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
+      mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, 100);
+      mesh.threshold_keypoint(.618);
+
+      std::vector<int> keypoint_threshold_index;
+      mesh.export_keypoint_index(keypoint_threshold_index);
+
+      //mesh.PETSc_load_LBmat(inputMeshName.getValue());
+      //mesh.PETSc_load_LBeigen(inputMeshName.getValue());
+      /*
+      if (loadMeshSIFTName.getValue().compare("") == 0)
+	mesh.load_all_vertices_SIFT(inputMeshName.getValue());
+      else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
+      */
+
+      if (exportMeshBiHSIFTmixDMName.getValue().compare("") == 0)	
+	mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 200, inputMeshName.getValue());
+      else mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 200, exportMeshBiHSIFTmixDMName.getValue());
+    }
 
     /***************************************************************************/    
     // region to test

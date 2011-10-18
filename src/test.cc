@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
   mesh.load_all_vertices_SIFT(argv[1]);
 
-  mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 200, argv[1]);
+  mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 500, argv[1]);
   mesh.PETSc_destroy();
 
   // shape index dense descriptor (8-bin histogram)

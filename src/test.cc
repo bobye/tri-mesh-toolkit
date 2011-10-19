@@ -91,13 +91,17 @@ int main(int argc, char *argv[])
   std::vector<int> keypoint_threshold_index;
   mesh.export_keypoint_index(keypoint_threshold_index);
 
+
+  //std::vector<int> keypoint_threshold_index(mesh.vertex_num);
+  //for (int i=0; i < mesh.vertex_num; ++i) keypoint_threshold_index[i] = i;
+
   mesh.PETSc_init(argc, argv);
   mesh.PETSc_load_LBmat(argv[1]);
   mesh.PETSc_load_LBeigen(argv[1]);
 
   mesh.load_all_vertices_SIFT(argv[1]);
 
-  mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 500, argv[1]);
+  mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 200, argv[1]);
   mesh.PETSc_destroy();
 
   // shape index dense descriptor (8-bin histogram)
@@ -141,7 +145,7 @@ int main(int argc, char *argv[])
   mesh_base.write("out","off");
   */
 
-
+  /*
   meshtk::MeshViewer viewer(argc, argv);
   //  meshtk::MeshRamper ramper(&mesh, mesh_hcurv);
   meshtk::MeshMarker marker(&mesh, keypoint_threshold_index);
@@ -151,7 +155,7 @@ int main(int argc, char *argv[])
 
   viewer.init();// call this func last before loop
   viewer.view();
-
+  */
 
 
   return 0;

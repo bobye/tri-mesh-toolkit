@@ -293,8 +293,8 @@ const PetscInt I4[100]
 
     double total_area_distance=0;
     for (int j=0; j < vertex_num; ++j) {
-
-      biharmonic_distance[j] = std::sqrt(biharmonic_distance[j]);
+      // comment out for kernel matrix assembly
+      //biharmonic_distance[j] = std::sqrt(biharmonic_distance[j]);
       total_area_distance += biharmonic_distance[j] * vertex_area[j];
     }
 

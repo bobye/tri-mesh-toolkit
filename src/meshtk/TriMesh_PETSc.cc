@@ -31,8 +31,11 @@ namespace meshtk {
 
   // mass matrix and stiff matrix of Laplace Beltrami operator
   static Mat mass_mat, stiff_mat;
-
   static PetscInt mat_size;
+
+  // Fourier bent bihamonic matrix 
+  static Mat fbihd_mat;
+  static Vec bihd_trace;
 
   // eigenvalues and eigenvectors of generalized eigen problem defined by FEM_LBmat
   static std::vector<double> eig_value;
@@ -54,7 +57,9 @@ namespace meshtk {
     MatDestroy(&mass_mat); MatDestroy(&stiff_mat);    
     
     for (int i = 0; i < eig_num; ++i) VecDestroy(&eig_vector[i]);
-    
+
+    MatDestroy(&fbihd_mat);
+    VecDestroy(&bihd_trace);
   }
 
 
@@ -156,7 +161,7 @@ const PetscInt I4[100]
       idx[8]=h->opposite()->index + vertex_num;
       idx[9]=i + vertex_num + halfedge_num;
 
-      double mass[100], stiff[100];
+      PetscScalar mass[100], stiff[100];
       for (PetscInt j = 0; j < 100; ++j) {
 	mass[j]=facet_area[i]*I4[j]/6720.;
 	stiff[j]=(l1*l1*I1[j]+l2*l2*I2[j]+l3*l3*I3[j])/(320.* facet_area[i]);
@@ -270,7 +275,22 @@ const PetscInt I4[100]
       eig_vector_sqr_norm[i] = vec_inner_prod(eig_vector[i], eig_vector[i]);
     }
 
+    Vec vtmp;
+
+    VecDuplicate(eig_vector[0], &bihd_trace);
+    VecSet(bihd_trace, 0.);
+    VecDuplicate(eig_vector[0], &vtmp);
+    
+    for (int i=eig_num-1;i>0;--i) {
+      VecPointwiseMult(vtmp, eig_vector[i], eig_vector[i]);
+      VecAXPY(bihd_trace, 1./(eig_value[i] * eig_value[i])/eig_vector_sqr_norm[i], vtmp);
+    }
+
+    VecDestroy(&vtmp);
+
     clock_end();
+
+
 
   }
 
@@ -281,6 +301,7 @@ const PetscInt I4[100]
     for (int j=0; j < vertex_num; ++j) biharmonic_distance[j] =0;
 
     for (int i=eig_num-1; i> 0; --i) {
+    //for (int i = 99; i>0; --i) {
       PetscScalar *vector;
       VecGetArray(eig_vector[i], &vector);
       
@@ -403,8 +424,47 @@ const PetscInt I4[100]
   }
 
   void TriMesh::PETSc_assemble_Fourier_BiHDM() {
+    clock_start("Assemble Fourier phase of BiHDM");
+    PetscInt *nnz;
+    
+    // init sparse symmtric fbihd_mat
+    nnz = new PetscInt[eig_num];
+    nnz[0]=eig_num; for (int i=1;i<eig_num;i++) nnz[i]=1;
+    MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, eig_num, eig_num, 0, nnz, &fbihd_mat);
+    delete [] nnz;
+
+    // assembly
+    //nnz = new PetscInt[eig_num];
+    //value = new PetscScalar[eig_num];        
+    PetscScalar dvalue = 0., value;
+    PetscInt j=0;    
+    for (int i=eig_num-1;i>0;--i){
+      value=vec_inner_prod(eig_vector[i], bihd_trace) * std::sqrt(total_area)/std::sqrt(eig_vector_sqr_norm[i]);
+      dvalue += 2/(eig_value[i] * eig_value[i]);
+      MatSetValues(fbihd_mat, 1, &j, 1, &i, &value, INSERT_VALUES);
+    }
+    
+    //delete [] nnz; 
+    //delete [] value;
+    MatSetValues(fbihd_mat, 1, &j, 1, &j, &dvalue, INSERT_VALUES);
+
+    for (int i=eig_num-1;i>0;--i) {
+      dvalue=-2./(eig_value[i] * eig_value[i]);
+      MatSetValues(fbihd_mat, 1, &i, 1, &i, &dvalue, INSERT_VALUES);
+    }
+
+
+    MatAssemblyBegin(fbihd_mat, MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(fbihd_mat, MAT_FINAL_ASSEMBLY);
+
+    
+    clock_end();
   }
-  void TriMesh::PETSc_export_Fourier_BiHDM() {
+  void TriMesh::PETSc_export_Fourier_BiHDM( std::string name) {
+
+    name += ".fbihdmat";
+    PETSc_export_mat(name.c_str(), fbihd_mat);
+
   }
 
 

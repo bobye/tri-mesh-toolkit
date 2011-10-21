@@ -347,7 +347,7 @@ namespace meshtk {
 
     // assemble (square) biharmonic distance matrix by harmonic analysis, sparse
     void PETSc_assemble_Fourier_BiHDM();
-    void PETSc_export_Fourier_BiHDM();
+    void PETSc_export_Fourier_BiHDM(std::string name);
 
 
 

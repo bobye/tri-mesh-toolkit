@@ -302,12 +302,19 @@ const PetscInt I4[100]
 
     for (int i=eig_num-1; i> 0; --i) {
     //for (int i = 99; i>0; --i) {
-      PetscScalar *vector;
+      PetscScalar *vector, *htrace;
       VecGetArray(eig_vector[i], &vector);
-      
-      PetscScalar target = vector[source_vertex_index], sqr_eigenvalue = eig_value[i] * eig_value[i]; 
+      VecGetArray(bihd_trace, &htrace);
+
+      // weighted by heat trace, probably not a good idea
+      //PetscScalar target = vector[source_vertex_index] / std::sqrt(htrace[source_vertex_index]), 
+      PetscScalar target = vector[source_vertex_index],
+	sqr_eigenvalue = eig_value[i] * eig_value[i]; 
+
       for (int j=0; j < vertex_num; ++j) {
-	double tmp = vector[j] -target;
+
+	//double tmp = vector[j] / std::sqrt(htrace[j]) -target;
+	double tmp = vector[j] - target;
 	biharmonic_distance[j] += tmp * tmp / eig_vector_sqr_norm[i] / sqr_eigenvalue;
       }
     }

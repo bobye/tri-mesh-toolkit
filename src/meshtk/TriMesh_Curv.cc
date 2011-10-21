@@ -22,6 +22,8 @@
 
 #include "meshtk/TriMesh.hh"
 #include "meshtk/mesh_assist.hh"
+#include <fstream>
+#include <iostream>
 
 namespace meshtk {
 
@@ -205,5 +207,33 @@ namespace meshtk {
     clock_end();
   }
 
+  void TriMesh::load_vertex_curvature(std::string name) {
+    
+    vertex_PC0.resize(vertex_num);
+    vertex_PC1.resize(vertex_num);
+    vertex_hcurv.resize(vertex_num);
+    vertex_kcurv.resize(vertex_num);
+
+
+    name += ".curv";
+    std::ifstream fcurv(name.c_str());
+
+    for (int i =0;i < vertex_num; ++i) {
+      double k1,k2;
+      fcurv >> k1 >> k2;
+      Curvature curv = Curvature::tensor_compute(k1, 0, k2);
+      vertex_PC0[i] = curv.principle_curv0;
+      vertex_PC1[i] = curv.principle_curv1;
+      vertex_hcurv[i] = curv.mean_curv;
+      vertex_kcurv[i] = curv.gaussian_curv;      
+    }
+
+    attribute[MESHTK_VERTEX_PC0] = &vertex_PC0;
+    attribute[MESHTK_VERTEX_PC1] = &vertex_PC1;
+    attribute[MESHTK_VERTEX_HCURV] = &vertex_hcurv;
+    attribute[MESHTK_VERTEX_KCURV] = &vertex_kcurv;
+
+  }
 
 }
+

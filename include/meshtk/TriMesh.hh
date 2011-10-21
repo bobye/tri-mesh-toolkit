@@ -257,7 +257,8 @@ namespace meshtk {
     // update curvature attributes of mesh, update: 
     // update_[facet, vertex]_localchart() and update_[facet, vertex]_curvature()
     void update_curvature();
-
+    // load vertex curvature from file
+    void load_vertex_curvature(std::string name);
     /**************************************************************************/
 
     // update vertices neighbor, argument coeff is to take all vertices surrounding

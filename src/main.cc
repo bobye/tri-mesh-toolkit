@@ -49,6 +49,7 @@ int main(int argc, char** argv){
     OptString exportMeshFBiHDMName("", "export_Fourier_BiHDM_name", "Export Fourier phase of square Biharmonic distance matrix with specified name prefix", false, "", "string", cmd);
     OptString loadMeshLBmatName("", "load_FEM_LBmat_name", "Load FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
     OptString loadMeshLBeigenName("", "load_FEM_LBeigen_name", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptString loadMeshCurvName("", "load_mesh_curv_name", "load vertex curvature from file with specified name prefix", false, "", "string", cmd);
     OptString loadMeshSIFTName("", "load_mesh_SIFT_name", "Load mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
     OptString exportMeshSIFTName("", "export_mesh_SIFT_name", "Export mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
     OptString exportMeshBiHSIFTmixDMName("", "export_BiH_SIFT_mixDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
@@ -72,6 +73,7 @@ int main(int argc, char** argv){
     OptBool exportMeshFBiHDM("f", "export_Fourier_BiHDM", "Export Fourier phase of square Biharmonic distance matrix", cmd, false);
     OptBool loadMeshLBmat("", "load_FEM_LBmat", "Load FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
     OptBool loadMeshLBeigen("", "load_FEM_LBeigen", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator", cmd, false);
+    OptBool loadMeshCurv("", "load_mesh_curv", "load vertex curvature from file", cmd, false);
     OptBool loadMeshSIFT("", "load_mesh_SIFT", "Load mesh local descriptors for all vertices", cmd, false);
     OptBool exportMeshSIFT("", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
     OptBool exportMeshBiHSIFTmixDM("", "export_BiH_SIFT_mixDM", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix", cmd, false);
@@ -126,7 +128,17 @@ int main(int argc, char** argv){
     
     if (exportMeshSIFT.getValue()) {
       mesh.update_compact_base();
-      mesh.update_curvature();
+
+      if (loadMeshCurv.getValue()) {
+	if (loadMeshCurvName.getValue().compare("") == 0)
+	  mesh.load_vertex_curvature(inputMeshName.getValue());
+	else 
+	  mesh.load_vertex_curvature(loadMeshCurvName.getValue());
+      }	
+      else
+	mesh.update_curvature();
+      
+
       mesh.update_all_vertices_SIFT();
       if (exportMeshSIFTName.getValue().compare("") == 0) 
 	mesh.export_keypoint_SIFT(inputMeshName.getValue());      

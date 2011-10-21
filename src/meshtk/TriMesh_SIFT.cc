@@ -415,30 +415,30 @@ namespace meshtk{
 
     //double orientation_histogram[MESHTK_ORIENTATION_BINS_NUMBER] = {};
 
+    /* facet shape index
     for (NeighborIndex::iterator it=keypoint.facet_neighbor.begin();
 	 it!=keypoint.facet_neighbor.end(); ++it) {
-      /*
-      double normal[2];
-      normal[0] = facet_norm[*it] * vertex_LC[0][keypoint.index];
-      normal[1] = facet_norm[*it] * vertex_LC[1][keypoint.index];
-      double magnitude = std::sqrt(normal[0]*normal[0] + normal[1]*normal[1]);
-      double sin_symbol = (normal[1]>0)? 1:-1;
-      double theta = sin_symbol * std::acos(normal[0]/magnitude) * 180/MESHTK_PI + 180;
-      int n = (int) ((theta + 180/MESHTK_ORIENTATION_BINS_NUMBER) * MESHTK_ORIENTATION_BINS_NUMBER/360.) % MESHTK_ORIENTATION_BINS_NUMBER ;
-      double avg_distance = (keypoint.vertex_neighbor[tri_index_array[*it]*3] +
-			     keypoint.vertex_neighbor[tri_index_array[*it]*3+1] +
-			     keypoint.vertex_neighbor[tri_index_array[*it]*3+2])/3.;
-      orientation_histogram[n] += magnitude * facet_area[*it]* std::exp(- avg_distance * avg_distance / (2 * keypoint.scale * keypoint.scale));
-      */
 
       double k0=facet_PC0[*it], k1=facet_PC1[*it];
       double theta = std::asin((k0+k1)/std::sqrt((k0*k0+k1*k1)*2)) * 360 /MESHTK_PI + 180;
-      //std::cout << k0+k1<<'\t'<<k0-k1<<'\t'<<theta <<std::endl;
+
       int n = (int) ((theta+180/MESHTK_SIFT_BINS_NUMBER) * MESHTK_SIFT_BINS_NUMBER / 360) % MESHTK_SIFT_BINS_NUMBER;
       double avg_distance = (keypoint.vertex_neighbor[tri_index_array[*it]*3] +
 			     keypoint.vertex_neighbor[tri_index_array[*it]*3+1] +
 			     keypoint.vertex_neighbor[tri_index_array[*it]*3+2])/3.;
       keypoint.histogram[n] += facet_area[*it] * std::exp(- avg_distance * avg_distance / (2 * keypoint.scale * keypoint.scale));
+    }
+    */
+
+    for (ScalarNeighborFunction::iterator it=keypoint.vertex_neighbor.begin();
+	 it!=keypoint.vertex_neighbor.end(); ++it) {
+
+      double k0=vertex_PC0[it->first], k1=vertex_PC1[it->first];
+      double theta = std::asin((k0+k1)/std::sqrt((k0*k0+k1*k1)*2)) * 360 /MESHTK_PI + 180;
+
+      int n = (int) ((theta+180/MESHTK_SIFT_BINS_NUMBER) * MESHTK_SIFT_BINS_NUMBER / 360) % MESHTK_SIFT_BINS_NUMBER;
+      double distance = it->second;
+      keypoint.histogram[n] += vertex_area[it->first] * std::exp(- distance * distance / (2 * keypoint.scale * keypoint.scale));
     }
 
 
@@ -447,7 +447,6 @@ namespace meshtk{
 
     for (int j=0;j < MESHTK_SIFT_BINS_NUMBER; ++j) keypoint.histogram[j]/= total_weight;
     
-
   }
   
   void TriMesh::update_all_vertices_SIFT(double coeff) {

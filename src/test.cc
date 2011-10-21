@@ -83,8 +83,11 @@ int main(int argc, char *argv[])
   meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);
   
 
-  mesh.update_curvature();
+  //mesh.update_curvature();
+  mesh.load_vertex_curvature(argv[1]);
+
   meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
+
   mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, atoi(argv[2]));
   mesh.threshold_keypoint(.618);
 
@@ -99,12 +102,12 @@ int main(int argc, char *argv[])
   mesh.PETSc_load_LBmat(argv[1]);
   mesh.PETSc_load_LBeigen(argv[1]);
 
-  //mesh.load_all_vertices_SIFT(argv[1]);  
+  mesh.load_all_vertices_SIFT(argv[1]);  
 
   mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 200, argv[1]);
 
-  mesh.PETSc_assemble_Fourier_BiHDM();
-  mesh.PETSc_export_Fourier_BiHDM(argv[1]);
+  //mesh.PETSc_assemble_Fourier_BiHDM();
+  //mesh.PETSc_export_Fourier_BiHDM(argv[1]);
 
 
   mesh.PETSc_destroy();
@@ -152,11 +155,11 @@ int main(int argc, char *argv[])
 
   /*
   meshtk::MeshViewer viewer(argc, argv);
-  //  meshtk::MeshRamper ramper(&mesh, mesh_hcurv);
-  meshtk::MeshMarker marker(&mesh, keypoint_threshold_index);
+  meshtk::MeshRamper ramper(&mesh, mesh_hcurv, true);
+  //meshtk::MeshMarker marker(&mesh, keypoint_threshold_index);
   //meshtk::MeshPainter painter(&mesh_base);
-  //  viewer.add_painter(&ramper);
-  viewer.add_painter(&marker);
+  viewer.add_painter(&ramper);
+  //viewer.add_painter(&marker);
 
   viewer.init();// call this func last before loop
   viewer.view();

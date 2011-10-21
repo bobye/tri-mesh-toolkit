@@ -436,7 +436,7 @@ const PetscInt I4[100]
     // assembly
     //nnz = new PetscInt[eig_num];
     //value = new PetscScalar[eig_num];        
-    PetscScalar dvalue = 0., value;
+    PetscScalar dvalue =0., value;
     PetscInt j=0;    
     for (int i=eig_num-1;i>0;--i){
       value=vec_inner_prod(eig_vector[i], bihd_trace) * std::sqrt(total_area)/std::sqrt(eig_vector_sqr_norm[i]);

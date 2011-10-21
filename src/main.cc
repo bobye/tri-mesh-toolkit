@@ -238,7 +238,7 @@ int main(int argc, char** argv){
       mesh.update_vertex_SIFT_distance(viewMeshSIFTDist.getValue(), *SIFT_distance);
 
       meshtk::MeshViewer viewer(argc, argv);
-      meshtk::MeshRamper painter(&mesh, SIFT_distance, true);
+      meshtk::MeshRamper painter(&mesh, SIFT_distance);
       viewer.add_painter(&painter);
 
       viewer.init();

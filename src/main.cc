@@ -46,6 +46,7 @@ int main(int argc, char** argv){
     OptString inputMeshType("", "input_mesh_type", "Input mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
     OptString outputMeshType("", "output_mesh_type", "output mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
     OptString exportMeshCubicLBmatName("", "export_cubic_FEM_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptString exportMeshFBiHDMName("", "export_Fourier_BiHDM_name", "Export Fourier phase of square Biharmonic distance matrix with specified name prefix", false, "", "string", cmd);
     OptString loadMeshLBmatName("", "load_FEM_LBmat_name", "Load FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
     OptString loadMeshLBeigenName("", "load_FEM_LBeigen_name", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
     OptString loadMeshSIFTName("", "load_mesh_SIFT_name", "Load mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
@@ -68,6 +69,7 @@ int main(int argc, char** argv){
     OptBool viewMeshOnly("v", "view_mesh_only", "View mesh without other rending", cmd, false);
     OptBool viewMeshCurvature("", "view_mesh_curv", "View mesh with color ramping of mean curvature", cmd, false);
     OptBool exportMeshCubicLBmat("l", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
+    OptBool exportMeshFBiHDM("f", "export_Fourier_BiHDM", "Export Fourier phase of square Biharmonic distance matrix", cmd, false);
     OptBool loadMeshLBmat("", "load_FEM_LBmat", "Load FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
     OptBool loadMeshLBeigen("", "load_FEM_LBeigen", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator", cmd, false);
     OptBool loadMeshSIFT("", "load_mesh_SIFT", "Load mesh local descriptors for all vertices", cmd, false);
@@ -136,8 +138,15 @@ int main(int argc, char** argv){
       else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
     }
 
+    if (exportMeshFBiHDM.getValue() && loadMeshLBeigen.getValue()) {
+      mesh.PETSc_assemble_Fourier_BiHDM();
+      if (exportMeshFBiHDMName.getValue().compare("") == 0)
+	mesh.PETSc_export_Fourier_BiHDM(inputMeshName.getValue());
+      else 
+	mesh.PETSc_export_Fourier_BiHDM(exportMeshFBiHDMName.getValue());
+    }
 
-    if (exportMeshBiHSIFTmixDM.getValue()) {
+    if (exportMeshBiHSIFTmixDM.getValue() && loadMeshLBeigen.getValue()) {
       mesh.update_compact_base();
       unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
       meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);

@@ -99,9 +99,14 @@ int main(int argc, char *argv[])
   mesh.PETSc_load_LBmat(argv[1]);
   mesh.PETSc_load_LBeigen(argv[1]);
 
-  mesh.load_all_vertices_SIFT(argv[1]);
+  //mesh.load_all_vertices_SIFT(argv[1]);  
 
   mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 200, argv[1]);
+
+  mesh.PETSc_assemble_Fourier_BiHDM();
+  mesh.PETSc_export_Fourier_BiHDM(argv[1]);
+
+
   mesh.PETSc_destroy();
 
   // shape index dense descriptor (8-bin histogram)

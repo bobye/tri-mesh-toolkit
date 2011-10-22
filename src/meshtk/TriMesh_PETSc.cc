@@ -274,7 +274,10 @@ const PetscInt I4[100]
       
       eig_vector_sqr_norm[i] = vec_inner_prod(eig_vector[i], eig_vector[i]);
     }
+    VecGetSize(eig_vector[0], &mat_size);
+    
 
+    // to compute hihd_trace
     Vec vtmp;
 
     VecDuplicate(eig_vector[0], &bihd_trace);
@@ -286,13 +289,34 @@ const PetscInt I4[100]
       VecAXPY(bihd_trace, 1./(eig_value[i] * eig_value[i])/eig_vector_sqr_norm[i], vtmp);
     }
 
+    // to use feature selection
+    /*
+    PetscScalar *vtmp_array;
+    for (int i=0 ; i< eig_num; ++i) {
+      VecCopy(eig_vector[i], vtmp);
+      VecGetArray(vtmp, &vtmp_array);
+      for (int j = 0; j< mat_size; ++j)
+	vtmp_array[j] = std::exp(- total_area * vtmp_array[j] * vtmp_array[j]/ eig_vector_sqr_norm[i] / 2.);
+      VecRestoreArray(vtmp, &vtmp_array);
+      std::cout<< vec_inner_prod(vtmp, vtmp) <<std::endl;
+    }
+
+    */
+
     VecDestroy(&vtmp);
 
     clock_end();
 
-
-
   }
+
+  void TriMesh::PETSc_load_vertex_eig_vector(int i, ScalarFunction & f) {
+    PetscScalar *array;
+    VecGetArray(eig_vector[i], &array);
+    for (int j=0; j< vertex_num; ++j)
+      f[j] = array[j];
+  }
+
+
 
   double TriMesh::update_vertex_biharmonic_distance(int source_vertex_index,
 						    ScalarFunction & biharmonic_distance) {
@@ -347,7 +371,7 @@ const PetscInt I4[100]
 
     ScalarFunction distance;
     ScalarFunction new_biharmonic_distance;
-    ScalarFunction new_SIFT_distance;
+    //ScalarFunction new_SIFT_distance;
     
     distance.resize(vertex_num);
     
@@ -357,18 +381,22 @@ const PetscInt I4[100]
 
     std::string matdata_name = name; matdata_name.append(".bihdmat");
     std::ofstream mat_data(matdata_name.c_str(), std::ios::out|std::ios::binary);
+
+    //std::string siftdata_name = name; siftdata_name.append(".siftmat");
+    //std::ofstream sift_data(siftdata_name.c_str(), std::ios::out|std::ios::binary);
+
     std::string matinfo_name = name; matinfo_name.append(".bihdmat.info");
     std::ofstream mat_info(matinfo_name.c_str());
 
     mat_info << "#size " << vertex_num << "\n";
 
     for (int i = 0; i < init_size; ++i ){
-      new_biharmonic_distance.clear(); new_SIFT_distance.clear();
+      new_biharmonic_distance.clear(); //new_SIFT_distance.clear();
       new_biharmonic_distance.resize(vertex_num); 
-      new_SIFT_distance.resize(vertex_num);
+      //new_SIFT_distance.resize(vertex_num);
       double biharmonic_distance_avg = update_vertex_biharmonic_distance(sampling[i], new_biharmonic_distance);
       //double SIFT_distance_avg = update_vertex_SIFT_distance(sampling[i], new_SIFT_distance);
-      //for (int j=0; j <vertex_num; ++j) new_biharmonic_distance[j] += mix_radio * biharmonic_distance_avg * new_SIFT_distance[j] / SIFT_distance_avg;
+      //for (int j=0; j <vertex_num; ++j) new_biharmonic_distance[j] += mix_radio * new_SIFT_distance[j];
 
       mat_info << sampling[i] <<"\n";
 
@@ -377,8 +405,12 @@ const PetscInt I4[100]
 	  distance[j] = new_biharmonic_distance[j];
 	}
 
-      for (int j=0; j< vertex_num; ++j) new_biharmonic_distance[j] *= std::sqrt( facet_area[j] * facet_area[sampling[i]]);
+      for (int j=0; j< vertex_num; ++j) {
+	new_biharmonic_distance[j] *= std::sqrt( facet_area[j] * facet_area[sampling[i]]);
+	//new_SIFT_distance[j] *= std::sqrt( facet_area[j] * facet_area[sampling[i]]);
+      }
       mat_data.write((char *) &new_biharmonic_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
+      //sift_data.write((char *) &new_SIFT_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
 
 
     }
@@ -392,15 +424,15 @@ const PetscInt I4[100]
     
 
     while (total_size < (init_size + addition_size)){
-      new_biharmonic_distance.clear(); new_SIFT_distance.clear();
+      new_biharmonic_distance.clear(); //new_SIFT_distance.clear();
       new_biharmonic_distance.resize(vertex_num); 
-      new_SIFT_distance.resize(vertex_num);
+      //new_SIFT_distance.resize(vertex_num);
 
       sampling.push_back(max_B_distance_index);
 
       double biharmonic_distance_avg = update_vertex_biharmonic_distance(max_B_distance_index, new_biharmonic_distance);
       //double SIFT_distance_avg = update_vertex_SIFT_distance(max_B_distance_index, new_SIFT_distance);
-      //for (int j=0; j <vertex_num; ++j) new_biharmonic_distance[j] += mix_radio * biharmonic_distance_avg * new_SIFT_distance[j] / SIFT_distance_avg;
+      //for (int j=0; j <vertex_num; ++j) new_biharmonic_distance[j] += mix_radio * new_SIFT_distance[j];
 
       mat_info << max_B_distance_index <<"\n";
 
@@ -409,9 +441,14 @@ const PetscInt I4[100]
 	  distance[j] = new_biharmonic_distance[j];
 	}
       
-      for (int j=0; j< vertex_num; ++j) new_biharmonic_distance[j] *= std::sqrt( facet_area[j] * facet_area[max_B_distance_index]);
+      for (int j=0; j< vertex_num; ++j) {
+	new_biharmonic_distance[j] *= std::sqrt( facet_area[j] * facet_area[max_B_distance_index]);
+	//new_SIFT_distance[j] *= std::sqrt( facet_area[j] * facet_area[max_B_distance_index]);
+      }
       mat_data.write((char *) &new_biharmonic_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
+      //sift_data.write((char *) &new_SIFT_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
 
+      
       max_B_distance = 0;
       for (int j=0; j<vertex_num; ++j) 
 	if (distance[j] > max_B_distance) {

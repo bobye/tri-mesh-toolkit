@@ -59,6 +59,8 @@ int main(int argc, char** argv){
     OptInt viewMeshGeodesicDist("", "view_geodesic_source", "View geodesic distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshBiharmonicDist("", "view_biharmonic_source", "View biharmonic distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshSIFTDist("", "view_SIFT_source", "View SIFT distance from a source vertex on mesh", false, -1, "index", cmd);
+    OptInt viewMeshEigenvector("", "view_eigenvector", "View color ramping of the i-th eigenvector", false, -1, "int", cmd);
+
 
 
     OptScalar smoothMeshCoefficient("", "smooth_mesh_coeff", "Coefficient specified for Guassian smoothing", false, 1., "float", cmd);
@@ -256,6 +258,18 @@ int main(int argc, char** argv){
       viewer.init();
       viewer.view();
 
+    }
+    else if (viewMeshEigenvector.getValue() >=0 && loadMeshLBeigen.getValue()) {
+      unsigned EIGEN_VECTOR = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
+      meshtk::ScalarFunction * eigenvector_scalar = (meshtk::ScalarFunction *) mesh.attribute_extract(EIGEN_VECTOR);
+      mesh.update_compact_base();
+      mesh.PETSc_load_vertex_eig_vector(viewMeshEigenvector.getValue(), *eigenvector_scalar);
+      meshtk::MeshViewer viewer(argc, argv);
+      meshtk::MeshRamper painter(&mesh, eigenvector_scalar);
+      viewer.add_painter(&painter);
+
+      viewer.init();
+      viewer.view();
     }
 
     /***************************************************************************/

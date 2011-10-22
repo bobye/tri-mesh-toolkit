@@ -338,7 +338,11 @@ namespace meshtk {
     void PETSc_export_LBmat(std::string name);
     // load Eigen pairs of Laplace Beltrami operator
     void PETSc_load_LBeigen(std::string name);
+    // load eigenvector into ScalarFunction
+    void PETSc_load_vertex_eig_vector(int i, ScalarFunction& f);
 
+
+    
     // assemble (square) biharmonic distance matric m X N matrix, m is the samping size, N is the vertices size, dense matrix, return the final size m
     int PETSc_assemble_export_BiH_SIFTmixDM(std::vector<int> & sampling, //init sampling provided, keypoint based
 					    int addition_size, // expect additional sampling size

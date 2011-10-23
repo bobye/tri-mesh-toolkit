@@ -298,7 +298,11 @@ namespace meshtk {
 					     ScalarFunction & geodesic_distance);
     
 
-
+    // to update vertex HKS feature
+    void update_export_all_vertices_HKS(std::string name);
+    void load_all_vertices_HKS(std::string name);
+    double update_vertex_HKS_distance(int source_vertex_index,
+				      ScalarFunction & hks_distance);
 
 
 

@@ -44,7 +44,8 @@ namespace meshtk {
   // number of eigenvalues computed
   static PetscInt eig_num;
 
-
+  static std::vector<std::vector<double> > vertex_hks;
+  static int vertex_hks_dim;
 
   static char help[] = "";
 
@@ -326,9 +327,10 @@ const PetscInt I4[100]
 
     for (int i=eig_num-1; i> 0; --i) {
     //for (int i = 99; i>0; --i) {
-      PetscScalar *vector, *htrace;
+      PetscScalar *vector;
+      //PetscScalar *htrace;
       VecGetArray(eig_vector[i], &vector);
-      VecGetArray(bihd_trace, &htrace);
+      //VecGetArray(bihd_trace, &htrace);
 
       // weighted by heat trace, probably not a good idea
       //PetscScalar target = vector[source_vertex_index] / std::sqrt(htrace[source_vertex_index]), 
@@ -352,6 +354,77 @@ const PetscInt I4[100]
 
     
     return total_area_distance / total_area;
+  }
+
+  void TriMesh::update_export_all_vertices_HKS(std::string name) {
+    //export in binary
+    clock_start("Update and export HKS for all vertices");
+
+    std::string hksdata_name = name; hksdata_name.append(".hks");
+    std::ofstream hks_data(hksdata_name.c_str(), std::ios::out|std::ios::binary);
+    std::string hksinfo_name = name; hksinfo_name.append(".hks.info");
+    std::ofstream hks_info(hksinfo_name.c_str());
+    hks_info << eig_num << "\t" << vertex_num;
+    hks_info.close();
+    
+    PetscScalar **vector = new PetscScalar *[eig_num];    
+    for (int j = 0; j <eig_num; ++j) VecGetArray(eig_vector[j], &vector[j]);
+
+    for (int i=0; i<vertex_num; ++i) {      
+      for (int j=0; j<eig_num; ++j) {
+	double value_ij =0.;
+	for (int k=eig_num-1; k>0; --k)
+	  value_ij += vector[k][i] * vector[k][i] / eig_vector_sqr_norm[k] / std::pow(eig_value[j] + eig_value[k], 2); 
+	value_ij = std::sqrt(value_ij);
+	hks_data.write((char *) &value_ij, sizeof(MESHTK_SCALAR_TYPE));
+      }
+    }
+    hks_data.close();
+    delete [] vector;
+
+    clock_end();
+  }
+
+  void TriMesh::load_all_vertices_HKS(std::string name) {
+
+    std::string hksdata_name = name; hksdata_name.append(".hks");
+    std::ifstream hks_data(hksdata_name.c_str(), std::ios::in|std::ios::binary);
+    std::string hksinfo_name = name; hksinfo_name.append(".hks.info");
+    std::ifstream hks_info(hksinfo_name.c_str());
+    
+    hks_info >> vertex_hks_dim;
+    hks_info.close();
+    
+    vertex_hks.resize(vertex_num);
+    for (int i=0; i<vertex_num; ++i) vertex_hks[i].resize(vertex_hks_dim);
+
+    for (int i =0; i<vertex_num; ++i) {
+      for (int j=0; j < vertex_hks_dim; ++j) 
+	hks_data.read((char*) &vertex_hks[i][j], sizeof(MESHTK_SCALAR_TYPE));
+    }
+
+    hks_data.close();
+  }
+
+
+  double TriMesh::update_vertex_HKS_distance(int source_vertex_index,
+					     ScalarFunction & hks_distance) {
+    
+
+    for (int j=0; j < vertex_num; ++j) hks_distance[j] = 0;
+    
+    for (int i=0; i < vertex_num; ++i)
+      for (int j=0; j < vertex_hks_dim; ++j)
+	hks_distance[i] += std::pow(vertex_hks[source_vertex_index][j] - vertex_hks[i][j], 2);
+
+    double total_area_distance=0;
+    for (int j=0; j < vertex_num; ++j) {
+      total_area_distance += hks_distance[j] * vertex_area[j];
+    }
+
+    
+    return total_area_distance / total_area;
+
   }
 
 

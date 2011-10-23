@@ -52,6 +52,8 @@ int main(int argc, char** argv){
     OptString loadMeshCurvName("", "load_mesh_curv_name", "load vertex curvature from file with specified name prefix", false, "", "string", cmd);
     OptString loadMeshSIFTName("", "load_mesh_SIFT_name", "Load mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
     OptString exportMeshSIFTName("", "export_mesh_SIFT_name", "Export mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
+    OptString loadMeshHKSName("", "load_mesh_HKS_name", "Load mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
+    OptString exportMeshHKSName("", "export_mesh_HKS_name", "Export mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
     OptString exportMeshBiHSIFTmixDMName("", "export_BiH_SIFT_mixDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
     
 
@@ -67,7 +69,7 @@ int main(int argc, char** argv){
     OptScalar addMeshNoise("", "noise_mesh", "Coefficient specified for uniform mesh noise added", false, 0., "float", cmd);
 
 
-
+    
     OptBool outputMeshSwitch("o", "output_mesh_enable", "Enable mesh Output before program exits", cmd, false) ;
     OptBool viewMeshOnly("v", "view_mesh_only", "View mesh without other rending", cmd, false);
     OptBool viewMeshCurvature("", "view_mesh_curv", "View mesh with color ramping of mean curvature", cmd, false);
@@ -77,8 +79,10 @@ int main(int argc, char** argv){
     OptBool loadMeshLBeigen("", "load_FEM_LBeigen", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator", cmd, false);
     OptBool loadMeshCurv("", "load_mesh_curv", "load vertex curvature from file", cmd, false);
     OptBool loadMeshSIFT("", "load_mesh_SIFT", "Load mesh local descriptors for all vertices", cmd, false);
-    OptBool exportMeshSIFT("", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
-    OptBool exportMeshBiHSIFTmixDM("", "export_BiH_SIFT_mixDM", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix", cmd, false);
+    OptBool exportMeshSIFT("d", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
+    OptBool loadMeshHKS("", "load_mesh_HKS", "Load mesh HKS descriptors for all vertices", cmd, false);
+    OptBool exportMeshHKS("k", "export_mesh_HKS", "Export mesh HKS descriptors for all vertices", cmd, false);
+    OptBool exportMeshBiHSIFTmixDM("m", "export_BiH_SIFT_mixDM", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix", cmd, false);
     // process input argument
     cmd.parse( argc, argv );
 
@@ -150,6 +154,19 @@ int main(int argc, char** argv){
       if (loadMeshSIFTName.getValue().compare("") == 0)
 	mesh.load_all_vertices_SIFT(inputMeshName.getValue());
       else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
+    }
+
+    if (exportMeshHKS.getValue() && loadMeshLBeigen.getValue()) {
+      if (exportMeshHKSName.getValue().compare("") ==0)
+	mesh.update_export_all_vertices_HKS(inputMeshName.getValue());
+      else 
+	mesh.update_export_all_vertices_HKS(exportMeshHKSName.getValue());
+    }
+    else if (loadMeshHKS.getValue()) {
+      if (loadMeshHKSName.getValue().compare("") == 0)
+	mesh.load_all_vertices_HKS(inputMeshName.getValue());
+      else 
+	mesh.load_all_vertices_HKS(loadMeshHKSName.getValue());
     }
 
     if (exportMeshFBiHDM.getValue() && loadMeshLBeigen.getValue()) {

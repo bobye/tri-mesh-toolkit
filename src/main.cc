@@ -54,7 +54,7 @@ int main(int argc, char** argv){
     OptString exportMeshSIFTName("", "export_mesh_SIFT_name", "Export mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
     OptString loadMeshHKSName("", "load_mesh_HKS_name", "Load mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
     OptString exportMeshHKSName("", "export_mesh_HKS_name", "Export mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
-    OptString exportMeshBiHSIFTmixDMName("", "export_BiH_SIFT_mixDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
+    OptString exportMeshBiHDMName("", "export_Nystrom_BiHDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
     
 
     OptInt smoothMeshIteration("s", "smooth_mesh_iter", "Number of Guassian smoothing iterations", false, 0, "unsigned int", cmd);
@@ -84,7 +84,7 @@ int main(int argc, char** argv){
     OptBool exportMeshSIFT("d", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
     OptBool loadMeshHKS("", "load_mesh_HKS", "Load mesh HKS descriptors for all vertices", cmd, false);
     OptBool exportMeshHKS("k", "export_mesh_HKS", "Export mesh HKS descriptors for all vertices", cmd, false);
-    OptBool exportMeshBiHSIFTmixDM("m", "export_BiH_SIFT_mixDM", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix", cmd, false);
+    OptBool exportMeshBiHDM("m", "export_Nystrom_BiHDM", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix", cmd, false);
     // process input argument
     cmd.parse( argc, argv );
 
@@ -179,7 +179,7 @@ int main(int argc, char** argv){
 	mesh.PETSc_export_Fourier_BiHDM(exportMeshFBiHDMName.getValue());
     }
 
-    if (exportMeshBiHSIFTmixDM.getValue() && loadMeshLBeigen.getValue()) {
+    if (exportMeshBiHDM.getValue() && loadMeshLBeigen.getValue()) {
       mesh.update_compact_base();
       unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
       meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);
@@ -200,9 +200,9 @@ int main(int argc, char** argv){
       else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
       */
 
-      if (exportMeshBiHSIFTmixDMName.getValue().compare("") == 0)	
-	mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 200, inputMeshName.getValue());
-      else mesh.PETSc_assemble_export_BiH_SIFTmixDM(keypoint_threshold_index, 200, exportMeshBiHSIFTmixDMName.getValue());
+      if (exportMeshBiHDMName.getValue().compare("") == 0)	
+	mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, inputMeshName.getValue());
+      else mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, exportMeshBiHDMName.getValue());
     }
 
     /***************************************************************************/    

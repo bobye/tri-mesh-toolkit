@@ -61,7 +61,9 @@ int main(int argc, char** argv){
     OptInt viewMeshGeodesicDist("", "view_geodesic_source", "View geodesic distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshBiharmonicDist("", "view_biharmonic_source", "View biharmonic distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshSIFTDist("", "view_SIFT_source", "View SIFT distance from a source vertex on mesh", false, -1, "index", cmd);
-    OptInt viewMeshEigenvector("", "view_eigenvector", "View color ramping of the i-th eigenvector", false, -1, "int", cmd);
+    OptInt viewMeshHKSDist("", "view_HKS_source", "View HKS distance from a source vertex on mesh", false, -1, "index", cmd);
+    OptInt viewMeshEigenvector("", "view_eigenvector", "View color ramping of the i-th eigenvector", false, -1, "unsigned int", cmd);
+
 
 
 
@@ -275,6 +277,20 @@ int main(int argc, char** argv){
       viewer.init();
       viewer.view();
 
+    }
+    else if (viewMeshHKSDist.getValue() >=0 && loadMeshHKS.getValue()) {
+      unsigned HKS_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
+      meshtk::ScalarFunction *HKS_distance = (meshtk::ScalarFunction *) mesh.attribute_extract(HKS_DIST_REG);
+      mesh.update_compact_base();
+      mesh.update_vertex_HKS_distance(viewMeshHKSDist.getValue(), *HKS_distance);
+
+      meshtk::MeshViewer viewer(argc, argv);
+      meshtk::MeshRamper painter(&mesh, HKS_distance);
+      viewer.add_painter(&painter);
+
+      viewer.init();
+      viewer.view();
+      
     }
     else if (viewMeshEigenvector.getValue() >=0 && loadMeshLBeigen.getValue()) {
       unsigned EIGEN_VECTOR = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);

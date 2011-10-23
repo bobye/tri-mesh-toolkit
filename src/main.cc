@@ -55,7 +55,8 @@ int main(int argc, char** argv){
     OptString loadMeshHKSName("", "load_mesh_HKS_name", "Load mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
     OptString exportMeshHKSName("", "export_mesh_HKS_name", "Export mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
     OptString exportMeshBiHDMName("", "export_Nystrom_BiHDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
-    
+    OptString exportMeshHKSDMName("", "export_Nystrom_HKSDM_name", "Export Nystrom sampling matrix block of HKS distance matrix with specified name prefix", false, "", "string", cmd);
+
 
     OptInt smoothMeshIteration("s", "smooth_mesh_iter", "Number of Guassian smoothing iterations", false, 0, "unsigned int", cmd);
     OptInt viewMeshGeodesicDist("", "view_geodesic_source", "View geodesic distance from a source vertex on mesh", false, -1, "index", cmd);
@@ -84,7 +85,8 @@ int main(int argc, char** argv){
     OptBool exportMeshSIFT("d", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
     OptBool loadMeshHKS("", "load_mesh_HKS", "Load mesh HKS descriptors for all vertices", cmd, false);
     OptBool exportMeshHKS("k", "export_mesh_HKS", "Export mesh HKS descriptors for all vertices", cmd, false);
-    OptBool exportMeshBiHDM("m", "export_Nystrom_BiHDM", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix", cmd, false);
+    OptBool exportMeshBiHDM("m", "export_Nystrom_BiHDM", "Export Nystrom sampling matrix block of biharmonic distance matrix", cmd, false);
+    OptBool exportMeshHKSDM("n", "export_Nystrom_HKSDM", "Export Nystrom sampling matrix block of HKS distance matrix", cmd, false);
     // process input argument
     cmd.parse( argc, argv );
 
@@ -205,6 +207,23 @@ int main(int argc, char** argv){
       else mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, exportMeshBiHDMName.getValue());
     }
 
+    if (exportMeshHKSDM.getValue() && loadMeshHKS.getValue()) {
+      mesh.update_compact_base();
+      unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
+      meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);
+  
+      mesh.update_curvature();
+      meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
+      mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, 100);
+      mesh.threshold_keypoint(.618);
+      
+      std::vector<int> keypoint_threshold_index;
+      mesh.export_keypoint_index(keypoint_threshold_index);
+
+      if (exportMeshHKSDMName.getValue().compare("") == 0)	
+	mesh.PETSc_assemble_export_HKSDM(keypoint_threshold_index, 200, inputMeshName.getValue());
+      else mesh.PETSc_assemble_export_HKSDM(keypoint_threshold_index, 200, exportMeshHKSDMName.getValue());
+    }
     /***************************************************************************/    
     // region to test
     //mesh.detect_vertex_salient(10,1);

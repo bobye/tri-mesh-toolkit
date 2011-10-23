@@ -33,7 +33,7 @@ namespace meshtk {
 
     clock_start("Compute vertex-source geodesic distance");
 
-
+    int vertex_size = geodesic_distance.size();
     // pre condition with function update_compact_base()
     geodesic::Mesh mesh; 
     mesh.initialize_mesh_data(vertex_array, tri_index_array);
@@ -46,17 +46,110 @@ namespace meshtk {
     algorithm.propagate(single_source);	
 
     double avg_geodesic_distance = 0;
-    for (int i=0; i < vertex_num; ++i) {
+    for (int i=0; i < vertex_size; ++i) {
       geodesic::SurfacePoint p(&mesh.vertices()[i]);
 
       //for a given surface point, find closets source and distance to this source
       algorithm.best_source(p,geodesic_distance[i]);		
-      avg_geodesic_distance += vertex_area[i] * geodesic_distance[i];
+      avg_geodesic_distance += geodesic_distance[i];
     }
 
     clock_end();
-    return avg_geodesic_distance / total_area;
+    return avg_geodesic_distance / vertex_size;
   }
+
+    
+  int TriMesh::assemble_export_Nystrom_matrix(std::vector<int> & sampling,
+					      int addition_size,
+					      std::string name,
+					      double (*distance_function) (int, ScalarFunction&)) {
+    int init_size = sampling.size();
+    int total_size = init_size;
+
+    double max_B_distance = 0;
+    int max_B_distance_index =  vertex_num * rand()/ RAND_MAX;
+
+    ScalarFunction distance;
+    ScalarFunction new_distance;
+
+    distance.resize(vertex_num);
+    for (int i =0;i<vertex_num; ++i) distance[i] =-1;
+
+    std::string matdata_name = name; 
+    std::ofstream mat_data(matdata_name.c_str(), std::ios::out|std::ios::binary);
+
+    std::string matinfo_name = name; matinfo_name.append(".info");
+    std::ofstream mat_info(matinfo_name.c_str());
+
+    mat_info << "#size " << vertex_num << "\n";
+
+    for (int i = 0; i < init_size; ++i ){
+      new_distance.clear(); 
+      new_distance.resize(vertex_num); 
+
+      double distance_avg = (*distance_function) (sampling[i], new_distance);
+
+
+      mat_info << sampling[i] <<"\n";
+
+      for (int j=0; j< vertex_num; ++j) 
+	if (new_distance[j] < distance[j] || distance[j] <0) {
+	  distance[j] = new_distance[j];
+	}
+
+      for (int j=0; j< vertex_num; ++j) {
+	new_distance[j] *= std::sqrt( facet_area[j] * facet_area[sampling[i]]);
+
+      }
+      mat_data.write((char *) &new_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
+    }
+
+    for (int j=0; j<vertex_num; ++j) 
+      if (distance[j] > max_B_distance) {
+	max_B_distance = distance[j];
+	max_B_distance_index = j;
+      }
+
+    
+
+    while (total_size < (init_size + addition_size)){
+      new_distance.clear(); //new_SIFT_distance.clear();
+      new_distance.resize(vertex_num); 
+      //new_SIFT_distance.resize(vertex_num);
+
+      sampling.push_back(max_B_distance_index);
+
+      double distance_avg = (*distance_function) (max_B_distance_index, new_distance);
+
+      mat_info << max_B_distance_index <<"\n";
+
+      for (int j=0; j< vertex_num; ++j) 
+	if (new_distance[j] < distance[j] || distance[j] <0) {
+	  distance[j] = new_distance[j];
+	}
+      
+      for (int j=0; j< vertex_num; ++j) {
+	new_distance[j] *= std::sqrt( facet_area[j] * facet_area[max_B_distance_index]);
+      }
+      mat_data.write((char *) &new_distance[0], vertex_num * sizeof(MESHTK_SCALAR_TYPE));
+      
+      max_B_distance = 0;
+      for (int j=0; j<vertex_num; ++j) 
+	if (distance[j] > max_B_distance) {
+	  max_B_distance = distance[j];
+	  max_B_distance_index = j;
+	}
+      ++ total_size;
+
+    }
+
+    mat_info.close();
+    mat_data.close();
+
+
+    return total_size;
+  }
+
 
 }
 

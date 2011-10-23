@@ -209,6 +209,9 @@ namespace meshtk {
 
   };
 
+  std::vector<double> TriMesh::vertex_array;// {v0.x, v0.y, v0.z, v1.x, v1.y, v1.z ...}
+  std::vector<double> TriMesh::normal_array;// {n0.x, n0.y, n0.z, n1.x, n1,y, n1.z ...}
+  std::vector<unsigned> TriMesh::tri_index_array;// {f0.0, f0.1, f0,2, f1.0, f1.1, f1.2, ...}
 
   void TriMesh::update_compact_base() {
 

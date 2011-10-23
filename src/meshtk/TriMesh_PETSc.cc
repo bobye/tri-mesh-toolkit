@@ -33,6 +33,7 @@ namespace meshtk {
   static Mat mass_mat, stiff_mat;
   static PetscInt mat_size;
 
+
   // Fourier bent bihamonic matrix 
   static Mat fbihd_mat;
   static Vec bihd_trace;
@@ -46,6 +47,12 @@ namespace meshtk {
 
   static std::vector<std::vector<double> > vertex_hks;
   static int vertex_hks_dim;
+
+
+
+
+
+
 
   static char help[] = "";
 
@@ -276,7 +283,7 @@ const PetscInt I4[100]
       eig_vector_sqr_norm[i] = vec_inner_prod(eig_vector[i], eig_vector[i]);
     }
     VecGetSize(eig_vector[0], &mat_size);
-    
+
 
     // to compute hihd_trace
     Vec vtmp;
@@ -321,9 +328,9 @@ const PetscInt I4[100]
 
   double TriMesh::update_vertex_biharmonic_distance(int source_vertex_index,
 						    ScalarFunction & biharmonic_distance) {
-    
+    int vertex_size = biharmonic_distance.size();
 
-    for (int j=0; j < vertex_num; ++j) biharmonic_distance[j] =0;
+    for (int j=0; j < vertex_size; ++j) biharmonic_distance[j] =0;
 
     for (int i=eig_num-1; i> 0; --i) {
     //for (int i = 99; i>0; --i) {
@@ -337,7 +344,7 @@ const PetscInt I4[100]
       PetscScalar target = vector[source_vertex_index],
 	sqr_eigenvalue = eig_value[i] * eig_value[i]; 
 
-      for (int j=0; j < vertex_num; ++j) {
+      for (int j=0; j < vertex_size; ++j) {
 
 	//double tmp = vector[j] / std::sqrt(htrace[j]) -target;
 	double tmp = vector[j] - target;
@@ -345,15 +352,15 @@ const PetscInt I4[100]
       }
     }
 
-    double total_area_distance=0;
-    for (int j=0; j < vertex_num; ++j) {
+    double total_distance=0;
+    for (int j=0; j < vertex_size; ++j) {
       // comment out for kernel matrix assembly
       //biharmonic_distance[j] = std::sqrt(biharmonic_distance[j]);
-      total_area_distance += biharmonic_distance[j] * vertex_area[j];
+      total_distance += biharmonic_distance[j];
     }
 
     
-    return total_area_distance / total_area;
+    return total_distance / vertex_size;
   }
 
   void TriMesh::update_export_all_vertices_HKS(std::string name) {
@@ -391,7 +398,7 @@ const PetscInt I4[100]
     std::ifstream hks_data(hksdata_name.c_str(), std::ios::in|std::ios::binary);
     std::string hksinfo_name = name; hksinfo_name.append(".hks.info");
     std::ifstream hks_info(hksinfo_name.c_str());
-    
+        
     hks_info >> vertex_hks_dim;
     hks_info.close();
     
@@ -410,20 +417,21 @@ const PetscInt I4[100]
   double TriMesh::update_vertex_HKS_distance(int source_vertex_index,
 					     ScalarFunction & hks_distance) {
     
+    int vertex_size = hks_distance.size();
 
-    for (int j=0; j < vertex_num; ++j) hks_distance[j] = 0;
+    for (int j=0; j < vertex_size; ++j) hks_distance[j] = 0;
     
-    for (int i=0; i < vertex_num; ++i)
+    for (int i=0; i < vertex_size; ++i)
       for (int j=0; j < vertex_hks_dim; ++j)
 	hks_distance[i] += std::pow(vertex_hks[source_vertex_index][j] - vertex_hks[i][j], 2);
 
-    double total_area_distance=0;
-    for (int j=0; j < vertex_num; ++j) {
-      total_area_distance += hks_distance[j] * vertex_area[j];
-    }
 
+    double total_distance=0;
+    for (int j=0; j < vertex_size; ++j) {
+      total_distance += hks_distance[j];
+    }
     
-    return total_area_distance / total_area;
+    return total_distance / vertex_size;
 
   }
 
@@ -434,7 +442,14 @@ const PetscInt I4[100]
 						   double mix_radio) {    
     clock_start("Assemble Nystrom sampling of BiHDM");
 
+    name += ".bihdmat";
 
+    int total_size = assemble_export_Nystrom_matrix(sampling,
+						    addition_size,
+						    name,
+						    &update_vertex_biharmonic_distance);
+
+    /*
     int init_size = sampling.size();
     int total_size = init_size;
     
@@ -534,6 +549,8 @@ const PetscInt I4[100]
 
     mat_info.close();
     mat_data.close();
+
+    */
     clock_end();
 
 

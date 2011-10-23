@@ -115,10 +115,6 @@ namespace meshtk {
 
     std::vector<ScalarNeighborFunction > *neighbor_distance_map;
 
-    // neighbor vertices of keypoints, which is naturally a larger neighbor
-    //std::vector<ScalarNeighborFunction > keypoint_neighbor;
-    //std::vector<int> keypoint_index;
-    std::vector<KeyPoint> keypoints;
     
 
     double avg_edge_len;//average edge length globally
@@ -145,9 +141,9 @@ namespace meshtk {
 
     // compact data structure for mesh, which can be used in 
     // class MeshPainter and class geodesic::mesh
-    std::vector<double> vertex_array;// {v0.x, v0.y, v0.z, v1.x, v1.y, v1.z ...}
-    std::vector<double> normal_array;// {n0.x, n0.y, n0.z, n1.x, n1,y, n1.z ...}
-    std::vector<unsigned> tri_index_array;// {f0.0, f0.1, f0,2, f1.0, f1.1, f1.2, ...}
+    static std::vector<double> vertex_array;// {v0.x, v0.y, v0.z, v1.x, v1.y, v1.z ...}
+    static std::vector<double> normal_array;// {n0.x, n0.y, n0.z, n1.x, n1,y, n1.z ...}
+    static std::vector<unsigned> tri_index_array;// {f0.0, f0.1, f0,2, f1.0, f1.1, f1.2, ...}
 
     
     //this a private function to register a detection keypoint
@@ -290,19 +286,19 @@ namespace meshtk {
 
     // update geodesic distances overall from a given source_vertex_index
     // return the average distance (area weighted) from source_vertex
-    double update_vertex_geodesic_distance(int source_vertex_index,
-					   ScalarFunction & geodesic_distance);
+    static double update_vertex_geodesic_distance(int source_vertex_index,
+						  ScalarFunction & geodesic_distance);
 
     // update biharmonic distance overall from a given source_vertex_index
-    double update_vertex_biharmonic_distance(int source_vertex_index,
-					     ScalarFunction & geodesic_distance);
+    static double update_vertex_biharmonic_distance(int source_vertex_index,
+						    ScalarFunction & geodesic_distance);
     
 
     // to update vertex HKS feature
     void update_export_all_vertices_HKS(std::string name);
     void load_all_vertices_HKS(std::string name);
-    double update_vertex_HKS_distance(int source_vertex_index,
-				      ScalarFunction & hks_distance);
+    static double update_vertex_HKS_distance(int source_vertex_index,
+					     ScalarFunction & hks_distance);
 
 
 
@@ -312,8 +308,8 @@ namespace meshtk {
     void update_all_vertices_SIFT(double coeff =1.);
     void load_all_vertices_SIFT(std::string name);
     
-    double update_vertex_SIFT_distance(int source_vertex_index,
-				       ScalarFunction & feature_distance);
+    static double update_vertex_SIFT_distance(int source_vertex_index,
+					      ScalarFunction & feature_distance);
 
 
     // The following procedure is SIFT keypoint detection for scalar 
@@ -346,6 +342,13 @@ namespace meshtk {
     void PETSc_load_vertex_eig_vector(int i, ScalarFunction& f);
 
 
+
+    // template function for distance matrix Nystrom assemble
+    int assemble_export_Nystrom_matrix(std::vector<int> & sampling,
+				       int addition_size,
+				       std::string name,
+				       double (*distance_function) (int, ScalarFunction&));
+      
     
     // assemble (square) biharmonic distance matric m X N matrix, m is the samping size, N is the vertices size, dense matrix, return the final size m
     int PETSc_assemble_export_BiH_SIFTmixDM(std::vector<int> & sampling, //init sampling provided, keypoint based

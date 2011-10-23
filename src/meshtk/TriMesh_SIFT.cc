@@ -27,6 +27,10 @@
 #include <geodesic/geodesic_algorithm_exact.h>
 
 namespace meshtk{
+  // neighbor vertices of keypoints, which is naturally a larger neighbor
+  //std::vector<ScalarNeighborFunction > keypoint_neighbor;
+  //std::vector<int> keypoint_index;
+  std::vector<KeyPoint> keypoints;
 
   struct front_circ {
     Halfedge_handle hf; // Halfedge 
@@ -497,16 +501,18 @@ namespace meshtk{
 
   double TriMesh::update_vertex_SIFT_distance(int source_vertex_index,
 					      ScalarFunction & feature_distance) {
-    double total_area_distance = 0.;
-    for (int i=0; i <vertex_num; ++i) {
+    double total_distance = 0.;
+    int vertex_size = feature_distance.size();
+
+    for (int i=0; i <vertex_size; ++i) {
       feature_distance[i] = 0;
       for (int j=0; j<MESHTK_SIFT_BINS_NUMBER; ++j) {
 	double diff = keypoints[i].histogram[j] - keypoints[source_vertex_index].histogram[j];
 	feature_distance[i] += diff * diff;
       }
-      total_area_distance += facet_area[i] * (feature_distance[i] = std::sqrt(feature_distance[i]));
+      total_distance +=  (feature_distance[i] = std::sqrt(feature_distance[i]));
     }
-    return total_area_distance / total_area;
+    return total_distance /vertex_size;
   }
 
 

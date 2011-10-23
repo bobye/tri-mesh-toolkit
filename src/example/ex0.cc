@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
   // write mesh to file
   Mesh.write(argv[2], "off");
-  
+
   return 0;
 }
 

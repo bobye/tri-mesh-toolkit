@@ -1,0 +1,4 @@
+ADD_EXECUTABLE(ex0 ex0.cc)
+
+TARGET_LINK_LIBRARIES(ex0 meshtk ${LIBS})
+

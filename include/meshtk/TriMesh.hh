@@ -246,6 +246,11 @@ namespace meshtk {
     // store data in compact structure: vertex_array, normal_array, tri_index_array
     void update_compact_base();
 
+    // update base attribute of mesh w.r.t biharmonic distance embedding
+    // update halfedge_length and facet_area
+    // make sure to call update_base again when necessary
+    void update_biharmonic_base(ScalarFunction & facet_weight);
+
     // update base attributes of mesh, namely three private routines:
     //  update_halfedge(), update_facet(), update_vertex(); 
     void update_base();
@@ -331,7 +336,7 @@ namespace meshtk {
     void PETSc_init(int argc, char **argv);
     void PETSc_destroy();
     // assemble cubic FEM matrices of Laplace Beltrami operator
-    void PETSc_assemble_cubicFEM_LBmat();
+    void PETSc_assemble_cubicFEM_LBmat(ScalarFunction & facet_weight);
     void PETSc_assemble_linearFEM_LBmat();
     // load and export FEM matrices of Laplace Beltrami operator
     void PETSc_load_LBmat(std::string name);
@@ -427,7 +432,8 @@ namespace meshtk {
     /**************************************************************************/
     // allocate memory for attribute function
     unsigned attribute_allocate(unsigned item, //{MESHTK_VERTEX, MESHTK_FACET, MESHTK_HALFEDGE}
-				unsigned type);//{MESHTK_SCALAR, MESHTK_VECTOR, MESHTK_BOOLEAN}
+				unsigned type,
+				void *init = NULL);//{MESHTK_SCALAR, MESHTK_VECTOR, MESHTK_BOOLEAN}
     // return reference of attribute function by register number
     void *attribute_extract(unsigned indice); // Indice of given attribute, see mesh_precompile.hh
     void attribute_delete(unsigned indice, unsigned type);

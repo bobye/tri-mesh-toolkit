@@ -26,7 +26,7 @@
 
 namespace meshtk{
 
-  unsigned TriMesh::attribute_allocate(unsigned item, unsigned type){
+  unsigned TriMesh::attribute_allocate(unsigned item, unsigned type, void * init_val){
     int n;
 
     if (item == MESHTK_VERTEX) n = vertex_num;
@@ -35,15 +35,27 @@ namespace meshtk{
     else { std::cerr << "Attribute function: item indice is not correct, use MESHTK_VERTEX, MESHTK_FACET, MESHTK_HALFEDGE" << std::endl; exit(1);}
 
     if (type == MESHTK_SCALAR) {
-      ScalarFunction *v = new ScalarFunction(n);
+      ScalarFunction *v;
+      if (init_val !=NULL)
+	v = new ScalarFunction(n, *((double *) init_val));
+      else 
+	v = new ScalarFunction(n);
       attribute[set_attribute_id] = v;
     }
     else if (type == MESHTK_VECTOR) {
-      VectorFunction *v = new VectorFunction(n);
+      VectorFunction *v;
+      if (init_val !=NULL)
+	v = new VectorFunction(n, *((Vector *) init_val));
+      else 
+	v = new VectorFunction(n);
       attribute[set_attribute_id] = v;
     }
     else if (type == MESHTK_BOOLEAN) {
-      BooleanFunction *v = new BooleanFunction(n);
+      BooleanFunction *v;
+      if (init_val !=NULL)
+	v = new BooleanFunction(n, *((bool *) init_val));
+      else 
+	v = new BooleanFunction(n);
       attribute[set_attribute_id] = v;
     }
     else { std::cerr << "Attribute function: type indice is not correct, use MESHTK_SCALAR, MESHTK_VECTOR, MESHTK_BOOLEAN" << std::endl; exit(1);}

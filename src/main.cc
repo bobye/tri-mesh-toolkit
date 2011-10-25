@@ -46,6 +46,7 @@ int main(int argc, char** argv){
     OptString inputMeshType("", "input_mesh_type", "Input mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
     OptString outputMeshType("", "output_mesh_type", "output mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
     OptString exportMeshCubicLBmatName("", "export_cubic_FEM_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptString exportMeshBiHDCubicLBmatName("", "export_BiHD_FEM3_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with biharmonic distance metric, with specified name prefix", false, "", "string", cmd);
     OptString exportMeshFBiHDMName("", "export_Fourier_BiHDM_name", "Export Fourier phase of square Biharmonic distance matrix with specified name prefix", false, "", "string", cmd);
     OptString loadMeshLBmatName("", "load_FEM_LBmat_name", "Load FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
     OptString loadMeshLBeigenName("", "load_FEM_LBeigen_name", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
@@ -77,6 +78,8 @@ int main(int argc, char** argv){
     OptBool viewMeshOnly("v", "view_mesh_only", "View mesh without other rending", cmd, false);
     OptBool viewMeshCurvature("", "view_mesh_curv", "View mesh with color ramping of mean curvature", cmd, false);
     OptBool exportMeshCubicLBmat("l", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
+    OptBool exportMeshBiHDCubicLBmat("", "export_BiHD_FEM3_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with biharmonic distance metric", cmd, false);
+
     OptBool exportMeshFBiHDM("f", "export_Fourier_BiHDM", "Export Fourier phase of square Biharmonic distance matrix", cmd, false);
     OptBool loadMeshLBmat("", "load_FEM_LBmat", "Load FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
     OptBool loadMeshLBeigen("", "load_FEM_LBeigen", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator", cmd, false);
@@ -119,10 +122,15 @@ int main(int argc, char** argv){
     mesh.PETSc_init(argc, argv);
 
     if (exportMeshCubicLBmat.getValue()) {
-      mesh.PETSc_assemble_cubicFEM_LBmat();
+      double one = 1.;
+      unsigned FACET_WEIGHT = mesh.attribute_allocate(MESHTK_FACET, MESHTK_SCALAR, &one);
+      meshtk::ScalarFunction *facet_weight_val = (meshtk::ScalarFunction *) mesh.attribute_extract(FACET_WEIGHT);
+      mesh.PETSc_assemble_cubicFEM_LBmat(*facet_weight_val);
+
       if (exportMeshCubicLBmatName.getValue().compare("") == 0) 
 	mesh.PETSc_export_LBmat(inputMeshName.getValue());
       else mesh.PETSc_export_LBmat(exportMeshCubicLBmatName.getValue());
+      mesh.attribute_delete(FACET_WEIGHT, MESHTK_SCALAR);
     }
     else if (loadMeshLBmat.getValue()) {
       if (loadMeshLBmatName.getValue().compare("") == 0) 
@@ -205,6 +213,7 @@ int main(int argc, char** argv){
       if (exportMeshBiHDMName.getValue().compare("") == 0)	
 	mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, inputMeshName.getValue());
       else mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, exportMeshBiHDMName.getValue());
+      mesh.attribute_delete(USER_MESH_KEYPOINT, MESHTK_BOOLEAN);
     }
 
     if (exportMeshHKSDM.getValue() && loadMeshHKS.getValue()) {
@@ -223,7 +232,32 @@ int main(int argc, char** argv){
       if (exportMeshHKSDMName.getValue().compare("") == 0)	
 	mesh.PETSc_assemble_export_HKSDM(keypoint_threshold_index, 200, inputMeshName.getValue());
       else mesh.PETSc_assemble_export_HKSDM(keypoint_threshold_index, 200, exportMeshHKSDMName.getValue());
+
+      mesh.attribute_delete(USER_MESH_KEYPOINT, MESHTK_BOOLEAN);
     }
+
+    if (exportMeshBiHDCubicLBmat.getValue() && loadMeshLBeigen.getValue()) {
+      unsigned FACET_WEIGHT = mesh.attribute_allocate(MESHTK_FACET, MESHTK_SCALAR);
+      meshtk::ScalarFunction *facet_weight_val = (meshtk::ScalarFunction *) mesh.attribute_extract(FACET_WEIGHT);
+      mesh.update_biharmonic_base(*facet_weight_val);
+      mesh.PETSc_assemble_cubicFEM_LBmat(*facet_weight_val);
+      if (exportMeshBiHDCubicLBmatName.getValue().compare("") == 0) 
+	mesh.PETSc_export_LBmat(inputMeshName.getValue());
+      else mesh.PETSc_export_LBmat(exportMeshBiHDCubicLBmatName.getValue());                 
+      mesh.update_base();
+      mesh.attribute_delete(FACET_WEIGHT, MESHTK_SCALAR);
+    }
+
+
+
+
+
+
+
+
+
+
+
     /***************************************************************************/    
     // region to test
     //mesh.detect_vertex_salient(10,1);
@@ -267,7 +301,7 @@ int main(int argc, char** argv){
       viewer.add_painter(&painter);
 
       viewer.init();
-      viewer.view();
+      viewer.view();      
     }
     else if (viewMeshBiharmonicDist.getValue() >=0 && loadMeshLBeigen.getValue()) {
       unsigned BIHARMONIC_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);

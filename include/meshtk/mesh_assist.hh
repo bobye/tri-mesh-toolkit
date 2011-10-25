@@ -28,6 +28,7 @@
 extern void localchart(Vector &, Vector &, Vector);
 extern void localcoord(Vector, Vector, Vector, double*);
 
+extern double Heron_formula(double, double, double);
 
 template <class T> 
 struct index_cmp {

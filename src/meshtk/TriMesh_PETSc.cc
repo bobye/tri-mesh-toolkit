@@ -124,7 +124,7 @@ const PetscInt I4[100]
 
 
 
-  void TriMesh::PETSc_assemble_cubicFEM_LBmat(){
+  void TriMesh::PETSc_assemble_cubicFEM_LBmat(ScalarFunction & facet_weight){
     clock_start("Assemble cubic FE");
 
     mat_size = vertex_num + halfedge_num + facet_num;
@@ -171,8 +171,8 @@ const PetscInt I4[100]
 
       PetscScalar mass[100], stiff[100];
       for (PetscInt j = 0; j < 100; ++j) {
-	mass[j]=facet_area[i]*I4[j]/6720.;
-	stiff[j]=(l1*l1*I1[j]+l2*l2*I2[j]+l3*l3*I3[j])/(320.* facet_area[i]);
+	mass[j]=facet_weight[i] * facet_area[i]*I4[j]/6720.;
+	stiff[j]=facet_weight[i] * (l1*l1*I1[j]+l2*l2*I2[j]+l3*l3*I3[j])/(320.* facet_area[i]);
       }
 
       MatSetValues(stiff_mat, 10, idx, 10, idx, stiff, ADD_VALUES);
@@ -325,11 +325,44 @@ const PetscInt I4[100]
   }
 
 
+  void TriMesh::update_biharmonic_base(ScalarFunction & facet_weight) {
+    // precondition with load_LBeign
+    // update halfedge_length and facet_area
+    // make sure to call update_base again when necessary
+
+    for (int j = 0; j < halfedge_num; ++j) halfedge_length[j] = 0.;
+
+    for (int i=eig_num - 1; i > 0; --i) {
+      PetscScalar *vector;
+      VecGetArray(eig_vector[i], &vector);
+      PetscScalar sqr_eigenvalue = eig_value[i] * eig_value[i]; 
+      for (int j = 0; j < halfedge_num; ++j) {
+	Halfedge_handle h = IH[j];
+	halfedge_length[j] += std::pow(vector[h->vertex()->index] - vector[h->prev()->vertex()->index],2)/eig_vector_sqr_norm[i]/sqr_eigenvalue;
+      }
+    }
+    
+    for (int j=0; j < halfedge_num; ++j) halfedge_length[j] = std::sqrt(halfedge_length[j]);
+    // update facet area
+    
+    for (int i=0; i < facet_num; ++i) facet_weight[i] = facet_area[i];
+    for (int i=0; i < facet_num; ++i) {
+      Halfedge_handle h = IF[i]->halfedge();
+      double l1 = halfedge_length[h->index],
+	l2 = halfedge_length[h->next()->index],
+	l3 = halfedge_length[h->prev()->index];
+      
+      facet_area[i] = Heron_formula(l1,l2,l3);
+      facet_weight[i] = facet_area[i] / facet_weight[i];
+    }
+      
+  }
+
 
   double TriMesh::update_vertex_biharmonic_distance(int source_vertex_index,
 						    ScalarFunction & biharmonic_distance) {
     int vertex_size = biharmonic_distance.size();
-
+    
     for (int j=0; j < vertex_size; ++j) biharmonic_distance[j] =0;
 
     for (int i=eig_num-1; i> 0; --i) {

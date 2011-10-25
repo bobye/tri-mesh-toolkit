@@ -47,6 +47,11 @@ void localcoord(Vector proj, Vector u, Vector v, double coord[2]){
 }
 
 
+double Heron_formula(double l1, double l2, double l3) {
+  double p = (l1+l2+l3)/2;
+  return std::sqrt((p-l1) * (p-l2) * (p-l3) * p);
+}
+
 clock_t start, end;
 void clock_start(std::string description) {
   start = clock();

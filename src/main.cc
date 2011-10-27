@@ -354,7 +354,7 @@ int main(int argc, char** argv){
       mesh.update_compact_base();
       mesh.PETSc_load_vertex_eig_vector(viewMeshEigenvector.getValue(), *eigenvector_scalar);
       meshtk::MeshViewer viewer(argc, argv);
-      meshtk::MeshRamper painter(&mesh, eigenvector_scalar);
+      meshtk::MeshRamper painter(&mesh, eigenvector_scalar, MESHTK_COLOR_CONT);
       viewer.add_painter(&painter);
 
       viewer.init();

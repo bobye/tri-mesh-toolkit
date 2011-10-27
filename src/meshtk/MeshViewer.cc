@@ -47,9 +47,10 @@ namespace meshtk {
   GLfloat light_position1[] = { -1.0, -1.0, -1.0, .0};
 
   GLfloat mat_ambient[] = { .5, .5, .5, 1.0 };
-  GLfloat mat_diffuse[] = { .5, .5, .5, 1.0 };
-  GLfloat mat_specular[] = { .1, .1, .1, 1.0 };
-  GLfloat mat_shininess[] = {50};
+  GLfloat mat_emission[] = { 0, 0, 0, 0.6 };
+  GLfloat mat_diffuse[] = { .5, .5, .5, .6 };
+  GLfloat mat_specular[] = { .1, .1, .1, .6 };
+  GLfloat mat_shininess[] = {100};
 
   const GLfloat perfect_factor = 1.414;
 
@@ -105,15 +106,23 @@ namespace meshtk {
 
   void MeshPainter::draw(){  
     glEnable(GL_COLOR_MATERIAL);
-    glColor3f(0.3, 0.5, 0.6);
+    glColor4f(0.3, 0.5, 0.6, 0.75);
 
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     //glCullFace(GL_BACK);
+
+    //glDepthMask(GL_FALSE);
+    //glEnable(GL_BLEND);
+
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   
 
     glDrawElements(GL_TRIANGLES, 3*fn, GL_UNSIGNED_INT, index_array);
+
+    //glDisable(GL_BLEND);
+    //glDepthMask(GL_TRUE);
     glDisable(GL_COLOR_MATERIAL);
   
   
@@ -132,10 +141,14 @@ namespace meshtk {
   }
 
 
+#define CONTOUR_SIZE (64)
+#define CONTOUR_NUM  (16)
+  static GLubyte contourImage[4*CONTOUR_SIZE] = {}; // one dimensional texture for contour plot
 
 
 
-  void color_ramping(GLfloat *color, ScalarFunction* psfun, bool equalhist = false){
+
+  void color_ramping(GLfloat *color, GLfloat *tex, ScalarFunction* psfun, bool equalhist = false){
     ScalarFunction s = *psfun;
     GLuint size = s.size();
 
@@ -156,6 +169,12 @@ namespace meshtk {
     //double vmax= sum-1; double vmin =0;
     double dv = vmax - vmin;
 
+    if (tex!=NULL) {
+      double d = dv / CONTOUR_NUM;
+      for (GLuint i=0; i<size; i++)
+	tex[i] = (s[i]-vmin) / d;
+    }
+      
     //  std::cout<<vmax <<"\t"<< vmin <<"\t" << size <<std::endl;
   
     for (GLuint i=0;i<size;i++){
@@ -180,17 +199,33 @@ namespace meshtk {
   
   }
 
+
+
   MeshRamper::MeshRamper(TriMesh *pmesh, ScalarFunction* psfun)
     :MeshPainter(pmesh){
     color_array = new GLfloat[3*vn];
-    color_ramping(color_array, psfun);  
+    color_ramping(color_array, NULL, psfun);  
   };
 
 
-  MeshRamper::MeshRamper(TriMesh *pmesh, ScalarFunction* psfun, bool equalhist)
+  MeshRamper::MeshRamper(TriMesh *pmesh, ScalarFunction* psfun, char options)
     :MeshPainter(pmesh){
-    color_array = new GLfloat[3*vn];
-    color_ramping(color_array, psfun, equalhist);  
+    color_array = new GLfloat[3*vn];    
+    
+    contour_plot = options & MESHTK_COLOR_CONT;
+    if (contour_plot) {
+      contourImage[2*CONTOUR_SIZE] = 
+	contourImage[2*CONTOUR_SIZE+1] = 
+	contourImage[2*CONTOUR_SIZE+2] = 
+	contourImage[2*CONTOUR_SIZE+3] = 255;
+      tex_array = new GLfloat[vn];
+      color_ramping(color_array, tex_array, psfun, options & MESHTK_COLOR_HIST);  
+    }
+    else 
+      color_ramping(color_array, NULL, psfun, options & MESHTK_COLOR_HIST);  
+
+
+
   };
 
 
@@ -205,12 +240,26 @@ namespace meshtk {
     glVertexPointer(3, GL_DOUBLE, 0, vertex_array); 
     glColorPointer(3, GL_FLOAT, 0, color_array);
 
+    if (contour_plot) {
+      glEnable(GL_TEXTURE_1D);
+      glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, CONTOUR_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, contourImage);
+      glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+      glTexCoordPointer(1, GL_FLOAT, 0, tex_array);    
+    }
+
   }
 
 
 
   MeshRamper::~MeshRamper() {
     delete [] color_array;
+    if (contour_plot) delete [] tex_array;
   }
 
   MeshMarker::MeshMarker(TriMesh *pmesh, BooleanFunction* pbfun)
@@ -295,8 +344,6 @@ namespace meshtk {
     
     //glEnable(GL_LINE_SMOOTH);
     glEnable(GL_POLYGON_SMOOTH);
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
     glHint(GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);
     //glLineWidth(1.0);
@@ -541,6 +588,8 @@ namespace meshtk {
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_emission);
+
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
 

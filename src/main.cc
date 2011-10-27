@@ -237,9 +237,12 @@ int main(int argc, char** argv){
     }
 
     if (exportMeshBiHDCubicLBmat.getValue() && loadMeshLBeigen.getValue()) {
-      unsigned FACET_WEIGHT = mesh.attribute_allocate(MESHTK_FACET, MESHTK_SCALAR);
+      double one = 1.;
+      unsigned FACET_WEIGHT = mesh.attribute_allocate(MESHTK_FACET, MESHTK_SCALAR, &one);
       meshtk::ScalarFunction *facet_weight_val = (meshtk::ScalarFunction *) mesh.attribute_extract(FACET_WEIGHT);
-      mesh.update_biharmonic_base(*facet_weight_val);
+      unsigned FACET_WEIGHT_TMP = mesh.attribute_allocate(MESHTK_FACET, MESHTK_SCALAR);
+      meshtk::ScalarFunction *facet_weight_tmp = (meshtk::ScalarFunction *) mesh.attribute_extract(FACET_WEIGHT_TMP);
+      mesh.update_biharmonic_base(*facet_weight_tmp);
       mesh.PETSc_assemble_cubicFEM_LBmat(*facet_weight_val);
       if (exportMeshBiHDCubicLBmatName.getValue().compare("") == 0) 
 	mesh.PETSc_export_LBmat(inputMeshName.getValue());
@@ -284,7 +287,7 @@ int main(int argc, char** argv){
 
       meshtk::MeshViewer viewer(argc, argv);
       meshtk::ScalarFunction *mean_curv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
-      meshtk::MeshRamper painter(&mesh, mean_curv, true);
+      meshtk::MeshRamper painter(&mesh, mean_curv, MESHTK_COLOR_HIST);
       viewer.add_painter(&painter);
 
       viewer.init();// call this func last before loop
@@ -297,7 +300,7 @@ int main(int argc, char** argv){
       mesh.update_vertex_geodesic_distance(viewMeshGeodesicDist.getValue(), *geodesic_distance);
       
       meshtk::MeshViewer viewer(argc, argv);
-      meshtk::MeshRamper painter(&mesh, geodesic_distance);
+      meshtk::MeshRamper painter(&mesh, geodesic_distance, MESHTK_COLOR_CONT);
       viewer.add_painter(&painter);
 
       viewer.init();
@@ -310,7 +313,7 @@ int main(int argc, char** argv){
       mesh.update_vertex_biharmonic_distance(viewMeshBiharmonicDist.getValue(), *biharmonic_distance);
 
       meshtk::MeshViewer viewer(argc, argv);
-      meshtk::MeshRamper painter(&mesh, biharmonic_distance);
+      meshtk::MeshRamper painter(&mesh, biharmonic_distance, MESHTK_COLOR_CONT);
       viewer.add_painter(&painter);
 
       viewer.init();

@@ -61,9 +61,12 @@ namespace meshtk {
   class MeshRamper : public MeshPainter {
 
     GLfloat *color_array;
+    GLfloat *tex_array;
+    bool contour_plot;    
+    
   public:
     MeshRamper(TriMesh *, ScalarFunction *);
-    MeshRamper(TriMesh *, ScalarFunction *, bool);
+    MeshRamper(TriMesh *, ScalarFunction *, char);
     void prepare();
 
     ~MeshRamper();

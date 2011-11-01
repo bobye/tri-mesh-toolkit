@@ -249,7 +249,7 @@ namespace meshtk {
     // update base attribute of mesh w.r.t biharmonic distance embedding
     // update halfedge_length and facet_area
     // make sure to call update_base again when necessary
-    void update_biharmonic_base(ScalarFunction & facet_weight);
+    void update_biharmonic_base(ScalarFunction & facet_weight); //EXPERIMENTAL
 
     // update base attributes of mesh, namely three private routines:
     //  update_halfedge(), update_facet(), update_vertex(); 
@@ -300,6 +300,7 @@ namespace meshtk {
     
 
     // to update vertex HKS feature
+    // EXPERIMENTAL
     void update_export_all_vertices_HKS(std::string name);
     void load_all_vertices_HKS(std::string name);
     static double update_vertex_HKS_distance(int source_vertex_index,
@@ -308,6 +309,7 @@ namespace meshtk {
 
 
     // to update keypoints SIFT feature
+    // EXPERIMENTAL
     void update_keypoint_SIFT(KeyPoint &keypoint);//,
 			      //ScalarFunction &function);
     void update_all_vertices_SIFT(double coeff =1.);
@@ -323,7 +325,7 @@ namespace meshtk {
     int detect_vertex_keypoint(ScalarFunction &valueScalar, 
 			       BooleanFunction &keyBoolean, 
 			       int iter, //total iteration including preprocessing smooth
-			       int pre_iter = 0);
+			       int pre_iter = 0);// EXPERIMENTAL
 
     void threshold_keypoint(double percentage, // percentage of magnitude thresholding
 			    bool multiple_vertex_keypoint = false); //allow mulitiple keypoints for a single vertex
@@ -337,7 +339,7 @@ namespace meshtk {
     void PETSc_destroy();
     // assemble cubic FEM matrices of Laplace Beltrami operator
     void PETSc_assemble_cubicFEM_LBmat(ScalarFunction & facet_weight);
-    void PETSc_assemble_linearFEM_LBmat();
+    void PETSc_assemble_linearFEM_LBmat();//NOT IMPLEMENT YET
     // load and export FEM matrices of Laplace Beltrami operator
     void PETSc_load_LBmat(std::string name);
     void PETSc_export_LBmat(std::string name);
@@ -362,14 +364,15 @@ namespace meshtk {
 
     int PETSc_assemble_export_HKSDM(std::vector<int> & sampling, //init sampling provided, keypoint based
 				    int addition_size, // expect additional sampling size 
-				    std::string name);
+				    std::string name);// EXPERIMENTAL
 
     // assemble (square) biharmonic distance matrix by harmonic analysis, sparse
+    // BEST PERFORMANCE CURRENTLY
     void PETSc_assemble_Fourier_BiHDM();
     void PETSc_export_Fourier_BiHDM(std::string name);
 
-
-
+    // export a base matrix, the i,j th entry denotes int(f_i^2f_j)
+    void PETSc_export_Fourier_base(std::string name);
 
 
 

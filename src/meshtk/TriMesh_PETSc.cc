@@ -242,6 +242,7 @@ const PetscInt I4[100]
 
     MatMult(mass_mat, v2, tmp);
     VecDot(v1, tmp, &inner_prod);
+    VecDestroy(&tmp);
     return inner_prod;
   }
 
@@ -323,6 +324,44 @@ const PetscInt I4[100]
     for (int j=0; j< vertex_num; ++j)
       f[j] = array[j];
   }
+
+
+  void TriMesh::PETSc_export_Fourier_base(std::string name) {
+    clock_start("Export Fourier base");
+
+    std::string fbasedata_name = name; fbasedata_name.append(".fbase");
+    std::ofstream fbasedata(fbasedata_name.c_str(), std::ios::out|std::ios::binary);
+    Vec vtmp, vtmp2;          
+    VecDuplicate(eig_vector[0], &vtmp);
+    VecDuplicate(eig_vector[0], &vtmp2);
+
+    MESHTK_SCALAR_TYPE *v;
+    v = new MESHTK_SCALAR_TYPE[eig_num-1];
+
+    for (int i= 1; i < eig_num; ++i) {
+      
+      VecPointwiseMult(vtmp, eig_vector[i], eig_vector[i]);      
+      MatMult(mass_mat, vtmp, vtmp2);
+      
+      for (int j= 1; j < eig_num; ++j) {
+
+	v[j-1] = VecDot(vtmp2, eig_vector[j])* std::sqrt(total_area) /eig_vector_sqr_norm[i]/std::sqrt(eig_vector_sqr_norm[j]);
+	fbasedata.write((char*) v, sizeof(MESHTK_SCALAR_TYPE) * (eig_num-1));	
+      }
+
+    }
+    delete [] v;
+    VecDestroy(&vtmp);
+    VecDestroy(&vtmp2);
+
+    fbasedata.close();
+
+    clock_end();
+  }
+
+
+
+
 
 
   void TriMesh::update_biharmonic_base(ScalarFunction & facet_weight) {

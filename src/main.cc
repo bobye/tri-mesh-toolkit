@@ -57,6 +57,7 @@ int main(int argc, char** argv){
     OptString exportMeshHKSName("", "export_mesh_HKS_name", "Export mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
     OptString exportMeshBiHDMName("", "export_Nystrom_BiHDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
     OptString exportMeshHKSDMName("", "export_Nystrom_HKSDM_name", "Export Nystrom sampling matrix block of HKS distance matrix with specified name prefix", false, "", "string", cmd);
+    OptString exportMeshFBaseName("", "export_Fourier_base_name", "Export Fourier base square matrix with specified name prefix", false, "", "string", cmd);
 
 
     OptInt smoothMeshIteration("s", "smooth_mesh_iter", "Number of Guassian smoothing iterations", false, 0, "unsigned int", cmd);
@@ -90,6 +91,11 @@ int main(int argc, char** argv){
     OptBool exportMeshHKS("k", "export_mesh_HKS", "Export mesh HKS descriptors for all vertices", cmd, false);
     OptBool exportMeshBiHDM("m", "export_Nystrom_BiHDM", "Export Nystrom sampling matrix block of biharmonic distance matrix", cmd, false);
     OptBool exportMeshHKSDM("n", "export_Nystrom_HKSDM", "Export Nystrom sampling matrix block of HKS distance matrix", cmd, false);
+    OptBool exportMeshFBase("", "export_Fourier_base", "Export Fourier base square matrix", cmd, false);
+
+
+
+
     // process input argument
     cmd.parse( argc, argv );
 
@@ -251,8 +257,11 @@ int main(int argc, char** argv){
       mesh.attribute_delete(FACET_WEIGHT, MESHTK_SCALAR);
     }
 
-
-
+    if (exportMeshFBase.getValue() && loadMeshLBeigen.getValue()) {
+      if (exportMeshFBaseName.getValue().compare("") == 0)
+	mesh.PETSc_export_Fourier_base(inputMeshName.getValue());
+      else mesh.PETSc_export_Fourier_base(exportMeshFBaseName.getValue());
+    }
 
 
 

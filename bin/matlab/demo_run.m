@@ -96,18 +96,18 @@ logT=log(T);
 
 count = ones(numberofeigenvalues, 1) * (1:numberofeigenvalues); 
 
-for i=numberoftracks-20:numberoftracks
-    curv = E(evtrack == i);
-    pT = logT(count(evtrack ==i));
-    plot(pT,curv,'-ob','MarkerSize',2);
-    
-    hold on;
-end
-
-%for i=2:numberofeigenvalues
-%    plot(logT,E(i,:),'o', 'MarkerSize',2);
+%for i=numberoftracks-20:numberoftracks
+%    curv = E(evtrack == i);
+%    pT = logT(count(evtrack ==i));
+%    plot(pT,curv,'-ob','MarkerSize',2);
+%    
 %    hold on;
 %end
+
+for i=1:numberofeigenvalues
+    plot(logT,E(i,:),'o', 'MarkerSize',2);
+    hold on;
+end
 ylim([-log(numberofeigenvalues) 0]);
 xlim([min(logT),max(logT)]);
 

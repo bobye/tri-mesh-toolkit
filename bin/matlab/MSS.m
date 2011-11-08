@@ -1,8 +1,13 @@
-function  ImageCode = MSS()%ImageCode =MSS(fbase_filename, eigenvalue_filename)
+function ImageCode =MSS(fbase_filename, eigenvalue_filename)
 %Multiscale Spectra Signature
 
-fbase_filename = '~/data/meshtk_workshop/mesh.fbase';
-eigenvalue_filename = '~/data/meshtk_workshop/mesh.ev/_ev.ascii';
+%fbase_filename = '~/data/meshtk_workshop/mesh.fbase';
+%eigenvalue_filename = '~/data/meshtk_workshop/mesh.ev/_ev.ascii';
+%bihdmat_filename = '~/data/meshtk_workshop/mesh2.fbihdmat';
+
+%BiHDM = PetscBinaryRead(bihdmat_filename);
+%normalD = eigs(BiHDM,2); rightD = sqrt(abs(normalD(2)/normalD(1)));
+
 [L D] = TriMeshTKFBaseRead(fbase_filename, eigenvalue_filename);
 
 L = L(1:100,1:100);
@@ -11,7 +16,9 @@ D = D(1:101);
 numberofsteps = 100;
 numberofeigenvalues = 100;
 
+%tmp = log(rightD);
 tmp = log(1/D(2));
+
 logtime_step = -log(numberofeigenvalues)/(numberofsteps-1);
 T=exp(tmp:logtime_step:tmp-log(numberofeigenvalues));
 time_c = length(T);
@@ -21,22 +28,24 @@ time_c = length(T);
 E=zeros(numberofeigenvalues, time_c);
 
 for t = time_c:-1:1
-    f=@(x) x*T(t).*exp(-x*T(t));
+    %f=@(x) x*T(t).*exp(-x*T(t));
+    f=@(x) exp(-x*T(t));
     M = TriMeshTKFBase2M(f, L, D);
     E(:,t) = eigs(M, numberofeigenvalues);             
     E(:,t)=log(abs(E(:,t)/E(1,t)));
 end
 %logT=log(T);
-% 
-% for i=2:numberofeigenvalues
-%     plot(numberofsteps:-1:1,E(i,:),'or', 'MarkerSize',2);
-%     hold on;
-% end
-% 
-% ylim([-log(numberofeigenvalues) 0]);
+ 
+%  for i=1:numberofeigenvalues
+%      plot(numberofsteps:-1:1,E(i,:),'ob', 'MarkerSize',2);
+%      hold on;
+%  end
+%  
+%  ylim([-log(numberofeigenvalues) 0]);
+ 
 threshold = log(numberofeigenvalues);
 pixalheight = threshold/numberofsteps;
-ImageCode = zeros(numberofsteps,numberofsteps);
+%ImageCode = zeros(numberofsteps,numberofsteps);
 
 % for t = 1:numberofsteps
 %     sortE = sort((E(:,t)+threshold)/pixalheight, 'descend');    
@@ -73,7 +82,7 @@ for t = 1:numberofsteps
 end
 
 ImageFMHeight = numberofsteps + m;
-ImageFM = zeros(ImageFMHeight, numberofsteps);
+ImageFM = -ones(ImageFMHeight, numberofsteps);
 
 threshold = ImageFMHeight * pixalheight;
 
@@ -82,25 +91,33 @@ for t = 1:time_c
         s = E(j,t) + threshold;
         if (s>0) 
             i=floor(s/pixalheight+.5);
-            if (i<m) 
-                ImageFM(i+1,t) = ImageFM(i+1,t) + s - i*pixalheight;
+            if (i<m)
+                if (ImageFM(i+1,t)<0)
+                    ImageFM(i+1,t) = (i+1)*pixalheight -s -.5;
+                else
+                    ImageFM(i+1,t) = min([ImageFM(i+1,t), (i+1)*pixalheight -s -.5]);
+                end
             end
             if (i>0)                
-                ImageFM(i,t) = ImageFM(i,t) + (i+1)*pixalheight -s;
+                if (ImageFM(i,t)<0)
+                    ImageFM(i,t) = s - i*pixalheight +.5;
+                else
+                    ImageFM(i,t) = min([ImageFM(i,t), s - i*pixalheight +.5]);
+                end
             end
         end
     end
 end
-ImageFM(ImageCode>1) = 1;
+%ImageFM(ImageFM>1)
 
-[row,col] = find(ImageFM>0);
+[row,col] = find(ImageFM>=0);
 SourcePoints = [row';col'];
 SourceIndex = row + ImageFMHeight*(col-1);
-SourceValues = 1- ImageFM(SourceIndex);
+SourceValues = ImageFM(SourceIndex);
 ImageSpeed = ones(ImageFMHeight, numberofsteps);
-ImageFM = msfm2d(ImageSpeed, SourcePoints, SourceValues, false, false);
+ImageFM = msfm2d(ImageSpeed, SourcePoints, SourceValues, true, true);
 
-ImageCode = ImageFM(end - numberofsteps +1:end,:)/100;
+ImageCode = ImageFM(end - numberofsteps +1:end,:);
 %imshow(-ImageCode, [])
 
 end

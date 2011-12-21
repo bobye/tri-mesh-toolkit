@@ -51,6 +51,11 @@ namespace meshtk {
       }
 
       mesh_Fin >> P;// mesh read
+      if (!mesh_Fin){
+	std::cerr << file.c_str() << " is not a polyhedron" <<std::endl;
+	exit(1); 
+      }
+
       mesh_Fin.close();
     }
 

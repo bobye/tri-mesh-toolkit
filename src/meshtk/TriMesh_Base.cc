@@ -26,6 +26,18 @@
 #include "meshtk/TriMesh.hh"
 #include "meshtk/mesh_assist.hh"
 
+#include <stdio.h>
+// full path of current directory
+#ifdef WINDOWS
+  #include <direct.h> 
+  #define GetCurrentDir _getcwd
+  #define PathSeparator 92 //backslash
+#else
+  #include <unistd.h>
+  #define GetCurrentDir getcwd
+  #define PathSeparator 47 //forward slash
+#endif
+
 namespace meshtk {
 
   Curvature Curvature::tensor_compute(double e, double f, double g){
@@ -41,6 +53,17 @@ namespace meshtk {
 
   void TriMesh::read(std::string file, std::string type){
 
+    char cCurrentPath[FILENAME_MAX];
+    if (!GetCurrentDir(cCurrentPath, FILENAME_MAX))
+      {
+	exit(1);
+      }
+
+    std::cout << "Current Dir:" << cCurrentPath << std::endl;
+    
+    //file.insert(file.begin(),(char) PathSeparator);
+    //file.insert(0,cCurrentPath);
+
     if (type.compare("off")==0){
       std::ifstream mesh_Fin;
       file.append("."); file.append("off");    
@@ -52,7 +75,7 @@ namespace meshtk {
 
       mesh_Fin >> P;// mesh read
       if (!mesh_Fin){
-	std::cerr << file.c_str() << " is not a polyhedron" <<std::endl;
+	std::cerr << file.c_str() << " is not a manifold mesh" <<std::endl;
 	exit(1); 
       }
 
@@ -60,7 +83,7 @@ namespace meshtk {
     }
 
 
-    if (!P.is_pure_triangle()) {std::cerr<< "Error: input mesh has non-triangle facet!" <<std::endl; exit(1);}
+    if (!P.is_pure_triangle()) {std::cerr<< "Error: input mesh has non-triangle faces!" <<std::endl; exit(1);}
     if (!P.is_closed()) {std::cout<< "Warning: input mesh seems not to be watertight" <<std::endl;} 
   };
 

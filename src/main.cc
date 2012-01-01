@@ -41,30 +41,22 @@ int main(int argc, char** argv){
   try {
     TCLAP::CmdLine cmd("3D Mesh Toolkit, supporting mesh (pre-)processing, shape analysis, visualization, ... \nContributor: Jianbo YE<yelpoo@gmail.com> \nhttp://code.google.com/p/tri-mesh-toolkit/", ' ', MESHTK_VERSION);
 
-    OptString inputMeshName("i", "input_mesh_name", "File name of input mesh without file extension", true, "", "string", cmd); 
-    OptString outputMeshName("", "output_mesh_name", "File name of output mesh without file extension", false, "out", "string", cmd);
-    OptString inputMeshType("", "input_mesh_type", "Input mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
-    OptString outputMeshType("", "output_mesh_type", "output mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
-    OptString exportMeshCubicLBmatName("", "export_cubic_FEM_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
-    OptString exportMeshBiHDCubicLBmatName("", "export_BiHD_FEM3_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with biharmonic distance metric, with specified name prefix", false, "", "string", cmd);
-    OptString exportMeshFBiHDMName("", "export_Fourier_BiHDM_name", "Export Fourier phase of square Biharmonic distance matrix with specified name prefix", false, "", "string", cmd);
-    OptString loadMeshLBmatName("", "load_FEM_LBmat_name", "Load FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
-    OptString loadMeshLBeigenName("", "load_FEM_LBeigen_name", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
-    OptString loadMeshCurvName("", "load_mesh_curv_name", "load vertex curvature from file with specified name prefix", false, "", "string", cmd);
-    OptString loadMeshSIFTName("", "load_mesh_SIFT_name", "Load mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
-    OptString exportMeshSIFTName("", "export_mesh_SIFT_name", "Export mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
-    OptString loadMeshHKSName("", "load_mesh_HKS_name", "Load mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
-    OptString exportMeshHKSName("", "export_mesh_HKS_name", "Export mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
-    OptString exportMeshBiHDMName("", "export_Nystrom_BiHDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
-    OptString exportMeshHKSDMName("", "export_Nystrom_HKSDM_name", "Export Nystrom sampling matrix block of HKS distance matrix with specified name prefix", false, "", "string", cmd);
-    OptString exportMeshFBaseName("", "export_Fourier_base_name", "Export Fourier base square matrix with specified name prefix", false, "", "string", cmd);
+
+    // OptString exportMeshBiHDCubicLBmatName("", "export_BiHD_FEM3_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with biharmonic distance metric, with specified name prefix", false, "", "string", cmd);
+
+    //    OptString loadMeshSIFTName("", "load_mesh_SIFT_name", "Load mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
+    //    OptString exportMeshSIFTName("", "export_mesh_SIFT_name", "Export mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
+    //    OptString loadMeshHKSName("", "load_mesh_HKS_name", "Load mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
+    //    OptString exportMeshHKSName("", "export_mesh_HKS_name", "Export mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
+    // OptString exportMeshBiHDMName("", "export_Nystrom_BiHDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
+    //    OptString exportMeshHKSDMName("", "export_Nystrom_HKSDM_name", "Export Nystrom sampling matrix block of HKS distance matrix with specified name prefix", false, "", "string", cmd);
 
 
     OptInt smoothMeshIteration("s", "smooth_mesh_iter", "Number of Guassian smoothing iterations", false, 0, "unsigned int", cmd);
     OptInt viewMeshGeodesicDist("", "view_geodesic_source", "View geodesic distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshBiharmonicDist("", "view_biharmonic_source", "View biharmonic distance from a source vertex on mesh", false, -1, "index", cmd);
-    OptInt viewMeshSIFTDist("", "view_SIFT_source", "View SIFT distance from a source vertex on mesh", false, -1, "index", cmd);
-    OptInt viewMeshHKSDist("", "view_HKS_source", "View HKS distance from a source vertex on mesh", false, -1, "index", cmd);
+    //    OptInt viewMeshSIFTDist("", "view_SIFT_source", "View SIFT distance from a source vertex on mesh", false, -1, "index", cmd);
+    //    OptInt viewMeshHKSDist("", "view_HKS_source", "View HKS distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshEigenvector("", "view_eigenvector", "View color ramping of the i-th eigenvector", false, -1, "unsigned int", cmd);
 
 
@@ -75,26 +67,54 @@ int main(int argc, char** argv){
 
 
     
-    OptBool outputMeshSwitch("o", "output_mesh_enable", "Enable mesh Output before program exits", cmd, false) ;
+
+
+    //    OptBool exportMeshBiHDCubicLBmat("", "export_BiHD_FEM3_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with biharmonic distance metric", cmd, false);
+
+    //    OptBool loadMeshSIFT("", "load_mesh_SIFT", "Load mesh local descriptors for all vertices", cmd, false);
+    //    OptBool exportMeshSIFT("d", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
+    //    OptBool loadMeshHKS("", "load_mesh_HKS", "Load mesh HKS descriptors for all vertices", cmd, false);
+    //    OptBool exportMeshHKS("k", "export_mesh_HKS", "Export mesh HKS descriptors for all vertices", cmd, false);
+    // OptBool exportMeshBiHDM("m", "export_Nystrom_BiHDM", "Export Nystrom sampling matrix block of biharmonic distance matrix", cmd, false);
+    //    OptBool exportMeshHKSDM("n", "export_Nystrom_HKSDM", "Export Nystrom sampling matrix block of HKS distance matrix", cmd, false);
+
+
+
+    OptString loadMeshCurvName("", "load_mesh_curv_name", "load vertex curvature from file with specified name prefix", false, "", "string", cmd);
+    OptBool loadMeshCurv("", "load_mesh_curv", "load vertex curvature from file", cmd, false);
+
+
+
+    OptString loadMeshLBeigenName("", "load_FEM_LBeigen_name", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptBool loadMeshLBeigen("g", "load_FEM_LBeigen", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator", cmd, false);
+
+    OptString loadMeshLBmatName("", "load_FEM_LBmat_name", "Load FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptBool loadMeshLBmat("m", "load_FEM_LBmat", "Load FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
+
+
+    OptString exportMeshFBiHDMName("", "export_Fourier_BiHDM_name", "Export Fourier phase of square Biharmonic distance matrix with specified name prefix", false, "", "string", cmd);
+    OptBool exportMeshFBiHDM("f", "export_Fourier_BiHDM", "Export Fourier phase of square Biharmonic distance matrix", cmd, false);
+
+
+    OptString exportMeshFBaseName("", "export_Fourier_base_name", "Export Fourier base square matrix with specified name prefix", false, "", "string", cmd);
+    OptBool exportMeshFBase("b", "export_Fourier_base", "Export Fourier base square matrix", cmd, false);
+
+    OptString exportMeshCubicLBmatName("", "export_cubic_FEM_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptBool exportMeshCubicLBmat("l", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
+
+
+
     OptBool viewMeshOnly("v", "view_mesh_only", "View mesh without other rending", cmd, false);
     OptBool viewMeshCurvature("", "view_mesh_curv", "View mesh with color ramping of mean curvature", cmd, false);
-    OptBool exportMeshCubicLBmat("l", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
-    OptBool exportMeshBiHDCubicLBmat("", "export_BiHD_FEM3_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with biharmonic distance metric", cmd, false);
-
-    OptBool exportMeshFBiHDM("f", "export_Fourier_BiHDM", "Export Fourier phase of square Biharmonic distance matrix", cmd, false);
-    OptBool loadMeshLBmat("", "load_FEM_LBmat", "Load FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
-    OptBool loadMeshLBeigen("", "load_FEM_LBeigen", "load FEM eigenvalues and eigenvectors of Laplace Beltrami operator", cmd, false);
-    OptBool loadMeshCurv("", "load_mesh_curv", "load vertex curvature from file", cmd, false);
-    OptBool loadMeshSIFT("", "load_mesh_SIFT", "Load mesh local descriptors for all vertices", cmd, false);
-    OptBool exportMeshSIFT("d", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
-    OptBool loadMeshHKS("", "load_mesh_HKS", "Load mesh HKS descriptors for all vertices", cmd, false);
-    OptBool exportMeshHKS("k", "export_mesh_HKS", "Export mesh HKS descriptors for all vertices", cmd, false);
-    OptBool exportMeshBiHDM("m", "export_Nystrom_BiHDM", "Export Nystrom sampling matrix block of biharmonic distance matrix", cmd, false);
-    OptBool exportMeshHKSDM("n", "export_Nystrom_HKSDM", "Export Nystrom sampling matrix block of HKS distance matrix", cmd, false);
-    OptBool exportMeshFBase("", "export_Fourier_base", "Export Fourier base square matrix", cmd, false);
 
 
+    OptString outputMeshType("", "output_mesh_type", "output mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
+    OptString outputMeshName("", "output_mesh_name", "File name of output mesh without file extension", false, "out", "string", cmd);
+    OptBool outputMeshSwitch("o", "output_mesh_enable", "Enable mesh Output before program exits", cmd, false) ;
 
+
+    OptString inputMeshType("", "input_mesh_type", "Input mesh file format, candidates are off(default), ...", false, "off", "string", cmd);
+    OptString inputMeshName("i", "input_mesh_name", "File name of input mesh without file extension", true, "", "string", cmd); 
 
     // process input argument
     cmd.parse( argc, argv );
@@ -149,7 +169,8 @@ int main(int argc, char** argv){
 	mesh.PETSc_load_LBeigen(inputMeshName.getValue());
       else mesh.PETSc_load_LBeigen(loadMeshLBeigenName.getValue());      
     }
-    
+
+    /*    
     if (exportMeshSIFT.getValue()) {
       mesh.update_compact_base();
 
@@ -173,7 +194,9 @@ int main(int argc, char** argv){
 	mesh.load_all_vertices_SIFT(inputMeshName.getValue());
       else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
     }
+    */
 
+    /*
     if (exportMeshHKS.getValue() && loadMeshLBeigen.getValue()) {
       if (exportMeshHKSName.getValue().compare("") ==0)
 	mesh.update_export_all_vertices_HKS(inputMeshName.getValue());
@@ -186,15 +209,18 @@ int main(int argc, char** argv){
       else 
 	mesh.load_all_vertices_HKS(loadMeshHKSName.getValue());
     }
+    */
+
 
     if (exportMeshFBiHDM.getValue() && loadMeshLBeigen.getValue()) {
-      mesh.PETSc_assemble_Fourier_BiHDM();
+      mesh.PETSc_assemble_Fourier_BiHDM();//ADD number of fbase in use here
       if (exportMeshFBiHDMName.getValue().compare("") == 0)
 	mesh.PETSc_export_Fourier_BiHDM(inputMeshName.getValue());
       else 
 	mesh.PETSc_export_Fourier_BiHDM(exportMeshFBiHDMName.getValue());
     }
 
+    /*
     if (exportMeshBiHDM.getValue() && loadMeshLBeigen.getValue()) {
       mesh.update_compact_base();
       unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
@@ -210,18 +236,20 @@ int main(int argc, char** argv){
 
       //mesh.PETSc_load_LBmat(inputMeshName.getValue());
       //mesh.PETSc_load_LBeigen(inputMeshName.getValue());
-      /*
-      if (loadMeshSIFTName.getValue().compare("") == 0)
-	mesh.load_all_vertices_SIFT(inputMeshName.getValue());
-      else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
-      */
+
+      //if (loadMeshSIFTName.getValue().compare("") == 0)
+      //  mesh.load_all_vertices_SIFT(inputMeshName.getValue());
+      //else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
+
 
       if (exportMeshBiHDMName.getValue().compare("") == 0)	
 	mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, inputMeshName.getValue());
       else mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, exportMeshBiHDMName.getValue());
       mesh.attribute_delete(USER_MESH_KEYPOINT, MESHTK_BOOLEAN);
     }
+    */
 
+    /*
     if (exportMeshHKSDM.getValue() && loadMeshHKS.getValue()) {
       mesh.update_compact_base();
       unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
@@ -241,7 +269,9 @@ int main(int argc, char** argv){
 
       mesh.attribute_delete(USER_MESH_KEYPOINT, MESHTK_BOOLEAN);
     }
+    */
 
+    /*
     if (exportMeshBiHDCubicLBmat.getValue() && loadMeshLBeigen.getValue()) {
       double one = 1.;
       unsigned FACET_WEIGHT = mesh.attribute_allocate(MESHTK_FACET, MESHTK_SCALAR, &one);
@@ -256,6 +286,7 @@ int main(int argc, char** argv){
       mesh.update_base();
       mesh.attribute_delete(FACET_WEIGHT, MESHTK_SCALAR);
     }
+    */
 
     if (exportMeshFBase.getValue() && loadMeshLBeigen.getValue()) {
       if (exportMeshFBaseName.getValue().compare("") == 0)
@@ -329,6 +360,7 @@ int main(int argc, char** argv){
       viewer.view();
 
     }
+    /*
     else if (viewMeshSIFTDist.getValue() >=0 && loadMeshSIFT.getValue()) {
       unsigned SIFT_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
       meshtk::ScalarFunction *SIFT_distance = (meshtk::ScalarFunction *) mesh.attribute_extract(SIFT_DIST_REG);
@@ -343,6 +375,8 @@ int main(int argc, char** argv){
       viewer.view();
 
     }
+    */
+    /*
     else if (viewMeshHKSDist.getValue() >=0 && loadMeshHKS.getValue()) {
       unsigned HKS_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
       meshtk::ScalarFunction *HKS_distance = (meshtk::ScalarFunction *) mesh.attribute_extract(HKS_DIST_REG);
@@ -357,6 +391,7 @@ int main(int argc, char** argv){
       viewer.view();
       
     }
+    */
     else if (viewMeshEigenvector.getValue() >=0 && loadMeshLBeigen.getValue()) {
       unsigned EIGEN_VECTOR = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
       meshtk::ScalarFunction * eigenvector_scalar = (meshtk::ScalarFunction *) mesh.attribute_extract(EIGEN_VECTOR);
@@ -385,6 +420,7 @@ int main(int argc, char** argv){
 
   return 0;
 }
+
 
 
 

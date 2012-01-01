@@ -344,7 +344,7 @@ namespace meshtk {
     void PETSc_load_LBmat(std::string name);
     void PETSc_export_LBmat(std::string name);
     // load Eigen pairs of Laplace Beltrami operator
-    void PETSc_load_LBeigen(std::string name);
+    void PETSc_load_LBeigen(std::string name, int fbase_size = 0);
     // load eigenvector into ScalarFunction
     void PETSc_load_vertex_eig_vector(int i, ScalarFunction& f);
 
@@ -368,7 +368,7 @@ namespace meshtk {
 
     // assemble (square) biharmonic distance matrix by harmonic analysis, sparse
     // BEST PERFORMANCE CURRENTLY
-    void PETSc_assemble_Fourier_BiHDM();
+    void PETSc_assemble_Fourier_BiHDM(int fbase_size = 0);
     void PETSc_export_Fourier_BiHDM(std::string name);
 
     // export a base matrix, the i,j th entry denotes int(f_i^2f_j)

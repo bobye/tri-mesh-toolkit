@@ -246,7 +246,7 @@ const PetscInt I4[100]
     return inner_prod;
   }
 
-  void TriMesh::PETSc_load_LBeigen(std::string name) {
+  void TriMesh::PETSc_load_LBeigen(std::string name, int fbase_size) {
     name.append(".ev");
     clock_start("Load eigen");
 
@@ -288,12 +288,13 @@ const PetscInt I4[100]
 
     // to compute hihd_trace
     Vec vtmp;
+    if (fbase_size == 0) fbase_size = eig_num;
 
     VecDuplicate(eig_vector[0], &bihd_trace);
     VecSet(bihd_trace, 0.);
     VecDuplicate(eig_vector[0], &vtmp);
     
-    for (int i=eig_num-1;i>0;--i) {
+    for (int i=fbase_size-1;i>0;--i) {
       VecPointwiseMult(vtmp, eig_vector[i], eig_vector[i]);
       VecAXPY(bihd_trace, 1./(eig_value[i] * eig_value[i])/eig_vector_sqr_norm[i], vtmp);
     }
@@ -301,7 +302,7 @@ const PetscInt I4[100]
     // to use feature selection
     /*
     PetscScalar *vtmp_array;
-    for (int i=0 ; i< eig_num; ++i) {
+    for (int i=0 ; i< fbase_size; ++i) {
       VecCopy(eig_vector[i], vtmp);
       VecGetArray(vtmp, &vtmp_array);
       for (int j = 0; j< mat_size; ++j)
@@ -543,22 +544,24 @@ const PetscInt I4[100]
     return total_size;
   }
 
-  void TriMesh::PETSc_assemble_Fourier_BiHDM() {
+  void TriMesh::PETSc_assemble_Fourier_BiHDM(int fbase_size) {
     clock_start("Assemble Fourier phase of BiHDM");
     PetscInt *nnz;
+
+    if (fbase_size == 0) fbase_size = eig_num;
     
     // init sparse symmtric fbihd_mat
-    nnz = new PetscInt[eig_num];
-    nnz[0]=eig_num; for (int i=1;i<eig_num;i++) nnz[i]=1;
-    MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, eig_num, eig_num, 0, nnz, &fbihd_mat);
+    nnz = new PetscInt[fbase_size];
+    nnz[0]=fbase_size; for (int i=1;i<fbase_size;i++) nnz[i]=1;
+    MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, fbase_size, fbase_size, 0, nnz, &fbihd_mat);
     delete [] nnz;
 
     // assembly
-    //nnz = new PetscInt[eig_num];
-    //value = new PetscScalar[eig_num];        
+    //nnz = new PetscInt[fbase_size];
+    //value = new PetscScalar[fbase_size];        
     PetscScalar dvalue =0., value;
     PetscInt j=0;    
-    for (int i=eig_num-1;i>0;--i){
+    for (int i=fbase_size-1;i>0;--i){
       value=vec_inner_prod(eig_vector[i], bihd_trace) * std::sqrt(total_area)/std::sqrt(eig_vector_sqr_norm[i]);
       dvalue += 2/(eig_value[i] * eig_value[i]);
       MatSetValues(fbihd_mat, 1, &j, 1, &i, &value, INSERT_VALUES);
@@ -568,7 +571,7 @@ const PetscInt I4[100]
     //delete [] value;
     MatSetValues(fbihd_mat, 1, &j, 1, &j, &dvalue, INSERT_VALUES);
 
-    for (int i=eig_num-1;i>0;--i) {
+    for (int i=fbase_size-1;i>0;--i) {
       dvalue=-2./(eig_value[i] * eig_value[i]);
       MatSetValues(fbihd_mat, 1, &i, 1, &i, &dvalue, INSERT_VALUES);
     }

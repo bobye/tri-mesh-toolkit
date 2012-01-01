@@ -2,7 +2,9 @@
 
 ## make sure your environment variable PETSC_DIR are correctly given
 PETSC_DIR := /home/bobye/pub/petsc/petsc-3.2-p3
+SLEPC_DIR := /home/bobye/pub/slepc/slepc-3.2-p3
 include ${PETSC_DIR}/conf/variables
+include ${SLEPC_DIR}/conf/slepc_variables
 
 ## options for CGAL, OpenGL and freeglut 
 LIBOPT = -lCGAL -lglut -lGL -lGLU 
@@ -69,11 +71,11 @@ install: lib
 ## toolkits
 MeshTK: main.cc
 	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/MeshTK $<
-test: test.cc
-	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/test $<
 
+eigen_solver: eigen_solver.cc
+	$(CPP) $(CPPFLAGS) -o $(MESHTKPATH)/eigen_solver $< ${SLEPC_LIB} ${CCPPFLAGS}	
 
-toolkit: MeshTK test
+toolkit: MeshTK eigen_solver
 
 ## examples
 $(EXDIR)/ex0: ex0.cc 

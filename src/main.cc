@@ -73,6 +73,7 @@ int main(int argc, char** argv){
 
 
     OptString exportMeshFBiHDMName("", "export_Fourier_BiHDM_name", "Export Fourier phase of square Biharmonic distance matrix with specified name prefix", false, "", "string", cmd);
+    OptInt exportMeshFBiHDMSize("", "export_Fourier_BiHDM_size", "Export Fourier phase of square Biharmonic distance matrix with specified size of bases", false, 0, "unsigned int", cmd);
     OptBool exportMeshFBiHDM("f", "export_Fourier_BiHDM", "Export Fourier phase of square Biharmonic distance matrix", cmd, false);
 
 
@@ -148,7 +149,7 @@ int main(int argc, char** argv){
     }
 
     if (exportMeshFBiHDM.getValue() && loadMeshLBeigen.getValue()) {
-      mesh.PETSc_assemble_Fourier_BiHDM();//ADD number of fbase in use here
+      mesh.PETSc_assemble_Fourier_BiHDM(exportMeshFBiHDMSize.getValue());
       if (exportMeshFBiHDMName.getValue().compare("") == 0)
 	mesh.PETSc_export_Fourier_BiHDM(inputMeshName.getValue());
       else 

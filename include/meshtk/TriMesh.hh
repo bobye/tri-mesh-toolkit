@@ -345,8 +345,10 @@ namespace meshtk {
     // load and export FEM matrices of Laplace Beltrami operator
     void PETSc_load_LBmat(std::string name);
     void PETSc_export_LBmat(std::string name);
-    // load Eigen pairs of Laplace Beltrami operator
+    // load and export Eigen pairs of Laplace Beltrami operator
     void PETSc_load_LBeigen(std::string name);
+    //void SLEPc_export_LBeigen(std::string name, int num_eigs = 100);
+
     // load eigenvector into ScalarFunction
     void PETSc_load_vertex_eig_vector(int i, ScalarFunction& f);
 

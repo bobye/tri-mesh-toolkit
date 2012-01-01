@@ -352,40 +352,6 @@ const PetscInt I4[100]
 
 
 
-  /*
-  void TriMesh::update_biharmonic_base(ScalarFunction & facet_weight) {
-    // precondition with load_LBeign
-    // update halfedge_length and facet_area
-    // make sure to call update_base again when necessary
-
-    for (int j = 0; j < halfedge_num; ++j) halfedge_length[j] = 0.;
-
-    for (int i=eig_num - 1; i > 0; --i) {
-      PetscScalar *vector;
-      VecGetArray(eig_vector[i], &vector);
-      PetscScalar sqr_eigenvalue = eig_value[i] * eig_value[i]; 
-      for (int j = 0; j < halfedge_num; ++j) {
-	Halfedge_handle h = IH[j];
-	halfedge_length[j] += std::pow(vector[h->vertex()->index] - vector[h->prev()->vertex()->index],2)/eig_vector_sqr_norm[i]/sqr_eigenvalue;
-      }
-    }
-    
-    for (int j=0; j < halfedge_num; ++j) halfedge_length[j] = std::sqrt(halfedge_length[j]);
-    // update facet area
-    
-    for (int i=0; i < facet_num; ++i) facet_weight[i] = facet_area[i];
-    for (int i=0; i < facet_num; ++i) {
-      Halfedge_handle h = IF[i]->halfedge();
-      double l1 = halfedge_length[h->index],
-	l2 = halfedge_length[h->next()->index],
-	l3 = halfedge_length[h->prev()->index];
-      
-      facet_area[i] = Heron_formula(l1,l2,l3);
-      facet_weight[i] = facet_area[i] / facet_weight[i];
-    }
-      
-  }
-  */
 
   double TriMesh::update_vertex_biharmonic_distance(int source_vertex_index,
 						    ScalarFunction & biharmonic_distance) {
@@ -441,97 +407,6 @@ const PetscInt I4[100]
 
     return total_size;
   }
-  /*
-  void TriMesh::update_export_all_vertices_HKS(std::string name) {
-    //export in binary
-    clock_start("Update and export HKS for all vertices");
-
-    std::string hksdata_name = name; hksdata_name.append(".hks");
-    std::ofstream hks_data(hksdata_name.c_str(), std::ios::out|std::ios::binary);
-    std::string hksinfo_name = name; hksinfo_name.append(".hks.info");
-    std::ofstream hks_info(hksinfo_name.c_str());
-    hks_info << eig_num << "\t" << vertex_num;
-    hks_info.close();
-    
-    PetscScalar **vector = new PetscScalar *[eig_num];    
-    for (int j = 0; j <eig_num; ++j) VecGetArray(eig_vector[j], &vector[j]);
-
-    for (int i=0; i<vertex_num; ++i) {      
-      for (int j=0; j<eig_num; ++j) {
-	double value_ij =0.;
-	for (int k=eig_num-1; k>0; --k)
-	  value_ij += vector[k][i] * vector[k][i] / eig_vector_sqr_norm[k] / std::pow(eig_value[j] + eig_value[k], 2); 
-	value_ij = std::sqrt(value_ij);
-	hks_data.write((char *) &value_ij, sizeof(MESHTK_SCALAR_TYPE));
-      }
-    }
-    hks_data.close();
-    delete [] vector;
-
-    clock_end();
-  }
-
-  void TriMesh::load_all_vertices_HKS(std::string name) {
-
-    std::string hksdata_name = name; hksdata_name.append(".hks");
-    std::ifstream hks_data(hksdata_name.c_str(), std::ios::in|std::ios::binary);
-    std::string hksinfo_name = name; hksinfo_name.append(".hks.info");
-    std::ifstream hks_info(hksinfo_name.c_str());
-        
-    hks_info >> vertex_hks_dim;
-    hks_info.close();
-    
-    vertex_hks.resize(vertex_num);
-    for (int i=0; i<vertex_num; ++i) vertex_hks[i].resize(vertex_hks_dim);
-
-    for (int i =0; i<vertex_num; ++i) {
-      for (int j=0; j < vertex_hks_dim; ++j) 
-	hks_data.read((char*) &vertex_hks[i][j], sizeof(MESHTK_SCALAR_TYPE));
-    }
-
-    hks_data.close();
-  }
-
-
-  double TriMesh::update_vertex_HKS_distance(int source_vertex_index,
-					     ScalarFunction & hks_distance) {
-    
-    int vertex_size = hks_distance.size();
-
-    for (int j=0; j < vertex_size; ++j) hks_distance[j] = 0;
-    
-    for (int i=0; i < vertex_size; ++i)
-      for (int j=0; j < vertex_hks_dim; ++j)
-	hks_distance[i] += std::pow(vertex_hks[source_vertex_index][j] - vertex_hks[i][j], 2);
-
-
-    double total_distance=0;
-    for (int j=0; j < vertex_size; ++j) {
-      total_distance += hks_distance[j];
-    }
-    
-    return total_distance / vertex_size;
-
-  }
-
-
-  int TriMesh::PETSc_assemble_export_HKSDM(std::vector<int> & sampling, //init sampling provided, keypoint based
-					   int addition_size, // expect additional sampling size						   
-					   std::string name) {    
-    clock_start("Assemble Nystrom sampling of HKSDM");
-
-    name += ".hksdmat";
-
-    int total_size = assemble_export_Nystrom_matrix(sampling,
-						    addition_size,
-						    name,
-						    &update_vertex_HKS_distance);
-    clock_end();
-
-
-    return total_size;
-  }
-  */  
 
   void TriMesh::PETSc_assemble_Fourier_BiHDM(int fbase_size) {
     clock_start("Assemble Fourier phase of BiHDM");
@@ -592,6 +467,7 @@ const PetscInt I4[100]
     PETSc_export_mat(name.c_str(), fbihd_mat);
 
   }
+
 
 
 }

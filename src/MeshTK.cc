@@ -1,5 +1,5 @@
 /*
-  FILE: main.cc This file is part of tri-mesh-toolkit.
+  FILE: MeshTK.cc This file is part of tri-mesh-toolkit.
   It is a C++ source file which implements some useful file IO by calling
   functions of meshtk library.
   

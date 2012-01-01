@@ -1,6 +1,4 @@
-ADD_EXECUTABLE(test test.cc)
 ADD_EXECUTABLE(MeshTK MeshTK.cc)
 
-TARGET_LINK_LIBRARIES(test meshtk ${LIBS})
 TARGET_LINK_LIBRARIES(MeshTK meshtk ${LIBS})
 

@@ -45,8 +45,8 @@ namespace meshtk {
   // number of eigenvalues computed
   static PetscInt eig_num;
 
-  static std::vector<std::vector<double> > vertex_hks;
-  static int vertex_hks_dim;
+  //static std::vector<std::vector<double> > vertex_hks;
+  //static int vertex_hks_dim;
 
 
 
@@ -436,6 +436,7 @@ const PetscInt I4[100]
     
     return total_distance / vertex_size;
   }
+
   
   int TriMesh::PETSc_assemble_export_BiHDM(std::vector<int> & sampling, //init sampling provided, keypoint based
 					   int addition_size, // expect additional sampling size						   
@@ -453,7 +454,7 @@ const PetscInt I4[100]
 
     return total_size;
   }
-
+  /*
   void TriMesh::update_export_all_vertices_HKS(std::string name) {
     //export in binary
     clock_start("Update and export HKS for all vertices");
@@ -526,7 +527,7 @@ const PetscInt I4[100]
 
   }
 
-  
+
   int TriMesh::PETSc_assemble_export_HKSDM(std::vector<int> & sampling, //init sampling provided, keypoint based
 					   int addition_size, // expect additional sampling size						   
 					   std::string name) {    
@@ -543,6 +544,7 @@ const PetscInt I4[100]
 
     return total_size;
   }
+  */  
 
   void TriMesh::PETSc_assemble_Fourier_BiHDM(int fbase_size) {
     clock_start("Assemble Fourier phase of BiHDM");

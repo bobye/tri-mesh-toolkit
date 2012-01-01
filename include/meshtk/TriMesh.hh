@@ -301,15 +301,17 @@ namespace meshtk {
 
     // to update vertex HKS feature
     // EXPERIMENTAL
+    /*
     void update_export_all_vertices_HKS(std::string name);
     void load_all_vertices_HKS(std::string name);
     static double update_vertex_HKS_distance(int source_vertex_index,
 					     ScalarFunction & hks_distance);
-
+    */
 
 
     // to update keypoints SIFT feature
     // EXPERIMENTAL
+    /*
     void update_keypoint_SIFT(KeyPoint &keypoint);//,
 			      //ScalarFunction &function);
     void update_all_vertices_SIFT(double coeff =1.);
@@ -317,7 +319,7 @@ namespace meshtk {
     
     static double update_vertex_SIFT_distance(int source_vertex_index,
 					      ScalarFunction & feature_distance);
-
+    */
 
     // The following procedure is SIFT keypoint detection for scalar 
     // function on static manifold mesh domain. The input is scalar
@@ -329,9 +331,9 @@ namespace meshtk {
 
     void threshold_keypoint(double percentage, // percentage of magnitude thresholding
 			    bool multiple_vertex_keypoint = false); //allow mulitiple keypoints for a single vertex
-    void export_keypoint_index(std::vector<int> & index_array);
+    //void export_keypoint_index(std::vector<int> & index_array);
 
-    void export_keypoint_SIFT(std::string filename);
+    //void export_keypoint_SIFT(std::string filename);
     
 
     // Initialize PETSc mat and vec, call before using PETSc routine
@@ -361,10 +363,11 @@ namespace meshtk {
     int PETSc_assemble_export_BiHDM(std::vector<int> & sampling, //init sampling provided, keypoint based
 				    int addition_size, // expect additional sampling size
 				    std::string name);
-
+    /*
     int PETSc_assemble_export_HKSDM(std::vector<int> & sampling, //init sampling provided, keypoint based
 				    int addition_size, // expect additional sampling size 
 				    std::string name);// EXPERIMENTAL
+    */
 
     // assemble (square) biharmonic distance matrix by harmonic analysis, sparse
     // BEST PERFORMANCE CURRENTLY

@@ -289,7 +289,7 @@ const PetscInt I4[100]
     // to compute hihd_trace
     Vec vtmp;
     if (fbase_size == 0) fbase_size = eig_num;
-
+    
     VecDuplicate(eig_vector[0], &bihd_trace);
     VecSet(bihd_trace, 0.);
     VecDuplicate(eig_vector[0], &vtmp);

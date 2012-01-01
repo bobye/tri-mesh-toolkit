@@ -42,21 +42,11 @@ int main(int argc, char** argv){
     TCLAP::CmdLine cmd("3D Mesh Toolkit, supporting mesh (pre-)processing, shape analysis, visualization, ... \nContributor: Jianbo YE<yelpoo@gmail.com> \nhttp://code.google.com/p/tri-mesh-toolkit/", ' ', MESHTK_VERSION);
 
 
-    // OptString exportMeshBiHDCubicLBmatName("", "export_BiHD_FEM3_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with biharmonic distance metric, with specified name prefix", false, "", "string", cmd);
-
-    //    OptString loadMeshSIFTName("", "load_mesh_SIFT_name", "Load mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
-    //    OptString exportMeshSIFTName("", "export_mesh_SIFT_name", "Export mesh local descriptors for all vertices with specified name prefix", false, "", "string", cmd);
-    //    OptString loadMeshHKSName("", "load_mesh_HKS_name", "Load mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
-    //    OptString exportMeshHKSName("", "export_mesh_HKS_name", "Export mesh HKS descriptors for all vertices with specified name prefix", false, "", "string", cmd);
-    // OptString exportMeshBiHDMName("", "export_Nystrom_BiHDM_name", "Export Nystrom sampling matrix block of biharmonic-SIFT mixed distance matrix with specified name prefix", false, "", "string", cmd);
-    //    OptString exportMeshHKSDMName("", "export_Nystrom_HKSDM_name", "Export Nystrom sampling matrix block of HKS distance matrix with specified name prefix", false, "", "string", cmd);
 
 
     OptInt smoothMeshIteration("s", "smooth_mesh_iter", "Number of Guassian smoothing iterations", false, 0, "unsigned int", cmd);
     OptInt viewMeshGeodesicDist("", "view_geodesic_source", "View geodesic distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshBiharmonicDist("", "view_biharmonic_source", "View biharmonic distance from a source vertex on mesh", false, -1, "index", cmd);
-    //    OptInt viewMeshSIFTDist("", "view_SIFT_source", "View SIFT distance from a source vertex on mesh", false, -1, "index", cmd);
-    //    OptInt viewMeshHKSDist("", "view_HKS_source", "View HKS distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshEigenvector("", "view_eigenvector", "View color ramping of the i-th eigenvector", false, -1, "unsigned int", cmd);
 
 
@@ -67,16 +57,6 @@ int main(int argc, char** argv){
 
 
     
-
-
-    //    OptBool exportMeshBiHDCubicLBmat("", "export_BiHD_FEM3_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with biharmonic distance metric", cmd, false);
-
-    //    OptBool loadMeshSIFT("", "load_mesh_SIFT", "Load mesh local descriptors for all vertices", cmd, false);
-    //    OptBool exportMeshSIFT("d", "export_mesh_SIFT", "Export mesh local descriptors for all vertices", cmd, false);
-    //    OptBool loadMeshHKS("", "load_mesh_HKS", "Load mesh HKS descriptors for all vertices", cmd, false);
-    //    OptBool exportMeshHKS("k", "export_mesh_HKS", "Export mesh HKS descriptors for all vertices", cmd, false);
-    // OptBool exportMeshBiHDM("m", "export_Nystrom_BiHDM", "Export Nystrom sampling matrix block of biharmonic distance matrix", cmd, false);
-    //    OptBool exportMeshHKSDM("n", "export_Nystrom_HKSDM", "Export Nystrom sampling matrix block of HKS distance matrix", cmd, false);
 
 
 
@@ -170,48 +150,6 @@ int main(int argc, char** argv){
       else mesh.PETSc_load_LBeigen(loadMeshLBeigenName.getValue());      
     }
 
-    /*    
-    if (exportMeshSIFT.getValue()) {
-      mesh.update_compact_base();
-
-      if (loadMeshCurv.getValue()) {
-	if (loadMeshCurvName.getValue().compare("") == 0)
-	  mesh.load_vertex_curvature(inputMeshName.getValue());
-	else 
-	  mesh.load_vertex_curvature(loadMeshCurvName.getValue());
-      }	
-      else
-	mesh.update_curvature();
-      
-
-      mesh.update_all_vertices_SIFT();
-      if (exportMeshSIFTName.getValue().compare("") == 0) 
-	mesh.export_keypoint_SIFT(inputMeshName.getValue());      
-      else mesh.export_keypoint_SIFT(exportMeshSIFTName.getValue());
-    }
-    else if (loadMeshSIFT.getValue()) {
-      if (loadMeshSIFTName.getValue().compare("") == 0)
-	mesh.load_all_vertices_SIFT(inputMeshName.getValue());
-      else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
-    }
-    */
-
-    /*
-    if (exportMeshHKS.getValue() && loadMeshLBeigen.getValue()) {
-      if (exportMeshHKSName.getValue().compare("") ==0)
-	mesh.update_export_all_vertices_HKS(inputMeshName.getValue());
-      else 
-	mesh.update_export_all_vertices_HKS(exportMeshHKSName.getValue());
-    }
-    else if (loadMeshHKS.getValue()) {
-      if (loadMeshHKSName.getValue().compare("") == 0)
-	mesh.load_all_vertices_HKS(inputMeshName.getValue());
-      else 
-	mesh.load_all_vertices_HKS(loadMeshHKSName.getValue());
-    }
-    */
-
-
     if (exportMeshFBiHDM.getValue() && loadMeshLBeigen.getValue()) {
       mesh.PETSc_assemble_Fourier_BiHDM();//ADD number of fbase in use here
       if (exportMeshFBiHDMName.getValue().compare("") == 0)
@@ -220,73 +158,6 @@ int main(int argc, char** argv){
 	mesh.PETSc_export_Fourier_BiHDM(exportMeshFBiHDMName.getValue());
     }
 
-    /*
-    if (exportMeshBiHDM.getValue() && loadMeshLBeigen.getValue()) {
-      mesh.update_compact_base();
-      unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
-      meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);
-  
-      mesh.update_curvature();
-      meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
-      mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, 100);
-      mesh.threshold_keypoint(.618);
-
-      std::vector<int> keypoint_threshold_index;
-      mesh.export_keypoint_index(keypoint_threshold_index);
-
-      //mesh.PETSc_load_LBmat(inputMeshName.getValue());
-      //mesh.PETSc_load_LBeigen(inputMeshName.getValue());
-
-      //if (loadMeshSIFTName.getValue().compare("") == 0)
-      //  mesh.load_all_vertices_SIFT(inputMeshName.getValue());
-      //else mesh.load_all_vertices_SIFT(loadMeshSIFTName.getValue());
-
-
-      if (exportMeshBiHDMName.getValue().compare("") == 0)	
-	mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, inputMeshName.getValue());
-      else mesh.PETSc_assemble_export_BiHDM(keypoint_threshold_index, 200, exportMeshBiHDMName.getValue());
-      mesh.attribute_delete(USER_MESH_KEYPOINT, MESHTK_BOOLEAN);
-    }
-    */
-
-    /*
-    if (exportMeshHKSDM.getValue() && loadMeshHKS.getValue()) {
-      mesh.update_compact_base();
-      unsigned USER_MESH_KEYPOINT = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_BOOLEAN);
-      meshtk::BooleanFunction *mesh_keypoint = (meshtk::BooleanFunction *) mesh.attribute_extract(USER_MESH_KEYPOINT);
-  
-      mesh.update_curvature();
-      meshtk::ScalarFunction *mesh_hcurv = (meshtk::ScalarFunction *) mesh.attribute_extract(MESHTK_VERTEX_HCURV);
-      mesh.detect_vertex_keypoint(*mesh_hcurv, *mesh_keypoint, 100);
-      mesh.threshold_keypoint(.618);
-      
-      std::vector<int> keypoint_threshold_index;
-      mesh.export_keypoint_index(keypoint_threshold_index);
-
-      if (exportMeshHKSDMName.getValue().compare("") == 0)	
-	mesh.PETSc_assemble_export_HKSDM(keypoint_threshold_index, 200, inputMeshName.getValue());
-      else mesh.PETSc_assemble_export_HKSDM(keypoint_threshold_index, 200, exportMeshHKSDMName.getValue());
-
-      mesh.attribute_delete(USER_MESH_KEYPOINT, MESHTK_BOOLEAN);
-    }
-    */
-
-    /*
-    if (exportMeshBiHDCubicLBmat.getValue() && loadMeshLBeigen.getValue()) {
-      double one = 1.;
-      unsigned FACET_WEIGHT = mesh.attribute_allocate(MESHTK_FACET, MESHTK_SCALAR, &one);
-      meshtk::ScalarFunction *facet_weight_val = (meshtk::ScalarFunction *) mesh.attribute_extract(FACET_WEIGHT);
-      unsigned FACET_WEIGHT_TMP = mesh.attribute_allocate(MESHTK_FACET, MESHTK_SCALAR);
-      meshtk::ScalarFunction *facet_weight_tmp = (meshtk::ScalarFunction *) mesh.attribute_extract(FACET_WEIGHT_TMP);
-      mesh.update_biharmonic_base(*facet_weight_tmp);
-      mesh.PETSc_assemble_cubicFEM_LBmat(*facet_weight_val);
-      if (exportMeshBiHDCubicLBmatName.getValue().compare("") == 0) 
-	mesh.PETSc_export_LBmat(inputMeshName.getValue());
-      else mesh.PETSc_export_LBmat(exportMeshBiHDCubicLBmatName.getValue());                 
-      mesh.update_base();
-      mesh.attribute_delete(FACET_WEIGHT, MESHTK_SCALAR);
-    }
-    */
 
     if (exportMeshFBase.getValue() && loadMeshLBeigen.getValue()) {
       if (exportMeshFBaseName.getValue().compare("") == 0)
@@ -360,38 +231,6 @@ int main(int argc, char** argv){
       viewer.view();
 
     }
-    /*
-    else if (viewMeshSIFTDist.getValue() >=0 && loadMeshSIFT.getValue()) {
-      unsigned SIFT_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
-      meshtk::ScalarFunction *SIFT_distance = (meshtk::ScalarFunction *) mesh.attribute_extract(SIFT_DIST_REG);
-      mesh.update_compact_base();
-      mesh.update_vertex_SIFT_distance(viewMeshSIFTDist.getValue(), *SIFT_distance);
-
-      meshtk::MeshViewer viewer(argc, argv);
-      meshtk::MeshRamper painter(&mesh, SIFT_distance);
-      viewer.add_painter(&painter);
-
-      viewer.init();
-      viewer.view();
-
-    }
-    */
-    /*
-    else if (viewMeshHKSDist.getValue() >=0 && loadMeshHKS.getValue()) {
-      unsigned HKS_DIST_REG = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
-      meshtk::ScalarFunction *HKS_distance = (meshtk::ScalarFunction *) mesh.attribute_extract(HKS_DIST_REG);
-      mesh.update_compact_base();
-      mesh.update_vertex_HKS_distance(viewMeshHKSDist.getValue(), *HKS_distance);
-
-      meshtk::MeshViewer viewer(argc, argv);
-      meshtk::MeshRamper painter(&mesh, HKS_distance);
-      viewer.add_painter(&painter);
-
-      viewer.init();
-      viewer.view();
-      
-    }
-    */
     else if (viewMeshEigenvector.getValue() >=0 && loadMeshLBeigen.getValue()) {
       unsigned EIGEN_VECTOR = mesh.attribute_allocate(MESHTK_VERTEX, MESHTK_SCALAR);
       meshtk::ScalarFunction * eigenvector_scalar = (meshtk::ScalarFunction *) mesh.attribute_extract(EIGEN_VECTOR);

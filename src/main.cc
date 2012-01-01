@@ -128,15 +128,12 @@ int main(int argc, char** argv){
     mesh.PETSc_init(argc, argv);
 
     if (exportMeshCubicLBmat.getValue()) {
-      double one = 1.;
-      unsigned FACET_WEIGHT = mesh.attribute_allocate(MESHTK_FACET, MESHTK_SCALAR, &one);
-      meshtk::ScalarFunction *facet_weight_val = (meshtk::ScalarFunction *) mesh.attribute_extract(FACET_WEIGHT);
-      mesh.PETSc_assemble_cubicFEM_LBmat(*facet_weight_val);
+      mesh.PETSc_assemble_cubicFEM_LBmat();
 
       if (exportMeshCubicLBmatName.getValue().compare("") == 0) 
 	mesh.PETSc_export_LBmat(inputMeshName.getValue());
       else mesh.PETSc_export_LBmat(exportMeshCubicLBmatName.getValue());
-      mesh.attribute_delete(FACET_WEIGHT, MESHTK_SCALAR);
+      
     }
     else if (loadMeshLBmat.getValue()) {
       if (loadMeshLBmatName.getValue().compare("") == 0) 

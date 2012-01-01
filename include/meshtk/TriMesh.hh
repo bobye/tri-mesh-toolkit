@@ -249,7 +249,7 @@ namespace meshtk {
     // update base attribute of mesh w.r.t biharmonic distance embedding
     // update halfedge_length and facet_area
     // make sure to call update_base again when necessary
-    void update_biharmonic_base(ScalarFunction & facet_weight); //EXPERIMENTAL
+    // void update_biharmonic_base(ScalarFunction & facet_weight); //EXPERIMENTAL
 
     // update base attributes of mesh, namely three private routines:
     //  update_halfedge(), update_facet(), update_vertex(); 
@@ -340,13 +340,13 @@ namespace meshtk {
     void PETSc_init(int argc, char **argv);
     void PETSc_destroy();
     // assemble cubic FEM matrices of Laplace Beltrami operator
-    void PETSc_assemble_cubicFEM_LBmat(ScalarFunction & facet_weight);
+    void PETSc_assemble_cubicFEM_LBmat();
     void PETSc_assemble_linearFEM_LBmat();//NOT IMPLEMENT YET
     // load and export FEM matrices of Laplace Beltrami operator
     void PETSc_load_LBmat(std::string name);
     void PETSc_export_LBmat(std::string name);
     // load Eigen pairs of Laplace Beltrami operator
-    void PETSc_load_LBeigen(std::string name, int fbase_size = 0);
+    void PETSc_load_LBeigen(std::string name);
     // load eigenvector into ScalarFunction
     void PETSc_load_vertex_eig_vector(int i, ScalarFunction& f);
 

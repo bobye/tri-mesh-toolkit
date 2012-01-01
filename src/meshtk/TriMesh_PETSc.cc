@@ -124,7 +124,7 @@ const PetscInt I4[100]
 
 
 
-  void TriMesh::PETSc_assemble_cubicFEM_LBmat(ScalarFunction & facet_weight){
+  void TriMesh::PETSc_assemble_cubicFEM_LBmat(){
     clock_start("Assemble cubic FE");
 
     mat_size = vertex_num + halfedge_num + facet_num;
@@ -171,8 +171,8 @@ const PetscInt I4[100]
 
       PetscScalar mass[100], stiff[100];
       for (PetscInt j = 0; j < 100; ++j) {
-	mass[j]=facet_weight[i] * facet_area[i]*I4[j]/6720.;
-	stiff[j]=facet_weight[i] * (l1*l1*I1[j]+l2*l2*I2[j]+l3*l3*I3[j])/(320.* facet_area[i]);
+	mass[j]= facet_area[i]*I4[j]/6720.;
+	stiff[j]= (l1*l1*I1[j]+l2*l2*I2[j]+l3*l3*I3[j])/(320.* facet_area[i]);
       }
 
       MatSetValues(stiff_mat, 10, idx, 10, idx, stiff, ADD_VALUES);
@@ -246,7 +246,7 @@ const PetscInt I4[100]
     return inner_prod;
   }
 
-  void TriMesh::PETSc_load_LBeigen(std::string name, int fbase_size) {
+  void TriMesh::PETSc_load_LBeigen(std::string name) {
     name.append(".ev");
     clock_start("Load eigen");
 
@@ -286,18 +286,6 @@ const PetscInt I4[100]
     VecGetSize(eig_vector[0], &mat_size);
 
 
-    // to compute hihd_trace
-    Vec vtmp;
-    if (fbase_size == 0) fbase_size = eig_num;
-    
-    VecDuplicate(eig_vector[0], &bihd_trace);
-    VecSet(bihd_trace, 0.);
-    VecDuplicate(eig_vector[0], &vtmp);
-    
-    for (int i=fbase_size-1;i>0;--i) {
-      VecPointwiseMult(vtmp, eig_vector[i], eig_vector[i]);
-      VecAXPY(bihd_trace, 1./(eig_value[i] * eig_value[i])/eig_vector_sqr_norm[i], vtmp);
-    }
 
     // to use feature selection
     /*
@@ -313,7 +301,6 @@ const PetscInt I4[100]
 
     */
 
-    VecDestroy(&vtmp);
 
     clock_end();
 
@@ -365,7 +352,7 @@ const PetscInt I4[100]
 
 
 
-
+  /*
   void TriMesh::update_biharmonic_base(ScalarFunction & facet_weight) {
     // precondition with load_LBeign
     // update halfedge_length and facet_area
@@ -398,7 +385,7 @@ const PetscInt I4[100]
     }
       
   }
-
+  */
 
   double TriMesh::update_vertex_biharmonic_distance(int source_vertex_index,
 						    ScalarFunction & biharmonic_distance) {
@@ -551,6 +538,20 @@ const PetscInt I4[100]
     PetscInt *nnz;
 
     if (fbase_size == 0) fbase_size = eig_num;
+
+    // to compute hihd_trace
+    Vec vtmp;
+    
+    VecDuplicate(eig_vector[0], &bihd_trace);
+    VecSet(bihd_trace, 0.);
+    VecDuplicate(eig_vector[0], &vtmp);
+    
+    for (int i=fbase_size-1;i>0;--i) {
+      VecPointwiseMult(vtmp, eig_vector[i], eig_vector[i]);
+      VecAXPY(bihd_trace, 1./(eig_value[i] * eig_value[i])/eig_vector_sqr_norm[i], vtmp);
+    }
+    VecDestroy(&vtmp);
+    
     
     // init sparse symmtric fbihd_mat
     nnz = new PetscInt[fbase_size];

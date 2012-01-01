@@ -1,4 +1,4 @@
-ADD_EXECUTABLE(MeshTK MeshTK.cc)
+ADD_EXECUTABLE(MeshTK main.cc)
 
 TARGET_LINK_LIBRARIES(MeshTK meshtk ${LIBS})
 

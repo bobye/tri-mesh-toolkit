@@ -23,12 +23,14 @@ AR = ar
 
 #####################################################################################
 ## DO NOT change anything below here
+MESHTK_VERSION = 0.5
 
 CPPFLAGS = -Wall -I include
 
 TOPDIR = $(shell pwd)
 
 ## temporary directory to store dynamic libraries
+BINDIR= bin
 LIBDIR= lib
 LIBPATH = -L$(LIBDIR)
 
@@ -54,14 +56,15 @@ default: lib
 
 ## library
 $(OBJDIR)/%.o: %.cc
-	$(CPP) -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $@ $< 
+	$(CPP) -c $(CPPFLAGS) $(LIBOPT) -o $@ $< 
 
 $(OBJDIR)/TriMesh_PETSc.o: src/meshtk/TriMesh_PETSc.cc
-	$(CPP) -c -fPIC $(CPPFLAGS) $(LIBOPT) -o $@ $< ${PETSC_CCPPFLAGS} 
+	$(CPP) -c $(CPPFLAGS) $(LIBOPT) -o $@ $< ${PETSC_CCPPFLAGS}
 
 
 lib: $(addprefix $(OBJDIR)/, $(OBJECTS)) 
 	$(CPP) -shared -Wl,-soname,libmeshtk.so.1 -o $(LIBDIR)/libmeshtk.so.1.0 $^ ${PETSC_MAT_LIB}
+	$(AR) rvs $(LIBDIR)/libmeshtk.a $^
 
 install: lib
 	cp $(LIBDIR)/*.so* $(MESHTKLIBPATH)
@@ -71,6 +74,8 @@ install: lib
 ## toolkits
 MeshTK: main.cc
 	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $(MESHTKPATH)/MeshTK $<
+MeshTK-static: main.cc
+	$(CPP) $(CPPFLAGS) $(LIBOPT) -o $(BINDIR)/MeshTK-$(MESHTK_VERSION) $< $(LIBDIR)/libmeshtk.a ${PETSC_MAT_LIB}
 
 eigen_solver: eigen_solver.cc
 	$(CPP) $(CPPFLAGS) -o $(MESHTKPATH)/eigen_solver $< ${SLEPC_LIB} ${CCPPFLAGS}	
@@ -79,7 +84,7 @@ toolkit: MeshTK eigen_solver
 
 ## examples
 $(EXDIR)/ex0: ex0.cc 
-	$(CPP) $(CPPFLAGS) $(LIBOPT) -L$(MESHTKLIBPATH) -lmeshtk -o $@ $< 
+	$(CPP) $(CPPFLAGS) $(LIBOPT) -o $@ $< $(LIBDIR)/libmeshtk.a
 
 example: $(addprefix $(EXDIR)/, $(EXAMPLE))
 

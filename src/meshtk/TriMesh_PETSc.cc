@@ -191,7 +191,68 @@ const PetscInt I4[100]
     clock_end();
   }
 
+
+const PetscInt J1[9]
+= {2, -1, -1, 
+   -1, 0, 1, 
+   -1, 1, 0};
+const PetscInt J2[9]
+= {0, -1, 1, 
+   -1, 2, -1, 
+   1, -1, 0};
+const PetscInt J3[9]
+= {0, 1, -1,
+   1, 0, -1, 
+   -1, -1, 2};
+const PetscInt J4[9]
+= {2, 1, 1, 1, 2, 1, 1, 1, 2};
+
   void TriMesh::PETSc_assemble_linearFEM_LBmat(){
+    clock_start("Assemble linear FE");
+    mat_size = vertex_num;
+    PetscInt *nnz =new PetscInt[mat_size];
+    for (PetscInt i=0;i<vertex_num;++i)
+      nnz[i]=IV[i]->vertex_degree()+1;
+
+    MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, mat_size, mat_size, 0, nnz, &mass_mat);
+    MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, mat_size, mat_size, 0, nnz, &stiff_mat);
+
+    delete [] nnz;
+    MatSetOption(mass_mat, MAT_IGNORE_LOWER_TRIANGULAR, PETSC_TRUE);
+    MatSetOption(stiff_mat, MAT_IGNORE_LOWER_TRIANGULAR, PETSC_TRUE);
+
+    for (PetscInt i = 0; i < facet_num; ++i) {
+      Halfedge_handle h = IF[i]->halfedge();
+      
+      double l1 = halfedge_length[h->prev()->index],
+	l2 = halfedge_length[h->index],
+	l3 = halfedge_length[h->next()->index];
+
+      int idx[3];
+      idx[0]=h->vertex()->index;
+      idx[1]=h->next()->vertex()->index;
+      idx[2]=h->prev()->vertex()->index;
+
+      PetscScalar mass[9], stiff[9];
+      for (PetscInt j = 0; j < 9; ++j) {
+	mass[j]= facet_area[i]*J4[j]/12.;
+	stiff[j]= (l1*l1*J1[j]+l2*l2*J2[j]+l3*l3*J3[j])/(8.* facet_area[i]);
+      }
+
+      MatSetValues(stiff_mat, 3, idx, 3, idx, stiff, ADD_VALUES);
+      MatSetValues(mass_mat, 3, idx, 3, idx, mass, ADD_VALUES);	       
+      
+    }
+
+
+    MatAssemblyBegin(stiff_mat, MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(stiff_mat, MAT_FINAL_ASSEMBLY);
+    MatAssemblyBegin(mass_mat, MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(mass_mat, MAT_FINAL_ASSEMBLY);
+
+
+
+    clock_end();
 
   }
   

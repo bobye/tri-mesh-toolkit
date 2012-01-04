@@ -341,7 +341,8 @@ namespace meshtk {
     void PETSc_destroy();
     // assemble cubic FEM matrices of Laplace Beltrami operator
     void PETSc_assemble_cubicFEM_LBmat();
-    void PETSc_assemble_linearFEM_LBmat();//NOT IMPLEMENT YET
+    void PETSc_assemble_linearFEM_LBmat();
+         
     // load and export FEM matrices of Laplace Beltrami operator
     void PETSc_load_LBmat(std::string name);
     void PETSc_export_LBmat(std::string name);

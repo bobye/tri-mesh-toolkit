@@ -81,7 +81,10 @@ int main(int argc, char** argv){
     OptBool exportMeshFBase("b", "export_Fourier_base", "Export Fourier base square matrix", cmd, false);
 
     OptString exportMeshCubicLBmatName("", "export_cubic_FEM_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
-    OptBool exportMeshCubicLBmat("l", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
+    OptBool exportMeshCubicLBmat("c", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
+
+    OptString exportMeshLinearLBmatName("", "export_linear_FEM_LBmat_name", "Export linear FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
+    OptBool exportMeshLinearLBmat("l", "export_linear_FEM_LBmat", "Export linear FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
 
 
 
@@ -128,7 +131,15 @@ int main(int argc, char** argv){
     // shape analysis starts here
     mesh.PETSc_init(argc, argv);
 
-    if (exportMeshCubicLBmat.getValue()) {
+    if (exportMeshLinearLBmat.getValue()) {
+      mesh.PETSc_assemble_linearFEM_LBmat();
+
+      if (exportMeshLinearLBmatName.getValue().compare("") == 0) 
+	mesh.PETSc_export_LBmat(inputMeshName.getValue());
+      else mesh.PETSc_export_LBmat(exportMeshLinearLBmatName.getValue());
+      
+    }
+    else if (exportMeshCubicLBmat.getValue()) {
       mesh.PETSc_assemble_cubicFEM_LBmat();
 
       if (exportMeshCubicLBmatName.getValue().compare("") == 0) 

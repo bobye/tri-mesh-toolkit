@@ -233,6 +233,8 @@ namespace meshtk {
   
     update_vertex();
 
+    std::cout << "\n\tV: "<< vertex_num << "\tF: " << facet_num<< std::endl;
+    std::cout << "\tTotal area: "<< total_area;
     clock_end();
 
   };

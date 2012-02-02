@@ -1,8 +1,10 @@
 function demo_run
-fbase_filename = '~/data/meshtk_workshop/mesh.fbase';
-eigenvalue_filename = '~/data/meshtk_workshop/mesh.ev/_ev.ascii';
+fbase_filename = '~/data/meshtk_workshop/sample.fbase';
+eigenvalue_filename = '~/data/meshtk_workshop/sample.ev/_ev.ascii';
 
 [L D] = TriMeshTKFBaseRead(fbase_filename, eigenvalue_filename);
+L = L(1:100,1:100);
+D = D(1:101);
 
 tmp = log(3*D(end)/D(2));
 logtime_step = tmp/99;

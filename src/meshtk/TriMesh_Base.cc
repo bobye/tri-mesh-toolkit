@@ -106,6 +106,8 @@ namespace meshtk {
     vertex_num = P.size_of_vertices();
     facet_num = P.size_of_facets();
 
+    
+
     IH = ISHalfedgeList(halfedge_num);
     IV =  ISVertexList(vertex_num);
     IF =  ISFacetList(facet_num);
@@ -234,6 +236,7 @@ namespace meshtk {
     update_vertex();
 
     std::cout << "\n\tV: "<< vertex_num << "\tF: " << facet_num<< std::endl;
+    std::cout << "\tEulerchar: " << vertex_num+facet_num-halfedge_num/2 << std::endl;
     std::cout << "\tTotal area: "<< total_area;
     clock_end();
 

@@ -7,7 +7,7 @@ include ${PETSC_DIR}/conf/variables
 include ${SLEPC_DIR}/conf/slepc_variables
 
 ## options for CGAL, OpenGL and freeglut 
-LIBOPT = -lCGAL -lglut -lGL -lGLU 
+LIBOPT = -lCGAL -lglut -lGL -lGLU -llapack -llapack_atlas -lblas -latlas -lm
 
 ## add this directory(with writing access) to configuration file of ld
 ## it may be /etc/ld.so.conf, and run ldconfig -v to update cache as root. 
@@ -38,7 +38,7 @@ LIBPATH = -L$(LIBDIR)
 OBJDIR = obj
 
 ## objects to build the library
-OBJECTS = TriMesh_Base.o TriMesh_Curv.o TriMesh_SIFT.o TriMesh_Dist.o TriMesh_UI.o TriMesh_PETSc.o DynamicTriMesh.o MeshViewer.o mesh_assist.o ##temp objects
+OBJECTS = TriMesh_Base.o TriMesh_Curv.o TriMesh_SIFT.o TriMesh_Dist.o TriMesh_UI.o TriMesh_PETSc.o DynamicTriMesh.o MeshViewer.o mesh_assist.o lapack_wrapper.o ##temp objects
 
 ## directory of example executable
 EXDIR = example
@@ -58,12 +58,15 @@ default: lib
 $(OBJDIR)/%.o: %.cc
 	$(CPP) -c $(CPPFLAGS) $(LIBOPT) -o $@ $< 
 
+$(OBJDIR)/%.o: %.c
+	$(CPP) -c $(CPPFLAGS) $(LIBOPT) -o $@ $<
+
 $(OBJDIR)/TriMesh_PETSc.o: src/meshtk/TriMesh_PETSc.cc
 	$(CPP) -c $(CPPFLAGS) $(LIBOPT) -o $@ $< ${PETSC_CCPPFLAGS}
 
 
 lib: $(addprefix $(OBJDIR)/, $(OBJECTS)) 
-	$(CPP) -shared -Wl,-soname,libmeshtk.so.1 -o $(LIBDIR)/libmeshtk.so.1.0 $^ ${PETSC_MAT_LIB}
+	$(CPP) -shared -Wl,-soname,libmeshtk.so.1 -o $(LIBDIR)/libmeshtk.so.1.0 $^ ${PETSC_MAT_LIB} $(LIBOPT)
 	$(AR) rvs $(LIBDIR)/libmeshtk.a $^
 
 install: lib

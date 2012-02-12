@@ -26,6 +26,8 @@
 #include "meshtk/TriMesh.hh"
 #include "meshtk/mesh_assist.hh"
 
+#include "meshtk/lapack_wrapper.h"
+
 #include <stdio.h>
 // full path of current directory
 #ifdef WINDOWS
@@ -136,14 +138,28 @@ namespace meshtk {
   double TriMesh::update_halfedge(){
 
     double avg_len=0;
-    Halfedge_handle h;
     for (int i=0;i<halfedge_num;i++) 
       {
-	h = IH[i];
+	Halfedge_handle h = IH[i];
 	halfedge_vec[i] = h->vertex()->point() - h->prev()->vertex()->point();
 	avg_len += (halfedge_length[i] = CGAL::sqrt(halfedge_vec[i] * halfedge_vec[i]));
       }
     return avg_edge_len = avg_len/halfedge_num;
+  }
+
+  void TriMesh::localPCAaxis() {
+    double pca_mat[9]={}, axis_arr[9], eigen[3];
+    
+    for (int i=0; i<halfedge_num;i++) {
+      Vector v = halfedge_vec[i];
+      for (char id=0;id<3;++id)
+	for (char jd=0; jd<3; ++jd)
+	  pca_mat[id*3+jd] += v[id]*v[jd];
+    }
+
+    eigen_decomposition(3, pca_mat, axis_arr, eigen);
+    
+    //std::cout << eigen[0] << " " << eigen[1] << " " << eigen[2] << std::endl;
   }
 
 
@@ -234,6 +250,8 @@ namespace meshtk {
     update_facet();
   
     update_vertex();
+
+    localPCAaxis();
 
     std::cout << "\n\tV: "<< vertex_num << "\tF: " << facet_num<< std::endl;
     std::cout << "\tEulerchar: " << vertex_num+facet_num-halfedge_num/2 << std::endl;

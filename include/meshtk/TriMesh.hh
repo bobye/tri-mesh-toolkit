@@ -31,7 +31,6 @@
 
 
 
-
 namespace meshtk {
 
 
@@ -128,6 +127,9 @@ namespace meshtk {
     double update_halfedge();// to update: halfedge_vec, avg_edge_len    
     double update_facet();// to update: facet_norm, facet_area
     void update_vertex();// to update: vertex_norm, vertex_area, vertex_avg_len
+
+    //localized PCA view, return rotations
+    void localPCAaxis(); //Vector axis[3], Vector &rot);
 
     void update_facet_localchart();// to update local chart setting of facet - facet_LC[]
     void update_vertex_localchart();// to update local chart setting of vertex - vertex_LC[]
@@ -499,10 +501,11 @@ namespace meshtk {
       // not implemented yet
     };
 
+    /**************************************************************************/
 
     // some protected variable are accessible in MeshPainter and its derivative
     friend class MeshPainter;
-  
+
 
   };
 

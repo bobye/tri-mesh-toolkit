@@ -41,6 +41,4 @@ struct index_cmp {
 
 extern void clock_start(std::string );
 extern void clock_end();
-
-
 #endif /* _MESH_ASSIST_HH_ */

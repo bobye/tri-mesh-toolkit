@@ -128,8 +128,6 @@ namespace meshtk {
     double update_facet();// to update: facet_norm, facet_area
     void update_vertex();// to update: vertex_norm, vertex_area, vertex_avg_len
 
-    //localized PCA view, return rotations
-    void localPCAaxis(); //Vector axis[3], Vector &rot);
 
     void update_facet_localchart();// to update local chart setting of facet - facet_LC[]
     void update_vertex_localchart();// to update local chart setting of vertex - vertex_LC[]
@@ -505,7 +503,10 @@ namespace meshtk {
 
     // some protected variable are accessible in MeshPainter and its derivative
     friend class MeshPainter;
-
+    
+    // export PCA view to Geomview Command Language(GCL)
+    // For off format only
+    void PCAview2gcl(std::string filebase);
 
   };
 

@@ -58,7 +58,7 @@ int main(int argc, char** argv){
 
     
 
-
+    OptBool exportPCAviewGCL("", "export_PCA_view_gcl", "Export Geomview Command Language to view model by PCA analysis", cmd, false);
 
     OptString loadMeshCurvName("", "load_mesh_curv_name", "load vertex curvature from file with specified name prefix", false, "", "string", cmd);
     OptBool loadMeshCurv("", "load_mesh_curv", "load vertex curvature from file", cmd, false);
@@ -126,6 +126,14 @@ int main(int argc, char** argv){
       mesh.gaussian_smooth(smoothMeshCoefficient.getValue());
       mesh.update_base();
     }
+
+
+
+
+    if (exportPCAviewGCL.getValue())
+      mesh.PCAview2gcl(inputMeshName.getValue());
+    
+
 
     /////////////////////////////////////////////////////////////////////////////////
     // shape analysis starts here

@@ -147,20 +147,6 @@ namespace meshtk {
     return avg_edge_len = avg_len/halfedge_num;
   }
 
-  void TriMesh::localPCAaxis() {
-    double pca_mat[9]={}, axis_arr[9], eigen[3];
-    
-    for (int i=0; i<halfedge_num;i++) {
-      Vector v = halfedge_vec[i];
-      for (char id=0;id<3;++id)
-	for (char jd=0; jd<3; ++jd)
-	  pca_mat[id*3+jd] += v[id]*v[jd];
-    }
-
-    eigen_decomposition(3, pca_mat, axis_arr, eigen);
-    
-    //std::cout << eigen[0] << " " << eigen[1] << " " << eigen[2] << std::endl;
-  }
 
 
   double TriMesh::update_facet(){
@@ -241,6 +227,87 @@ namespace meshtk {
     
   }
 
+  void TriMesh::PCAview2gcl(std::string filebase) {
+    double pca_mat[9]={}, axis_arr[9], eigen[3];
+    Point c=Point((coordinate_min_x + coordinate_max_x)/2.,
+		    (coordinate_min_y + coordinate_max_y)/2.,
+		    (coordinate_min_z + coordinate_max_z)/2.);
+
+    for (int i=0; i<vertex_num;i++) {
+      Vector v = IV[i]->point() - c;
+      for (char id=0;id<3;++id)
+	for (char jd=0; jd<3; ++jd)
+	  pca_mat[id*3+jd] += v[id]*v[jd]*vertex_area[i];
+    }
+
+    eigen_decomposition(3, pca_mat, axis_arr, eigen);
+
+
+    axis_arr[0] = axis_arr[7]*axis_arr[5] - axis_arr[4]*axis_arr[8];
+    axis_arr[1] = axis_arr[8]*axis_arr[3] - axis_arr[6]*axis_arr[5];
+    axis_arr[2] = axis_arr[6]*axis_arr[4] - axis_arr[3]*axis_arr[7];
+
+    // std::cout << eigen[0] << " " << eigen[1] << " " << eigen[2] << std::endl << std::endl;
+    // std::cout << axis_arr[0] << " " << axis_arr[1] << " " << axis_arr[2] << std::endl;
+    // std::cout << axis_arr[3] << " " << axis_arr[4] << " " << axis_arr[5] << std::endl;
+    // std::cout << axis_arr[6] << " " << axis_arr[7] << " " << axis_arr[8] << std::endl;
+
+
+    
+    double costheta = (axis_arr[2]+axis_arr[4]+axis_arr[6]-1)/2.;
+    double theta = std::acos(costheta);
+    costheta = std::sqrt(1-costheta*costheta);
+    // std::cout << costheta << " " <<theta << std::endl;
+
+    double x =0 ,y= 0,z=0;
+    if (std::fabs(1 - costheta) > 1E-5) {
+      x = theta * (axis_arr[1]-axis_arr[5])/costheta/2.;
+      y = theta * (axis_arr[8]-axis_arr[0])/costheta/2.;
+      z = theta * (axis_arr[3]-axis_arr[7])/costheta/2.;
+    }    
+
+    // std::cout << x << " " << y << " " << z << std::endl << std::endl;
+
+    std::ofstream mesh_Fout;
+    std::string fileoutput(filebase.c_str());
+    fileoutput.append("."); fileoutput.append("gcl");
+
+    mesh_Fout.open(fileoutput.c_str());
+    // gcl output
+ 
+    mesh_Fout << std::endl;
+    mesh_Fout << "(load " << filebase <<".off geometry)" << std::endl;
+    mesh_Fout << "(backcolor Camera 1. 1. 1.)" << std::endl;
+    mesh_Fout << "(transform "
+	      <<filebase<<".off "
+	      <<filebase<<".off "
+	      <<filebase<<".off "
+	      <<"rotate "<<x<<" "<<y<<" "<<z<<" )"
+	      <<std::endl;
+    mesh_Fout << "(transform "
+	      <<filebase<<".off "
+	      <<filebase<<".off "
+	      <<"World rotate 0 0 0.7854)"
+	      <<std::endl;
+    mesh_Fout << "(zoom Camera 1.3)" << std::endl;
+    mesh_Fout << "(merge-ap "<<filebase<<".off appearance {" << std::endl;
+    mesh_Fout << " shading smooth" << std::endl;
+    mesh_Fout << " +transparent" <<std::endl;
+    mesh_Fout << " material {" << std::endl;
+    mesh_Fout << " diffuse 1. 1. .5" << std::endl;
+    mesh_Fout << " alpha 0.5" << std::endl;
+    mesh_Fout << " }" << std::endl;
+    mesh_Fout << " })" << std::endl;
+    mesh_Fout << "(bbox-draw "<<filebase<<".off no)" <<std::endl;
+    mesh_Fout << "(sleep-for 1)" << std::endl;
+    mesh_Fout << "(snapshot Camera "<<filebase<<".ppm)" <<std::endl;
+    mesh_Fout << "(delete "<<filebase<<".off)" << std::endl;
+    mesh_Fout << "(camera-reset Camera)" << std::endl;
+    std::cout << "Export PCA view to: " << fileoutput <<  std::endl;
+    mesh_Fout.close();
+
+  }
+
 
   void TriMesh::update_base(){//base update halfedge, facet, vertex.
 
@@ -249,9 +316,7 @@ namespace meshtk {
 
     update_facet();
   
-    update_vertex();
-
-    localPCAaxis();
+    update_vertex();    
 
     std::cout << "\n\tV: "<< vertex_num << "\tF: " << facet_num<< std::endl;
     std::cout << "\tEulerchar: " << vertex_num+facet_num-halfedge_num/2 << std::endl;

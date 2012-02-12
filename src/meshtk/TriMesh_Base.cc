@@ -242,7 +242,6 @@ namespace meshtk {
 
     eigen_decomposition(3, pca_mat, axis_arr, eigen);
 
-
     axis_arr[0] = axis_arr[7]*axis_arr[5] - axis_arr[4]*axis_arr[8];
     axis_arr[1] = axis_arr[8]*axis_arr[3] - axis_arr[6]*axis_arr[5];
     axis_arr[2] = axis_arr[6]*axis_arr[4] - axis_arr[3]*axis_arr[7];
@@ -256,15 +255,17 @@ namespace meshtk {
     
     double costheta = (axis_arr[2]+axis_arr[4]+axis_arr[6]-1)/2.;
     double theta = std::acos(costheta);
-    costheta = std::sqrt(1-costheta*costheta);
+    costheta = std::sin(theta);
     // std::cout << costheta << " " <<theta << std::endl;
 
     double x =0 ,y= 0,z=0;
-    if (std::fabs(1 - costheta) > 1E-5) {
+    if (std::fabs(costheta) > 1E-5) {
       x = theta * (axis_arr[1]-axis_arr[5])/costheta/2.;
       y = theta * (axis_arr[8]-axis_arr[0])/costheta/2.;
       z = theta * (axis_arr[3]-axis_arr[7])/costheta/2.;
-    }    
+    } else {
+      x = 2.22142; y=0; z=2.22142;
+    }
 
     // std::cout << x << " " << y << " " << z << std::endl << std::endl;
 

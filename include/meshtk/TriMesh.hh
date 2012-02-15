@@ -43,7 +43,8 @@ namespace meshtk {
 		    as smoothing, denoising, deformation and remeshing,  please consider the 
 		    inheritant class called DynamicTriMesh  */
 		 
-  protected:
+  protected:    
+
     // CGAL Polyhedron data
     Polyhedron P;
 
@@ -339,9 +340,13 @@ namespace meshtk {
     // Initialize PETSc mat and vec, call before using PETSc routine
     void PETSc_init(int argc, char **argv);
     void PETSc_destroy();
+    // map FEM nodal indices
+    int map_cubicFEM_indices(bool dirichlet); 
+    int map_linearFEM_indices(bool dirichlet);
+
     // assemble cubic FEM matrices of Laplace Beltrami operator
-    void PETSc_assemble_cubicFEM_LBmat();
-    void PETSc_assemble_linearFEM_LBmat();
+    void PETSc_assemble_cubicFEM_LBmat(bool dirichlet = false);
+    void PETSc_assemble_linearFEM_LBmat(bool dirichlet = false);
          
     // load and export FEM matrices of Laplace Beltrami operator
     void PETSc_load_LBmat(std::string name);

@@ -27,7 +27,14 @@
 #include <iostream>
 #include <fstream>
 
+#include <assert.h>
+
 namespace meshtk {
+
+  static PetscInt FEM_degree = 3;//cubic FEM in default;
+
+  // index map
+  static PetscInt* FEM_index_map;
 
   // mass matrix and stiff matrix of Laplace Beltrami operator
   static Mat mass_mat, stiff_mat;
@@ -58,6 +65,8 @@ namespace meshtk {
 
   void TriMesh::PETSc_init(int argc, char **argv){
     PetscInitialize(&argc,&argv,(char *)0,help);
+    
+
   }
 
   void TriMesh::PETSc_destroy() {
@@ -68,6 +77,8 @@ namespace meshtk {
 
     MatDestroy(&fbihd_mat);
     VecDestroy(&bihd_trace);
+
+    delete [] FEM_index_map;
   }
 
 
@@ -122,23 +133,63 @@ const PetscInt I4[100]
       36,  36,  36, 162, 162, 162, 162, 162, 162,1944};  
 
 
+  int TriMesh::map_cubicFEM_indices(bool dirichlet) {
+    //only to update FEM_index_map array    
+    FEM_index_map = new PetscInt[vertex_num + halfedge_num + facet_num];
+    for (PetscInt i=0; i<vertex_num + halfedge_num + facet_num; ++i) FEM_index_map[i] = 0;
 
+    if (dirichlet) {
+      for (int i=0;i<halfedge_num;i++) 
+	{
+	  Halfedge_handle h = IH[i];
+	  if (h->is_border())
+	    {
+	      FEM_index_map[i+vertex_num] = -1;
+	      FEM_index_map[h->opposite()->index+vertex_num] = -1;
+	      FEM_index_map[h->vertex()->index] = -1;
+	      FEM_index_map[h->opposite()->facet()->index + vertex_num + halfedge_num] =-1;
+	    }
+	}
+    }
+    
+    int count =0;
+    int vertex_count = 0, halfedge_count=0, facet_count =0;
+    for (PetscInt i=0; i<vertex_num; ++i)
+      if (FEM_index_map[i]==0)
+	FEM_index_map[i] = count++;
+    vertex_count = count;
 
-  void TriMesh::PETSc_assemble_cubicFEM_LBmat(){
+    for (PetscInt i=vertex_num; i<vertex_num + halfedge_num; ++i)
+      if (FEM_index_map[i]==0)
+	FEM_index_map[i] = count++;
+    halfedge_count = count - vertex_count;
+
+    for (PetscInt i=vertex_num+halfedge_num; i<vertex_num + halfedge_num + facet_num; ++i)
+      if (FEM_index_map[i]==0)
+	FEM_index_map[i] = count++;
+    facet_count = count - vertex_count - halfedge_count;
+
+     return count; 
+
+  }
+
+  void TriMesh::PETSc_assemble_cubicFEM_LBmat(bool dirichlet){
     clock_start("Assemble cubic FE");
 
-    mat_size = vertex_num + halfedge_num + facet_num;
 
+    // FEM index map
+    mat_size = map_cubicFEM_indices(dirichlet);
+    
     PetscInt *nnz =new PetscInt[mat_size];
 
     for (PetscInt i=0;i<vertex_num;++i)
-      nnz[i]=IV[i]->vertex_degree()*6+1;
+      if (FEM_index_map[i]>=0) nnz[FEM_index_map[i]]=IV[i]->vertex_degree()*6+1;
 
-    for (PetscInt i=0;i<halfedge_num;i++)
-      nnz[i+vertex_num]=12;
+    for (PetscInt i=vertex_num;i<vertex_num + halfedge_num;i++)
+      if (FEM_index_map[i]>=0) nnz[FEM_index_map[i]]=12;
 
-    for (PetscInt i=0;i<facet_num;i++)
-      nnz[i+vertex_num+halfedge_num]=1;
+    for (PetscInt i=vertex_num + halfedge_num;i<vertex_num + halfedge_num + facet_num;i++)
+      if (FEM_index_map[i]>=0) nnz[FEM_index_map[i]]=1;
 
 
     MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, mat_size, mat_size, 0, nnz, &mass_mat);
@@ -148,7 +199,7 @@ const PetscInt I4[100]
 
     MatSetOption(mass_mat, MAT_IGNORE_LOWER_TRIANGULAR, PETSC_TRUE);
     MatSetOption(stiff_mat, MAT_IGNORE_LOWER_TRIANGULAR, PETSC_TRUE);
-
+    
 
     for (PetscInt i = 0; i < facet_num; ++i) {
       Halfedge_handle h = IF[i]->halfedge();
@@ -169,6 +220,8 @@ const PetscInt I4[100]
       idx[8]=h->opposite()->index + vertex_num;
       idx[9]=i + vertex_num + halfedge_num;
 
+      for (PetscInt j=0; j < 10; j++) idx[j] = FEM_index_map[idx[j]];
+
       PetscScalar mass[100], stiff[100];
       for (PetscInt j = 0; j < 100; ++j) {
 	mass[j]= facet_area[i]*I4[j]/6720.;
@@ -186,7 +239,7 @@ const PetscInt I4[100]
     MatAssemblyBegin(mass_mat, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mass_mat, MAT_FINAL_ASSEMBLY);
 
-
+    
 
     clock_end();
   }
@@ -207,12 +260,40 @@ const PetscInt J3[9]
 const PetscInt J4[9]
 = {2, 1, 1, 1, 2, 1, 1, 1, 2};
 
-  void TriMesh::PETSc_assemble_linearFEM_LBmat(){
+  int TriMesh::map_linearFEM_indices(bool dirichlet) {
+    //only to update FEM_index_map array
+    FEM_index_map = new PetscInt[vertex_num];
+    for (PetscInt i=0; i<vertex_num; ++i) FEM_index_map[i] = 0;
+
+    if (dirichlet) {
+      for (int i=0;i<halfedge_num;i++) 
+	{
+	  Halfedge_handle h = IH[i];
+	  if (h->is_border())
+	    {
+	      FEM_index_map[h->vertex()->index] = -1;
+	    }
+	}
+    }
+    
+    int count =0;
+    for (PetscInt i=0; i<vertex_num; ++i)
+      if (FEM_index_map[i]==0)
+	FEM_index_map[i] = count++;
+
+     return count; 
+  }
+
+
+  void TriMesh::PETSc_assemble_linearFEM_LBmat(bool dirichlet){
     clock_start("Assemble linear FE");
-    mat_size = vertex_num;
+
+    mat_size = map_linearFEM_indices(dirichlet);
+    
+
     PetscInt *nnz =new PetscInt[mat_size];
     for (PetscInt i=0;i<vertex_num;++i)
-      nnz[i]=IV[i]->vertex_degree()+1;
+      if (FEM_index_map[i] >=0) nnz[FEM_index_map[i]]=IV[i]->vertex_degree()+1;  
 
     MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, mat_size, mat_size, 0, nnz, &mass_mat);
     MatCreateSeqSBAIJ(PETSC_COMM_SELF, 1, mat_size, mat_size, 0, nnz, &stiff_mat);
@@ -233,6 +314,8 @@ const PetscInt J4[9]
       idx[1]=h->next()->vertex()->index;
       idx[2]=h->prev()->vertex()->index;
 
+      for (PetscInt j=0; j < 3; j++) idx[j] = FEM_index_map[idx[j]];
+
       PetscScalar mass[9], stiff[9];
       for (PetscInt j = 0; j < 9; ++j) {
 	mass[j]= facet_area[i]*J4[j]/12.;
@@ -244,12 +327,10 @@ const PetscInt J4[9]
       
     }
 
-
     MatAssemblyBegin(stiff_mat, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(stiff_mat, MAT_FINAL_ASSEMBLY);
     MatAssemblyBegin(mass_mat, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mass_mat, MAT_FINAL_ASSEMBLY);
-
 
 
     clock_end();
@@ -345,6 +426,22 @@ const PetscInt J4[9]
       eig_vector_sqr_norm[i] = vec_inner_prod(eig_vector[i], eig_vector[i]);
     }
     VecGetSize(eig_vector[0], &mat_size);
+    
+
+    // mapping FEM indices
+    if (mat_size < vertex_num) {
+      map_linearFEM_indices(true); 
+      FEM_degree = 1;
+    } else if (mat_size == vertex_num) {
+      map_linearFEM_indices(false);
+      FEM_degree = 1;
+    } else if (mat_size < vertex_num + halfedge_num + facet_num) {
+      map_cubicFEM_indices(true);
+      FEM_degree = 3;
+    } else if (mat_size <= vertex_num + halfedge_num + facet_num) {
+      map_cubicFEM_indices(false);
+      FEM_degree = 3;
+    }
 
 
 
@@ -371,7 +468,10 @@ const PetscInt J4[9]
     PetscScalar *array;
     VecGetArray(eig_vector[i], &array);
     for (int j=0; j< vertex_num; ++j)
-      f[j] = array[j];
+      if (FEM_index_map[j]>=0)
+	f[j] = array[FEM_index_map[j]];
+      else
+	f[j] = 0;
   }
 
 
@@ -415,8 +515,11 @@ const PetscInt J4[9]
 
 
   double TriMesh::update_vertex_biharmonic_distance(int source_vertex_index,
-						    ScalarFunction & biharmonic_distance) {
+						    ScalarFunction & biharmonic_distance) {    
+
     int vertex_size = biharmonic_distance.size();
+    //assert(vertex_size == vertex_num);    
+   
     
     for (int j=0; j < vertex_size; ++j) biharmonic_distance[j] =0;
 
@@ -429,13 +532,19 @@ const PetscInt J4[9]
 
       // weighted by heat trace, probably not a good idea
       //PetscScalar target = vector[source_vertex_index] / std::sqrt(htrace[source_vertex_index]), 
-      PetscScalar target = vector[source_vertex_index],
-	sqr_eigenvalue = eig_value[i] * eig_value[i]; 
+      PetscScalar target =0;
+      if (FEM_index_map[source_vertex_index] >=0)
+	target = vector[FEM_index_map[source_vertex_index]];
+      
+      PetscScalar sqr_eigenvalue = eig_value[i] * eig_value[i]; 
 
       for (int j=0; j < vertex_size; ++j) {
 
 	//double tmp = vector[j] / std::sqrt(htrace[j]) -target;
-	double tmp = vector[j] - target;
+	double tmp = -target;
+	if (FEM_index_map[j] >=0) 
+	  tmp= vector[FEM_index_map[j]] - target;
+
 	biharmonic_distance[j] += tmp * tmp / eig_vector_sqr_norm[i] / sqr_eigenvalue;
       }
     }
@@ -522,6 +631,7 @@ const PetscInt J4[9]
     
     clock_end();
   }
+
   void TriMesh::PETSc_export_Fourier_BiHDM( std::string name) {
 
     name += ".fbihdmat";

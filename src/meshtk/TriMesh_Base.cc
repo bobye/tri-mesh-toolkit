@@ -138,12 +138,14 @@ namespace meshtk {
   double TriMesh::update_halfedge(){
 
     double avg_len=0;
+
     for (int i=0;i<halfedge_num;i++) 
       {
 	Halfedge_handle h = IH[i];
 	halfedge_vec[i] = h->vertex()->point() - h->prev()->vertex()->point();
-	avg_len += (halfedge_length[i] = CGAL::sqrt(halfedge_vec[i] * halfedge_vec[i]));
+	avg_len += (halfedge_length[i] = CGAL::sqrt(halfedge_vec[i] * halfedge_vec[i]));	
       }
+
     return avg_edge_len = avg_len/halfedge_num;
   }
 

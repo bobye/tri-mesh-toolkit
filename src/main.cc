@@ -80,6 +80,9 @@ int main(int argc, char** argv){
     OptString exportMeshFBaseName("", "export_Fourier_base_name", "Export Fourier base square matrix with specified name prefix", false, "", "string", cmd);
     OptBool exportMeshFBase("b", "export_Fourier_base", "Export Fourier base square matrix", cmd, false);
 
+    OptBool enableDirichletBC("", "Dirichlet", "Enable Dirichlet boundary condition for FEM formulation", cmd, false);
+
+
     OptString exportMeshCubicLBmatName("", "export_cubic_FEM_LBmat_name", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator with specified name prefix", false, "", "string", cmd);
     OptBool exportMeshCubicLBmat("c", "export_cubic_FEM_LBmat", "Export cubic FEM mass and stiff matrix of Laplace Beltrami operator", cmd, false);
 
@@ -140,7 +143,7 @@ int main(int argc, char** argv){
     mesh.PETSc_init(argc, argv);
 
     if (exportMeshLinearLBmat.getValue()) {
-      mesh.PETSc_assemble_linearFEM_LBmat();
+      mesh.PETSc_assemble_linearFEM_LBmat(enableDirichletBC.getValue());
 
       if (exportMeshLinearLBmatName.getValue().compare("") == 0) 
 	mesh.PETSc_export_LBmat(inputMeshName.getValue());
@@ -148,7 +151,7 @@ int main(int argc, char** argv){
       
     }
     else if (exportMeshCubicLBmat.getValue()) {
-      mesh.PETSc_assemble_cubicFEM_LBmat();
+      mesh.PETSc_assemble_cubicFEM_LBmat(enableDirichletBC.getValue());
 
       if (exportMeshCubicLBmatName.getValue().compare("") == 0) 
 	mesh.PETSc_export_LBmat(inputMeshName.getValue());

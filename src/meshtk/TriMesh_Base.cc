@@ -281,16 +281,10 @@ namespace meshtk {
     mesh_Fout << std::endl;
     mesh_Fout << "(load " << filebase <<".off geometry)" << std::endl;
     mesh_Fout << "(backcolor Camera 1. 1. 1.)" << std::endl;
-    mesh_Fout << "(transform "
-	      <<filebase<<".off "
-	      <<filebase<<".off "
-	      <<filebase<<".off "
-	      <<"rotate "<<x<<" "<<y<<" "<<z<<" )"
+    mesh_Fout << "(transform World World "<< filebase <<".off "
+	      <<"rotate "<< x<<" "<< y<<" "<< z<<" )"
 	      <<std::endl;
-    mesh_Fout << "(transform "
-	      <<filebase<<".off "
-	      <<filebase<<".off "
-	      <<"World rotate 0 0 0.7854)"
+    mesh_Fout << "(transform World World Camera rotate 0 0 0.7854)"
 	      <<std::endl;
     mesh_Fout << "(zoom Camera 1.3)" << std::endl;
     mesh_Fout << "(merge-ap "<<filebase<<".off appearance {" << std::endl;
@@ -304,8 +298,7 @@ namespace meshtk {
     mesh_Fout << "(bbox-draw "<<filebase<<".off no)" <<std::endl;
     mesh_Fout << "(sleep-for 1)" << std::endl;
     mesh_Fout << "(snapshot Camera "<<filebase<<".ppm)" <<std::endl;
-    mesh_Fout << "(delete "<<filebase<<".off)" << std::endl;
-    mesh_Fout << "(camera-reset Camera)" << std::endl;
+    mesh_Fout << "(quit)" << std::endl;
     std::cout << "Export PCA view to: " << fileoutput <<  std::endl;
     mesh_Fout.close();
 

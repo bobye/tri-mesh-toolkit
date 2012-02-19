@@ -86,7 +86,10 @@ namespace meshtk {
 
 
     if (!P.is_pure_triangle()) {std::cerr<< "Error: input mesh has non-triangle faces!" <<std::endl; exit(1);}
-    if (!P.is_closed()) {std::cout<< "Warning: input mesh seems not to be watertight" <<std::endl;} 
+    if (!P.is_closed()) {std::cout<< "Warning: input mesh seems not to be watertight" <<std::endl;}
+
+    int rm_component = P.keep_largest_connected_components(1);
+    if (rm_component != 0) {std::cout<<"Warning: multiple shells detected, remove "<<rm_component<<" shells to keep the largest one"<<std::endl;}
   };
 
   void TriMesh::write(std::string file, std::string type){

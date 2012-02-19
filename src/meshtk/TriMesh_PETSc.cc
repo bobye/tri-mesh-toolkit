@@ -351,9 +351,9 @@ const PetscInt J4[9]
     std::string filename_stiff = name, filename_mass = name;
     filename_stiff += ".stiff"; filename_mass += ".mass";
 
-    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_mass.c_str() , FILE_MODE_READ, &fmass);
-    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_stiff.c_str(), FILE_MODE_READ, &fstiff);
-
+    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_mass.c_str() , FILE_MODE_READ, &fmass); 
+    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename_stiff.c_str(), FILE_MODE_READ, &fstiff); 
+    
     MatCreate(PETSC_COMM_SELF, &mass_mat);
     MatCreate(PETSC_COMM_SELF, &stiff_mat);
     MatSetType(mass_mat, MATSEQSBAIJ);

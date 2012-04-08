@@ -48,13 +48,14 @@ int main(int argc, char** argv){
     OptInt viewMeshGeodesicDist("", "view_geodesic_source", "View geodesic distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshBiharmonicDist("", "view_biharmonic_source", "View biharmonic distance from a source vertex on mesh", false, -1, "index", cmd);
     OptInt viewMeshEigenvector("", "view_eigenvector", "View color ramping of the i-th eigenvector", false, -1, "unsigned int", cmd);
+    OptInt removeMeshFacetInt("", "remove_facets_int","Remove n facets randomly", false, -1, "unsigned int", cmd);
 
 
 
 
     OptScalar smoothMeshCoefficient("", "smooth_mesh_coeff", "Coefficient specified for Guassian smoothing", false, 1., "float", cmd);
     OptScalar addMeshNoise("", "noise_mesh", "Coefficient specified for uniform mesh noise added", false, 0., "float", cmd);
-
+    OptScalar removeMeshFacetPTG("", "remove_facets_ptg", "Remove p%% facets randomly", false, 0., "float", cmd);
 
     
 
@@ -122,7 +123,23 @@ int main(int argc, char** argv){
       mesh.update_base();
     }
 
+    // remove facets randomly
+    if (removeMeshFacetInt.getValue() > 0 && removeMeshFacetPTG.getValue() == 0) {
+      mesh.remove_mesh_facets(removeMeshFacetInt.getValue());
+      mesh.init_index();
+      mesh.update_base();
+    } else if (removeMeshFacetInt.getValue() > 0) {
+      mesh.remove_mesh_facets(removeMeshFacetInt.getValue(), removeMeshFacetPTG.getValue());
+      mesh.init_index();
+      mesh.update_base();
+    } else {
+      mesh.remove_mesh_facets(-1, removeMeshFacetPTG.getValue());
+      mesh.init_index();
+      mesh.update_base();
+    }
+
     // mesh Gaussian smooth iteration
+    // not able to handle border now
     for (int i=0; i<smoothMeshIteration.getValue(); ++i) {
       std::cout<< "Smooth Iteration Count: " << i << " with coefficient "<< smoothMeshCoefficient.getValue() << std::endl;
       

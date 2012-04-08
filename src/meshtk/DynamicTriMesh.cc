@@ -224,4 +224,24 @@ namespace meshtk {
     
   }
 
+
+  void DynamicTriMesh::remove_mesh_facets(int count, double percentage) {
+    int pcount = (int) facet_num * percentage;
+    if (count<0 || count > pcount) count = pcount;
+    
+    for (int i = 0; i < count; ++i) {
+      Halfedge_iterator h = P.halfedges_begin();
+      int itercount = rand() % (halfedge_num/2);
+      while (itercount>0) {++h;--itercount;}
+      while (h->is_border()) ++h;
+      P.erase_facet(h);
+    }
+      
+    P.keep_largest_connected_components(1);
+  }
+
+
+
 }
+
+

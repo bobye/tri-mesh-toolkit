@@ -72,7 +72,9 @@ namespace meshtk {
     // iteration (>0 preconditioned)
     void detect_vertex_salient(int , int pre_inter = 1);
 
-
+    // removing facets randomly
+    // set count negative as default
+    void remove_mesh_facets(int count, double percentage = .1);
 
 
   };

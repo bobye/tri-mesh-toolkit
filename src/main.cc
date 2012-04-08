@@ -132,7 +132,7 @@ int main(int argc, char** argv){
       mesh.remove_mesh_facets(removeMeshFacetInt.getValue(), removeMeshFacetPTG.getValue());
       mesh.init_index();
       mesh.update_base();
-    } else {
+    } else if (removeMeshFacetPTG.getValue() > 0){
       mesh.remove_mesh_facets(-1, removeMeshFacetPTG.getValue());
       mesh.init_index();
       mesh.update_base();

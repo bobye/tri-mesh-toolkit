@@ -291,11 +291,11 @@ namespace meshtk {
 	      <<std::endl;
     mesh_Fout << "(zoom Camera 1.3)" << std::endl;
     mesh_Fout << "(merge-ap "<<filebase<<".off appearance {" << std::endl;
-    mesh_Fout << " shading smooth" << std::endl;
-    mesh_Fout << " +transparent" <<std::endl;
+    //    mesh_Fout << " shading smooth" << std::endl;
+    //    mesh_Fout << " +transparent" <<std::endl;
     mesh_Fout << " material {" << std::endl;
-    mesh_Fout << " diffuse 1. 1. .5" << std::endl;
-    mesh_Fout << " alpha 0.5" << std::endl;
+    mesh_Fout << " diffuse 1. .85 0" << std::endl;
+    //    mesh_Fout << " alpha 0.5" << std::endl;
     mesh_Fout << " }" << std::endl;
     mesh_Fout << " })" << std::endl;
     mesh_Fout << "(bbox-draw "<<filebase<<".off no)" <<std::endl;

@@ -25,8 +25,14 @@
 
 #include "meshtk/TriMesh.hh"
 #include "meshtk/mesh_assist.hh"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "meshtk/lapack_wrapper.h"
+#ifdef __cplusplus
+}
+#endif
+
 
 #include <stdio.h>
 // full path of current directory

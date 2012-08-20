@@ -493,8 +493,8 @@ const PetscInt J4[9]
       MatMult(mass_mat, vtmp, vtmp2);
       
       for (int j= 1; j < eig_num; ++j) {
-
-	v[j-1] = VecDot(vtmp2, eig_vector[j])* std::sqrt(total_area) /eig_vector_sqr_norm[i]/std::sqrt(eig_vector_sqr_norm[j]);
+	VecDot(vtmp2, eig_vector[j], &v[j-1]);
+	v[j-1] *= std::sqrt(total_area) /eig_vector_sqr_norm[i]/std::sqrt(eig_vector_sqr_norm[j]);
       }      
 
       fbasedata.write((char*) v, sizeof(MESHTK_SCALAR_TYPE) * (eig_num-1));	

@@ -9,8 +9,9 @@
 #  PETSC_MPIEXEC      - Executable for running MPI programs
 #  PETSC_VERSION      - Version string (MAJOR.MINOR.SUBMINOR)
 #
-#  Hack: PETSC_VERSION currently decides on the version based on the
-#  layout.  Otherwise we need to run C code to determine the version.
+#  Usage:
+#  find_package(PETSc COMPONENTS CXX)  - required if build --with-clanguage=C++ --with-c-support=#  find_package(PETSc COMPONENTS C)    - standard behavior of checking build using a C compiler
+#  find_package(PETSc)                 - same as above
 #
 # Setting these changes the behavior of the search
 #  PETSC_DIR - directory in which PETSc resides
@@ -19,6 +20,31 @@
 # Redistribution and use is allowed according to the terms of the BSD license.
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 #
+
+set(PETSC_VALID_COMPONENTS
+  C
+  CXX)
+
+if(NOT PETSc_FIND_COMPONENTS)
+  set(PETSC_LANGUAGE_BINDINGS "C")
+else()
+  # Right now, this is designed for compatability with the --with-clanguage option, so
+  # only allow one item in the components list.
+  list(LENGTH ${PETSc_FIND_COMPONENTS} components_length)
+  if(${components_length} GREATER 1)
+    message(FATAL_ERROR "Only one component for PETSc is allowed to be specified")
+  endif()
+  # This is a stub for allowing multiple components should that time ever come. Perhaps
+  # to also test Fortran bindings?
+  foreach(component ${PETSc_FIND_COMPONENTS})
+    list(FIND PETSC_VALID_COMPONENTS ${component} component_location)
+    if(${component_location} EQUAL -1)
+      message(FATAL_ERROR "\"${component}\" is not a valid PETSc component.")
+    else()
+      list(APPEND PETSC_LANGUAGE_BINDINGS ${component})
+    endif()
+  endforeach()
+endif()
 
 function (petsc_get_version)
   if (EXISTS "${PETSC_DIR}/include/petscversion.h")
@@ -169,33 +195,41 @@ show :
     message (STATUS "Recognized PETSc install with single library for all packages")
   endif ()
 
-  include (CheckCSourceRuns)
+  include(Check${PETSC_LANGUAGE_BINDINGS}SourceRuns)
   macro (PETSC_TEST_RUNS includes libraries runs)
+    if(${PETSC_LANGUAGE_BINDINGS} STREQUAL "C")
+      set(_PETSC_ERR_FUNC "CHKERRQ(ierr)")
+    elseif(${PETSC_LANGUAGE_BINDINGS} STREQUAL "CXX")
+      set(_PETSC_ERR_FUNC "CHKERRXX(ierr)")
+    endif()
     if (PETSC_VERSION VERSION_GREATER 3.1)
       set (_PETSC_TSDestroy "TSDestroy(&ts)")
     else ()
       set (_PETSC_TSDestroy "TSDestroy(ts)")
     endif ()
-    multipass_c_source_runs ("${includes}" "${libraries}" "
+    
+    set(_PETSC_TEST_SOURCE "
 static const char help[] = \"PETSc test program.\";
 #include <petscts.h>
 int main(int argc,char *argv[]) {
   PetscErrorCode ierr;
   TS ts;
 
-  ierr = PetscInitialize(&argc,&argv,0,help);CHKERRQ(ierr);
-  ierr = TSCreate(PETSC_COMM_WORLD,&ts);CHKERRQ(ierr);
-  ierr = TSSetFromOptions(ts);CHKERRQ(ierr);
-  ierr = ${_PETSC_TSDestroy};CHKERRQ(ierr);
-  ierr = PetscFinalize();CHKERRQ(ierr);
+  ierr = PetscInitialize(&argc,&argv,0,help);${_PETSC_ERR_FUNC};
+  ierr = TSCreate(PETSC_COMM_WORLD,&ts);${_PETSC_ERR_FUNC};
+  ierr = TSSetFromOptions(ts);${_PETSC_ERR_FUNC};
+  ierr = ${_PETSC_TSDestroy};${_PETSC_ERR_FUNC};
+  ierr = PetscFinalize();${_PETSC_ERR_FUNC};
   return 0;
 }
-" ${runs})
+")
+    multipass_source_runs ("${includes}" "${libraries}" "${_PETSC_TEST_SOURCE}" ${runs} "${PETSC_LANGUAGE_BINDINGS}")
     if (${${runs}})
       set (PETSC_EXECUTABLE_RUNS "YES" CACHE BOOL
 	"Can the system successfully run a PETSc executable?  This variable can be manually set to \"YES\" to force CMake to accept a given PETSc configuration, but this will almost always result in a broken build.  If you change PETSC_DIR, PETSC_ARCH, or PETSC_CURRENT you would have to reset this variable." FORCE)
     endif (${${runs}})
   endmacro (PETSC_TEST_RUNS)
+
 
   find_path (PETSC_INCLUDE_DIR petscts.h HINTS "${PETSC_DIR}" PATH_SUFFIXES include NO_DEFAULT_PATH)
   find_path (PETSC_INCLUDE_CONF petscconf.h HINTS "${PETSC_DIR}" PATH_SUFFIXES "${PETSC_ARCH}/include" "bmake/${PETSC_ARCH}" NO_DEFAULT_PATH)
@@ -254,7 +288,3 @@ endif ()
 #find_package_handle_standard_args (PETSc
 #  "PETSc could not be found.  Be sure to set PETSC_DIR and PETSC_ARCH."
 #  PETSC_INCLUDES PETSC_LIBRARIES PETSC_EXECUTABLE_RUNS)
-
-
-
-

@@ -25,9 +25,6 @@
 #include "TriMesh.hh"
 
 namespace meshtk {
-  // type used to load and restore coordinate of points
-  typedef std::vector<Point> PointFunction;
-
   // DynamicTriMesh is inherited from TriMesh. It has ability to be applied some 
   // dynamic operations, such like smoothing, denoising, and remeshing.
   class DynamicTriMesh : public TriMesh {

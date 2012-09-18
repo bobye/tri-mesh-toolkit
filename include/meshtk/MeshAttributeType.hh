@@ -50,6 +50,10 @@ namespace meshtk {
   typedef std::vector<MESHTK_SCALAR_TYPE> ScalarFunction; // displayed by color ramper
   typedef std::vector<bool> BooleanFunction;// displayed by point marker.
 
+  // type used to load and restore coordinate of points
+  typedef std::vector<Point> PointFunction;
+  typedef std::vector<PointFunction> PointFuncSequence;
+
   // neighbor faces and vertices
   typedef std::map<int, double> ScalarNeighborFunction;
   typedef std::set<int> NeighborIndex;

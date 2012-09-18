@@ -1,5 +1,5 @@
 /*
-  FILE: DynamicTriMesh.hh This file is part of tri-mesh-toolkit.
+  FILE: DynamicTriMesh.cc This file is part of tri-mesh-toolkit.
   It is a C++ source file which implemented class DynamicTriMesh, achieving smoothing, 
   denoising and remeshing.
   

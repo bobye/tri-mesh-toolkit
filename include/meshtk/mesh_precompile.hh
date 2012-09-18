@@ -21,7 +21,7 @@
 #ifndef _MESH_PRECOMPILE_HH_
 #define _MESH_PRECOMPILE_HH_
 
-#define MESHTK_VERSION                 ("0.5.0")
+#define MESHTK_VERSION                 ("1.0.0")
 
 
 

@@ -1,3 +1,5 @@
+## Deprecated! User should use cmake to build the project!
+############################################################
 ## Please modify the following options properly 
 
 ## make sure your environment variable PETSC_DIR are correctly given

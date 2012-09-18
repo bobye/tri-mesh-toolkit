@@ -30,11 +30,7 @@ namespace meshtk {
     /////////////////////////////////////////////////////////////////////////////
     // public functions used in top interface.
 
-    // build connection with lower CGAL layer, should be called
-    // immediatelly after loading the mesh, update: IH, IV, IF
-    // and [vertex, facet, halfedge]_handle->index 
-    void init_index();    
-    
+    void load_sequence(std::string );
   };
 }
 #endif /* _MANIFOLDTRIMESH_HH_ */

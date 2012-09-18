@@ -19,19 +19,25 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA  
 */
 
+#include <iostream>
+#include <fstream>
 #include "meshtk/ManifoldTriMesh.hh"
-namespace meshtk {
-  void ManifoldTriMesh::init_index(){
-    TriMesh::init_index();
-    
-    vertex_coord_seq = PointFuncSequence(1);
-    vertex_coord_seq[0] = PointFunction(vertex_num);
-
-    for (int i=0;i<vertex_num; i++){
-      vertex_coord_seq[0][i] =  IV[i]->point();
+namespace meshtk {  
+  void ManifoldTriMesh::load_sequence(std::string filename) {
+    filename.append(".pts");
+    std::fstream fid; fid.open(filename.c_str());
+    int n, m=vertex_coord_seq.size(); fid >> n;
+    vertex_coord_seq.resize(m+n);
+    for (int i=0; i<n; ++i) {
+      vertex_coord_seq[i+m].resize(vertex_num);
+      for (int j=0; j<vertex_num; ++j) {
+	float x,y,z;
+	fid >> x >> y >> z;
+	vertex_coord_seq[i+m][j]=Point(x,y,z);	
+      }
     }
 
+    fid.close();
+      
   }
-  
-
 }

@@ -1,6 +1,9 @@
 ADD_EXECUTABLE(MeshTK main.cc)
 TARGET_LINK_LIBRARIES(MeshTK meshtk ${LIBS})
 
+ADD_EXECUTABLE(manifold manifold.cc)
+TARGET_LINK_LIBRARIES(manifold meshtk ${LIBS})
+
 INCLUDE_DIRECTORIES(${SLEPC_INCLUDES})
 ADD_EXECUTABLE(eigen_solver eigen_solver.cc)
 TARGET_LINK_LIBRARIES(eigen_solver ${SOLVER_LIBS})

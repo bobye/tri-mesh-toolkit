@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 {
   CSimpleOpt args(argc, argv, g_rgOptions);
   meshtk::ManifoldTriMesh mesh;
-  std::string nameprefix, reference_mesh_name, deformation_mesh_name;
+  std::string nameprefix, reference_mesh_name, deformation_mesh_name, manifold_mesh_name;
     while (args.Next()) {
         if (args.LastError() == SO_SUCCESS) {
 
@@ -48,16 +48,6 @@ int main(int argc, char *argv[])
 	      ShowUsage(); return 0;
 	    case OPT_FILE:	  
 	      nameprefix = std::string(args.OptionArg());
-	      reference_mesh_name = nameprefix; 
-	      deformation_mesh_name = nameprefix; 
-	      reference_mesh_name.append("_reference");
-	      deformation_mesh_name.append("_deformation");
-
-	      mesh.read(reference_mesh_name, "off");
-	      mesh.init_index();// initialize mesh    
-	      mesh.update_base();
-	      mesh.load_sequence(deformation_mesh_name);
-
 	      //in_img = cv::imread(args.OptionArg(), 0);
 	      break;
 	    case OPT_VIEW:
@@ -72,7 +62,28 @@ int main(int argc, char *argv[])
         }
     }
 
+    if (nameprefix.compare("") != 0) {
+      reference_mesh_name = nameprefix; 
+      deformation_mesh_name = nameprefix; 
+      reference_mesh_name.append("_reference");
+      deformation_mesh_name.append("_deformation");
 
+      mesh.read(reference_mesh_name, "off");
+      mesh.init_index();// initialize mesh    
+      mesh.update_base();
+      mesh.load_sequence(deformation_mesh_name);
+      mesh.compute_rotate_sequence();
+
+      manifold_mesh_name = nameprefix;
+      manifold_mesh_name.append("_manifold");
+      mesh.print_rotate_sequence(manifold_mesh_name);
+    }
   
   return 0;
 }
+
+
+
+
+
+

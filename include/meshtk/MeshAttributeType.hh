@@ -52,7 +52,6 @@ namespace meshtk {
 
   // type used to load and restore coordinate of points
   typedef std::vector<Point> PointFunction;
-  typedef std::vector<PointFunction> PointFuncSequence;
 
   // neighbor faces and vertices
   typedef std::map<int, double> ScalarNeighborFunction;

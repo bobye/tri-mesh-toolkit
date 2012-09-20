@@ -326,8 +326,29 @@ namespace meshtk {
   }
 
 
+  MeshLabel::MeshLabel(TriMesh *pmesh, std::vector<int> &label_array, std::vector<float> &color_map) : MeshPainter(pmesh) {
+    color_array = new float[3*vn];
+    for (unsigned int i=0; i<vn; ++i) {
+      color_array[3*i] = color_map[3*label_array[i]];
+      color_array[3*i+1] = color_map[3*label_array[i]+1];
+      color_array[3*i+2] = color_map[3*label_array[i]+2];
+    }
+  }
 
 
+  void MeshLabel::prepare(){
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+
+    glNormalPointer(GL_DOUBLE, 0, normal_array);
+    glVertexPointer(3, GL_DOUBLE, 0, vertex_array); 
+    glColorPointer(3, GL_FLOAT, 0, color_array);
+
+  }
+  MeshLabel::~MeshLabel() {
+    delete [] color_array;
+  }
 
   MeshViewer::MeshViewer(int argc, char** argv) 
     :width(800), height(800) {

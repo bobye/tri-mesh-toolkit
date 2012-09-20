@@ -84,6 +84,16 @@ namespace meshtk {
     ~MeshMarker();
   };
 
+
+  class MeshLabel : public MeshPainter {
+    GLfloat *color_array;
+  public:
+    MeshLabel(TriMesh *, std::vector<int> &, std::vector<float> &);
+    void prepare();
+
+    ~MeshLabel();
+  };
+
   class MeshViewer {
     std::vector<MeshPainter*> Painters;
   

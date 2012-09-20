@@ -29,55 +29,76 @@ void ShowUsage() {
   _tprintf(_T("Usage: shape-caft [-f FILE] [-v] [-?] [--help] \n")
 	   _T("\n")
 	   _T("-f FILE_PREFIX      Load single shape file, binary/grayscale image\n")
-	   _T("-v                  View the transformed shape")
+	   _T("-v                  View labeled mesh")
 	   );
 }
 
 #include "meshtk/ManifoldTriMesh.hh"
+#include "meshtk/MeshViewer.hh"
 
 int main(int argc, char *argv[])
 {
   CSimpleOpt args(argc, argv, g_rgOptions);
   meshtk::ManifoldTriMesh mesh;
-  std::string nameprefix, reference_mesh_name, deformation_mesh_name, manifold_mesh_name;
-    while (args.Next()) {
-        if (args.LastError() == SO_SUCCESS) {
+  std::string nameprefix;
+  bool view_label =false;
+  while (args.Next()) {
+    if (args.LastError() == SO_SUCCESS) {
 
-	    switch (args.OptionId()) {
-	    case OPT_HELP:
-	      ShowUsage(); return 0;
-	    case OPT_FILE:	  
-	      nameprefix = std::string(args.OptionArg());
-	      //in_img = cv::imread(args.OptionArg(), 0);
-	      break;
-	    case OPT_VIEW:
-	      break;
-	    default:
-	      break;
-	    }
-        }
-        else {
-	  _tprintf(_T("Invalid argument: %s\n"), args.OptionText());
-	  return 1;
-        }
+      switch (args.OptionId()) {
+      case OPT_HELP:
+	ShowUsage(); return 0;
+      case OPT_FILE:	  
+	nameprefix = std::string(args.OptionArg());
+	//in_img = cv::imread(args.OptionArg(), 0);
+	break;
+      case OPT_VIEW:
+	view_label = true;
+	break;
+      default:
+	break;
+      }
     }
+    else {
+      _tprintf(_T("Invalid argument: %s\n"), args.OptionText());
+      return 1;
+    }
+  }
 
-    if (nameprefix.compare("") != 0) {
-      reference_mesh_name = nameprefix; 
-      deformation_mesh_name = nameprefix; 
-      reference_mesh_name.append("_reference");
-      deformation_mesh_name.append("_deformation");
+  std::string  reference_mesh_name = nameprefix, 
+    deformation_mesh_name = nameprefix, 
+    manifold_mesh_name = nameprefix,
+    cluster_mesh_name = nameprefix;
+  if (nameprefix.compare("") != 0) {
+    reference_mesh_name.append("_reference");
+    deformation_mesh_name.append("_deformation");
 
-      mesh.read(reference_mesh_name, "off");
-      mesh.init_index();// initialize mesh    
-      mesh.update_base();
+    mesh.read(reference_mesh_name, "off");
+    mesh.init_index();// initialize mesh    
+    mesh.update_base();
+    mesh.update_compact_base();
+
+    if (view_label) {
+      cluster_mesh_name.append("_cluster");
+      mesh.load_proxy_bone(cluster_mesh_name);
+
+      meshtk::MeshViewer viewer(argc, argv);
+      meshtk::MeshLabel painter(&mesh, mesh.vertex_label, mesh.label_color);
+      //meshtk::MeshPainter painter(&mesh);
+
+      viewer.add_painter(&painter);
+      viewer.init();
+      viewer.view();            
+    } else {
       mesh.load_sequence(deformation_mesh_name);
       mesh.compute_rotate_sequence();
 
-      manifold_mesh_name = nameprefix;
       manifold_mesh_name.append("_manifold");
       mesh.print_rotate_sequence(manifold_mesh_name);
     }
+  }
+
+
   
   return 0;
 }

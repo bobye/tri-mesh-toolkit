@@ -82,7 +82,7 @@ namespace meshtk {
     for (int i=0;i<9;++i) norm+=A[i]*A[i]; norm = 1/std::sqrt(norm);
     for (int i=0;i<9;++i) A[i]*=norm;
     
-    fastsvd(A, U, V, S);    
+    fastsvd(A, U, V, S);
 
     A[0] = V[0]*U[0] + V[3]*U[3] + V[6]*U[6];
     A[1] = V[1]*U[0] + V[4]*U[3] + V[7]*U[6];
@@ -101,20 +101,20 @@ namespace meshtk {
       return  (.5 - (trace -3)/12.) * Vector(A[5]-A[7], A[6]-A[2], A[1]-A[3]);
     else if (trace > -1 + epsilon)
       return  (.5*theta/std::sin(theta)) * Vector(A[5]-A[7], A[6]-A[2], A[1]-A[3]);
-    else if (A[0]>A[4] && A[0] > A[8]) {
+    else  if (A[0]>A[4] && A[0] > A[8]) {
       float s = std::sqrt(A[0]-A[4]-A[8]+1);
       Vector v = Vector(s, (A[1]+A[3])/s, (A[2]+A[6])/s);
-      norm = std::sqrt(v.x()*v.x() + v.y()*v.y() + v.z()*v.z());
+      norm = std::sqrt(v*v);
       return MESHTK_PI * v/norm;
     } else if (A[4]> A[8]) {
       float s = std::sqrt(-A[0]+A[4]-A[8]+1);
       Vector v = Vector((A[1]+A[3])/s, s, (A[5]+A[7])/s);
-      norm = std::sqrt(v.x()*v.x() + v.y()*v.y() + v.z()*v.z());
+      norm = std::sqrt(v*v);
       return MESHTK_PI * v/norm;
     } else {
       float s = std::sqrt(-A[0]-A[4]+A[8]+1);
       Vector v = Vector((A[2]+A[6])/s, (A[5]+A[7])/s, s);
-      norm = std::sqrt(v.x()*v.x() + v.y()*v.y() + v.z()*v.z());
+      norm = std::sqrt(v*v);
       return MESHTK_PI * v/norm;      
     }
 
@@ -157,6 +157,55 @@ namespace meshtk {
       }
     }
 
+    for (int i=0; i < n; ++i) {
+      BooleanFunction check; check.resize(vertex_num);
+      std::vector<int> label; label.resize(vertex_num);
+
+      int head, tail=0;
+      do {
+	int iter = 0; while (check[iter]) ++iter;
+	check[iter] = true;//reference
+	
+	label[head = tail++] = iter;
+	while (head != tail) {
+	  Vector vec_head = vertex_rotate_seq[i][head], vec_head_normalized;
+	  double norm_head = std::sqrt(vec_head*vec_head);
+	  if (norm_head > 1E-6) vec_head_normalized = vec_head/norm_head;
+
+	  HV_circulator hv = IV[label[head]]->vertex_begin();
+	  do {
+	    int idx = hv->prev()->vertex()->index;
+	    if (!check[idx]) {
+	      Vector v = vertex_rotate_seq[i][idx];
+	      double norm_tail = std::sqrt(v*v);
+	      int half_step=0;
+	      if (norm_tail < 1E-6) {
+		if (norm_head > 1E-6) {		  
+		  double vec_tail_project = v * vec_head_normalized;
+		  half_step = int ((norm_head - vec_tail_project)/MESHTK_PI);
+		  half_step = std::floor((half_step+1.)/2.);		  
+		  if (half_step) vertex_rotate_seq[i][idx] = vertex_rotate_seq[i][idx] + half_step * 2* MESHTK_PI * vec_head_normalized;
+		}
+	      } else {
+		v = v/norm_tail;
+		double vec_head_project =  vec_head * v;
+		half_step = int ((vec_head_project - norm_tail)/MESHTK_PI);
+		half_step = std::floor((half_step +1.)/2.);
+		if (half_step) vertex_rotate_seq[i][idx] = vertex_rotate_seq[i][idx] + half_step * 2* MESHTK_PI * v;
+	      }
+	      
+	      if (half_step) std::cout << "+";
+	      check[idx] = true;
+	      label[tail++] = idx;
+	    }
+	    ++hv;
+	  } while (hv != IV[label[head]]->vertex_begin());
+	  ++head;
+	}
+      } while (head < vertex_num);
+
+    }
+
   }
 
   void ManifoldTriMesh::print_rotate_sequence(std::string filename) {
@@ -172,6 +221,21 @@ namespace meshtk {
       fid << std::endl;
     }
 
+  }
+
+  void ManifoldTriMesh::load_proxy_bone(std::string filename) {
+    std::string colorfile=filename;
+    colorfile.append(".color");
+    filename.append(".id");
+    std::fstream fid; fid.open(filename.c_str());
+    vertex_label.resize(vertex_num);
+    for (int i=0; i<vertex_num; ++i) fid >> vertex_label[i];
+    fid.close();    
+
+    fid.open(colorfile.c_str());
+    float c;
+    while (fid >> c) label_color.push_back(c);
+    fid.close();
   }
 
 }

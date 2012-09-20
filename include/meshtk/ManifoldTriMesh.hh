@@ -25,20 +25,28 @@
 namespace meshtk {
   typedef std::vector<PointFunction>           PointFuncSequence;
   typedef std::vector<VectorFunction>          VectorFuncSequence;
+  typedef std::vector<int>                     LabelFunction;
 
   class ManifoldTriMesh : public TriMesh {
     PointFuncSequence   vertex_coord_seq;
     VectorFuncSequence  vertex_rotate_seq;
 
+
     ScalarFunction halfedge_cot;    
+
   public:
     /////////////////////////////////////////////////////////////////////////////
     // public functions used in top interface.
+    LabelFunction vertex_label;
+    std::vector<float> label_color;
+
     void update_base();
     void load_sequence(std::string );
    
     void compute_rotate_sequence();
     void print_rotate_sequence(std::string);
+    
+    void load_proxy_bone(std::string);
   };
 }
 #endif /* _MANIFOLDTRIMESH_HH_ */

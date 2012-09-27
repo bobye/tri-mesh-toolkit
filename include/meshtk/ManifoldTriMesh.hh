@@ -30,7 +30,7 @@ namespace meshtk {
   class ManifoldTriMesh : public TriMesh {
     PointFuncSequence   vertex_coord_seq;
     VectorFuncSequence  vertex_rotate_seq;
-
+    VectorFuncSequence  vertex_rotate_exp;
 
     ScalarFunction halfedge_cot;    
 
@@ -42,7 +42,11 @@ namespace meshtk {
 
     void update_base();
     void load_sequence(std::string );
-   
+    void load_examples(std::string );
+
+    void PETSc_assemble_graphcut();
+    void PETSc_export_graphcut_vectors(std::string );
+    
     void compute_rotate_sequence();
     void print_rotate_sequence(std::string);
     

@@ -32,13 +32,13 @@
 namespace meshtk {
 
   static PetscInt FEM_degree = 3;//cubic FEM in default;
-
+  
   // index map
   static PetscInt* FEM_index_map;
 
   // mass matrix and stiff matrix of Laplace Beltrami operator
-  static Mat mass_mat, stiff_mat;
-  static PetscInt mat_size;
+  Mat mass_mat, stiff_mat;
+  PetscInt mat_size;
 
 
   // Fourier bent bihamonic matrix 
@@ -46,11 +46,11 @@ namespace meshtk {
   static Vec bihd_trace;
 
   // eigenvalues and eigenvectors of generalized eigen problem defined by FEM_LBmat
-  static std::vector<double> eig_value;
-  static std::vector<Vec> eig_vector;
-  static std::vector<double> eig_vector_sqr_norm;
+  std::vector<double> eig_value;
+  std::vector<Vec> eig_vector;
+  std::vector<double> eig_vector_sqr_norm;
   // number of eigenvalues computed
-  static PetscInt eig_num;
+  PetscInt eig_num;
 
   //static std::vector<std::vector<double> > vertex_hks;
   //static int vertex_hks_dim;
@@ -153,7 +153,7 @@ const PetscInt I4[100]
     }
     
     int count =0;
-    int vertex_count = 0, halfedge_count=0, facet_count =0;
+    int vertex_count = 0, halfedge_count=0, facet_count;
     for (PetscInt i=0; i<vertex_num; ++i)
       if (FEM_index_map[i]==0)
 	FEM_index_map[i] = count++;

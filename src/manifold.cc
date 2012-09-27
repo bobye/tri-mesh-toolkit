@@ -15,11 +15,13 @@
 #include "simpleopt/SimpleOpt.h"
 
 // define the ID values to indentify the option
-enum { OPT_HELP, OPT_FILE, OPT_VIEW};
+enum { OPT_HELP, OPT_FILE, OPT_VIEW, OPT_EXPL, OPT_EMBD};
 
 CSimpleOpt::SOption g_rgOptions[] = {
   { OPT_FILE,  _T("-f"),     SO_REQ_SEP }, // 
   { OPT_VIEW,  _T("-v"),     SO_NONE    },
+  { OPT_EXPL,  _T("-e"),     SO_NONE    },
+  { OPT_EMBD,  _T("-b"),     SO_NONE    },  
   { OPT_HELP,  _T("-?"),     SO_NONE    }, // "-?"
   { OPT_HELP,  _T("--help"), SO_NONE    }, // "--help"
   SO_END_OF_OPTIONS                       // END
@@ -41,7 +43,7 @@ int main(int argc, char *argv[])
   CSimpleOpt args(argc, argv, g_rgOptions);
   meshtk::ManifoldTriMesh mesh;
   std::string nameprefix;
-  bool view_label =false;
+  bool view_label =false, load_examples = false, export_embed = false;
   while (args.Next()) {
     if (args.LastError() == SO_SUCCESS) {
 
@@ -53,8 +55,11 @@ int main(int argc, char *argv[])
 	//in_img = cv::imread(args.OptionArg(), 0);
 	break;
       case OPT_VIEW:
-	view_label = true;
-	break;
+	view_label = true; break;
+      case OPT_EXPL:
+	load_examples = true;	break;
+      case OPT_EMBD:
+	export_embed = true; break;
       default:
 	break;
       }
@@ -68,10 +73,12 @@ int main(int argc, char *argv[])
   std::string  reference_mesh_name = nameprefix, 
     deformation_mesh_name = nameprefix, 
     manifold_mesh_name = nameprefix,
-    cluster_mesh_name = nameprefix;
+    cluster_mesh_name = nameprefix,
+    examples_mesh_name = nameprefix;
   if (nameprefix.compare("") != 0) {
     reference_mesh_name.append("_reference");
     deformation_mesh_name.append("_deformation");
+    examples_mesh_name.append("_examples");
 
     mesh.read(reference_mesh_name, "off");
     mesh.init_index();// initialize mesh    
@@ -89,6 +96,18 @@ int main(int argc, char *argv[])
       viewer.add_painter(&painter);
       viewer.init();
       viewer.view();            
+    } else if (load_examples) {
+      mesh.load_examples(examples_mesh_name);
+      mesh.PETSc_init(argc, argv);
+      mesh.PETSc_assemble_graphcut();
+      mesh.PETSc_export_LBmat(examples_mesh_name);
+      mesh.PETSc_destroy();
+    } else if (export_embed) {
+      mesh.PETSc_init(argc, argv);
+      mesh.PETSc_load_LBmat(examples_mesh_name);
+      mesh.PETSc_load_LBeigen(examples_mesh_name);
+      mesh.PETSc_export_graphcut_vectors(examples_mesh_name);
+      mesh.PETSc_destroy();      
     } else {
       mesh.load_sequence(deformation_mesh_name);
       mesh.compute_rotate_sequence();

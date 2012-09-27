@@ -62,6 +62,24 @@ namespace meshtk {
       
   }
 
+  void ManifoldTriMesh::load_examples(std::string filename) {
+    filename.append(".rot");
+    std::fstream fid; fid.open(filename.c_str());
+    int vn, m; fid >> vn >> m;
+    vertex_rotate_exp.resize(m);
+    for (int i = 0; i < m; ++i) vertex_rotate_exp[i].resize(vn);
+
+    for (int i = 0; i < vn; ++i) {
+      for (int j = 0; j < m; ++j) {
+	float x,y,z;
+	fid >> x >> y >> z;
+	vertex_rotate_exp[j][i] = Vector(x,y,z);
+      }	
+    }
+
+    fid.close();
+  }
+
   inline void assembly_rotation_matrix(float * const &A, const float &w, const Point &a, const Point &b, const Vector &v) {
     A[0] += w * (a.x() - b.x()) * v.x();
     A[1] += w * (a.x() - b.x()) * v.y();

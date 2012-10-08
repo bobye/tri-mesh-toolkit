@@ -30,7 +30,7 @@ namespace meshtk {
 
 
   MeshViewer* MeshViewer::currentMeshViewer;
-  GLfloat scale = 1.;
+  GLfloat scale = 1., win_world_radio;
   int origin_x, origin_y;
   int transform_x=0., transform_y=0.;
   //int displace_x=0, displace_y=0;
@@ -65,6 +65,10 @@ namespace meshtk {
     coordinate_max_x = pmesh->coordinate_max_x;
     coordinate_max_y = pmesh->coordinate_max_y;
     coordinate_max_z = pmesh->coordinate_max_z;
+    center_x = (coordinate_min_x + coordinate_max_x) /2.;
+    center_y = (coordinate_min_y + coordinate_max_y) /2.;
+    center_z = (coordinate_min_z + coordinate_max_z) /2.;
+
 
     vn = pmesh->vertex_num;
     fn = pmesh->facet_num;
@@ -413,31 +417,46 @@ namespace meshtk {
       
   }
 
+
+
+  void MeshViewer::get_window_world_radio() {
+    GLdouble corner1[3], corner2[3], depth;
+    GLdouble modelview[16], projection[16];
+    int  viewport[4];
+
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetIntegerv( GL_VIEWPORT, viewport );
+
+    gluProject( center_x, center_y, center_z, modelview, projection, viewport, &corner1[0], &corner1[1], &depth);
+
+    gluUnProject( viewport[0], viewport[1], depth, modelview, 
+		  projection, viewport, &corner1[0], &corner1[1], &corner1[2]);
+
+    gluUnProject( viewport[2], viewport[3], depth, modelview, 
+		  projection, viewport, &corner2[0], &corner2[1], &corner2[2]);
+	
+    GLdouble vect_world[3];
+    vect_world[0] = corner1[0] - corner2[0];
+    vect_world[1] = corner1[1] - corner2[1];
+    vect_world[2] = corner1[2] - corner2[2];
+    win_world_radio =std::sqrt((vect_world[0] * vect_world[0] + vect_world[1] * vect_world[1] + vect_world[2] * vect_world[2])  / (width * width + height * height));
+  }
   
   void MeshViewer::reshape(int width, int height){
 
     glViewport(0, 0, width, height);    
-    
-    GLfloat radio_x = (currentMeshViewer->coordinate_max_x - currentMeshViewer->coordinate_min_x) /  width;
-    GLfloat radio_y = (currentMeshViewer->coordinate_max_y - currentMeshViewer->coordinate_min_y) /  height;
-    GLfloat radio = scale *((radio_x > radio_y)? radio_x: radio_y);
-
-
-
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho( currentMeshViewer->center_x - radio * width/perfect_factor, 
-	     currentMeshViewer->center_x + radio * width/perfect_factor,
-	     currentMeshViewer->center_y - radio * height/perfect_factor, 
-	     currentMeshViewer->center_y + radio * height/perfect_factor,
-	     //100000, -100000);
-	     - currentMeshViewer->center_z - 2* currentMeshViewer->length_z ,
-	     - currentMeshViewer->center_z + 2* currentMeshViewer->length_z);//(NEW) set up our viewing area
+    gluPerspective(30*scale, (float)width/(float)height, currentMeshViewer->size, 20*currentMeshViewer->size);
 
+    glTranslated(0, 0, - 3 * currentMeshViewer->size);
 
     //glOrtho(-1,1,-1,1,-10,10);
     glMatrixMode(GL_MODELVIEW);
+
+    currentMeshViewer->get_window_world_radio();
 
     
   }
@@ -451,9 +470,7 @@ namespace meshtk {
   void MeshViewer::motion(int x, int y) {
     if (left_button) {
       glLoadIdentity();
-      glTranslated(
-		   (currentMeshViewer->coordinate_max_x - currentMeshViewer->coordinate_min_x) *(GLfloat) (x-origin_x)/(GLfloat) currentMeshViewer->width * scale * 2./perfect_factor,
-		    - (currentMeshViewer->coordinate_max_y - currentMeshViewer->coordinate_min_y) * (GLfloat) (y-origin_y)/(GLfloat) currentMeshViewer->height * scale* 2./ perfect_factor, 0.0);
+      glTranslated((x-origin_x)*win_world_radio, - (y-origin_y)*win_world_radio, 0);
       glMultMatrixf(CTM);
 
       glutPostRedisplay();
@@ -462,8 +479,8 @@ namespace meshtk {
     else if (right_button) {
       glLoadIdentity();
 
-      glRotatef(90.0* (GLfloat) (x-origin_x)/(GLfloat) currentMeshViewer->width * scale * 2./perfect_factor, 0.0, 1.0, 0.0);
-      glRotatef(90.0* (GLfloat) (y-origin_y)/(GLfloat) currentMeshViewer->height *scale * 2./perfect_factor, 1.0, 0.0, 0.0);                
+      glRotatef(360.0 * (x-origin_x)/currentMeshViewer->width/MESHTK_PI, 0.0, 1.0, 0.0);
+      glRotatef(360.0 * (y-origin_y)/currentMeshViewer->height/MESHTK_PI, 1.0, 0.0, 0.0);
 
       glMultMatrixf(CTM);	
 
@@ -543,30 +560,9 @@ namespace meshtk {
     glClearColor(1.0, 1.0, 1.0, 0.0);
     glClearDepth(1.0);
     
-    center_x = (coordinate_min_x + coordinate_max_x) /2.;
-    center_y = (coordinate_min_y + coordinate_max_y) /2.;
-    center_z = (coordinate_min_z + coordinate_max_z) /2.;
-    length_z = (coordinate_max_z - coordinate_min_z) /2.;
   
-    GLfloat radio_x = (coordinate_max_x - coordinate_min_x) /  width;
-    GLfloat radio_y = (coordinate_max_y - coordinate_min_y) /  height;
-    GLfloat radio = (radio_x > radio_y)? radio_x: radio_y;
-
-    //std::cout<< length_z << std::endl;
-
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho( center_x - radio * width/perfect_factor, center_x + radio * width/perfect_factor,
-	     center_y - radio * height/perfect_factor, center_y + radio * height/perfect_factor,
-	     //100000, -100000);
-	     - center_z - 2* length_z , - center_z + 2* length_z);//(NEW) set up our viewing area
-
-
-    //glOrtho(-1,1,-1,1,-10,10);
-    glMatrixMode(GL_MODELVIEW);
-
-
+    //std::cout<< length_z << std::endl
+    currentMeshViewer->reshape(width, height);
     /////////////////////////
     scale =1.;
 
@@ -632,10 +628,23 @@ namespace meshtk {
       coordinate_max_z = painter->coordinate_max_z;
 
 
+    size = coordinate_max_z -coordinate_min_z;
+    if (size < (coordinate_max_x - coordinate_min_x)) size = (coordinate_max_x - coordinate_min_x);
+    if (size < (coordinate_max_y - coordinate_min_y)) size = (coordinate_max_y - coordinate_min_y);
+
+
+    center_x = (coordinate_min_x + coordinate_max_x) /2.;
+    center_y = (coordinate_min_y + coordinate_max_y) /2.;
+    center_z = (coordinate_min_z + coordinate_max_z) /2.;
+    length_z = (coordinate_max_z - coordinate_min_z) /2.;
+
     painter->prepare();    
 
     glNewList(painter->LIST_NAME, GL_COMPILE_AND_EXECUTE);
+    glPushMatrix();
+    glTranslated(-painter->center_x, -painter->center_y, -painter->center_z);
     painter->draw();
+    glPopMatrix();
     glEndList();
 
 

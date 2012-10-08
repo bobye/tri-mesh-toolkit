@@ -48,7 +48,7 @@ namespace meshtk {
 
     GLfloat coordinate_min_x, coordinate_min_y, coordinate_min_z;
     GLfloat coordinate_max_x, coordinate_max_y, coordinate_max_z;
-
+    GLfloat center_x, center_y, center_z;
 
     MeshPainter(TriMesh *); 
     virtual void prepare();
@@ -112,6 +112,7 @@ namespace meshtk {
     int width, height;
     GLfloat coordinate_min_x, coordinate_min_y, coordinate_min_z;
     GLfloat coordinate_max_x, coordinate_max_y, coordinate_max_z;
+    GLfloat size;
 
     GLfloat center_x, center_y, center_z, length_z;
     static MeshViewer* currentMeshViewer;
@@ -119,7 +120,7 @@ namespace meshtk {
 
     MeshViewer(int ,char** );//init windows and gl setting
     void init(); //call in main()
-
+    void get_window_world_radio();
     void add_painter(MeshPainter *);
     void view();//main loop
 

@@ -41,7 +41,8 @@ namespace meshtk {
 	Vector v = vertex_rotate_exp[j][h->vertex()->index] - vertex_rotate_exp[j][h->prev()->vertex()->index];
 	halfedge_rotate_distance[i] +=  v*v;
       }
-      avg_edge_rotate_distance += (halfedge_rotate_distance[i] = CGAL::sqrt(halfedge_rotate_distance[i]));
+
+      avg_edge_rotate_distance += (halfedge_rotate_distance[i] = CGAL::sqrt(halfedge_rotate_distance[i]/m));
     }
 
     avg_edge_rotate_distance /= halfedge_num;

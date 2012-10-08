@@ -15,12 +15,13 @@
 #include "simpleopt/SimpleOpt.h"
 
 // define the ID values to indentify the option
-enum { OPT_HELP, OPT_FILE, OPT_VIEW, OPT_EXPL, OPT_EMBD};
+enum { OPT_HELP, OPT_FILE, OPT_VIEW, OPT_EXPL, OPT_LAPL, OPT_EMBD};
 
 CSimpleOpt::SOption g_rgOptions[] = {
   { OPT_FILE,  _T("-f"),     SO_REQ_SEP }, // 
   { OPT_VIEW,  _T("-v"),     SO_NONE    },
   { OPT_EXPL,  _T("-e"),     SO_NONE    },
+  { OPT_LAPL,  _T("-l"),     SO_NONE    },
   { OPT_EMBD,  _T("-b"),     SO_NONE    },  
   { OPT_HELP,  _T("-?"),     SO_NONE    }, // "-?"
   { OPT_HELP,  _T("--help"), SO_NONE    }, // "--help"
@@ -31,7 +32,10 @@ void ShowUsage() {
   _tprintf(_T("Usage: shape-caft [-f FILE] [-v] [-?] [--help] \n")
 	   _T("\n")
 	   _T("-f FILE_PREFIX      Load single shape file, binary/grayscale image\n")
-	   _T("-v                  View labeled mesh")
+	   _T("-v                  View labeled mesh\n")
+	   _T("-e                  Load examples, assembly and export GraphCut matrix\n")
+	   _T("-f                  Assembly and export linear LB matrix\n")
+	   _T("-b                  Solve eigenvectors, and export embedding\n")
 	   );
 }
 
@@ -43,7 +47,7 @@ int main(int argc, char *argv[])
   CSimpleOpt args(argc, argv, g_rgOptions);
   meshtk::ManifoldTriMesh mesh;
   std::string nameprefix;
-  bool view_label =false, load_examples = false, export_embed = false;
+  bool view_label =false, load_examples = false, export_embed = false, assembly_LB = false;
   while (args.Next()) {
     if (args.LastError() == SO_SUCCESS) {
 
@@ -58,6 +62,8 @@ int main(int argc, char *argv[])
 	view_label = true; break;
       case OPT_EXPL:
 	load_examples = true;	break;
+      case OPT_LAPL:
+	assembly_LB = true; break;
       case OPT_EMBD:
 	export_embed = true; break;
       default:
@@ -102,7 +108,12 @@ int main(int argc, char *argv[])
       mesh.PETSc_assemble_graphcut();
       mesh.PETSc_export_LBmat(examples_mesh_name);
       mesh.PETSc_destroy();
-    } else if (export_embed) {
+    } else if (assembly_LB) {
+      mesh.PETSc_init(argc, argv);
+      mesh.PETSc_assemble_linearFEM_LBmat();
+      mesh.PETSc_export_LBmat(examples_mesh_name);
+      mesh.PETSc_destroy();
+    }else if (export_embed) {
       mesh.PETSc_init(argc, argv);
       mesh.PETSc_load_LBmat(examples_mesh_name);
       mesh.PETSc_load_LBeigen(examples_mesh_name);

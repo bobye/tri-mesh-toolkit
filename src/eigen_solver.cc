@@ -37,7 +37,7 @@ int main( int argc, char **argv )
 {
   Mat         	 A,B;		  /* matrices */
   EPS         	 eps;		  /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType  type;
   ST          	 st;		  /* spectral transformation context */
   Vec            eigenvector;
   Vec            x;

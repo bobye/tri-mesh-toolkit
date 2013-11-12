@@ -29,8 +29,10 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <atlas/cblas.h>
-#include <atlas/clapack.h>
+
+//ATLAS version
+#include <cblas.h>
+#include <clapack.h>
 
 
 //namespace lapack_wrapper {

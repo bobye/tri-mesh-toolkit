@@ -1,6 +1,18 @@
 # tri-mesh-toolkit
 A toolkit for mesh (sequence) (pre-)processing, shape analysis and visualization
 
+## Build Dependency
+- GLUT
+- OpenGL
+- CGAL (version 4.3)
+- lapack
+- PETSc (version 3.4.3)
+- SLEPc (version 3.4.3)
+- ATLAS
+
+## Limitations
+tri-mesh-toolkit only supports manifold meshes. 
+
 ## Publication
 
 J1: Jianbo Ye and Yizhou Yu, *A fast modal space transform for robust nonrigid shape retrieval*. TVC 2015

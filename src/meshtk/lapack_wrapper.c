@@ -347,68 +347,6 @@ extern "C" {
     return info;
   }
 
-  int matrix_invert(int n, double *X, double *Y) {
-    /*
-      Calculates the inverse of the n*n matrix X: Y = X^-1
-      Does not change the value of X, unless Y=X
-    */
-
-    int info=0;
-
-    /* When X!=Y we want to keep X unchanged. Copy to Y and use this as working variable */
-    if (X!=Y) vector_copy(n*n, X, Y);
-
-    /* We need to store the pivot matrix obtained by the LU factorisation */
-    int *ipiv;
-    ipiv=(int*) malloc(n*sizeof(int));
-    if (ipiv==NULL) {
-      printf("malloc failed in matrix_invert\n");
-      return 2;
-    }
-
-    /* Turn Y into its LU form, store pivot matrix */
-    info = clapack_dgetrf (CblasColMajor, n, n, Y, n, ipiv);
-
-    /* Don't bother continuing when illegal argument (info<0) or singularity (info>0) occurs */
-    if (info!=0) return info;
-
-    /* Feed this to the lapack inversion routine. */
-    info = clapack_dgetri (CblasColMajor, n, Y, n, ipiv);
-
-    /* Cleanup and exit */
-    free(ipiv);
-    return info;
-  }
-
-  int linsolve(int n, double *A, double *B, double *x) {
-    /*
-      Solves the matrix equation A*x = B for x
-      A is an n*n matrix in Fortran vector notation, B and x are vectors of lenght n
-      A and B are not changed. x will contain the solution.
-      x can equal B if B may be overwritten.
-    */
-
-    int info=0;
-
-    /* When x!=B we want to keep B unchanged. Copy to x and use this as working variable */
-    if (x!=B) vector_copy(n, B, x);
-
-    /* We need space for the pivot matrix */
-    int *ipiv;
-    ipiv=(int*) malloc(n*sizeof(int));
-    if (ipiv==NULL) {
-      printf("malloc failed in linsolve\n");
-      return 2;
-    }
-
-    /* Now we can call the Lapack function */
-    info = clapack_dgesv (CblasColMajor, n, 1, A, n, ipiv, x, n);
-
-    /* Cleanup and exit */
-    free(ipiv);
-    return info;
-  }
-
 #ifdef __cplusplus
 }
 #endif
